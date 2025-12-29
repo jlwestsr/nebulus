@@ -14,28 +14,13 @@ A containerized, general-purpose local AI ecosystem.
 
 ## Setup
 
-1. **Configure Environment**
-   Copy the example environment file:
+1. **Run the Setup Playbook**
+   This single command creates the environment, starts the services, and pulls the models.
    ```bash
-   cp .env.example .env
-   ```
-   Edit `.env` to set your `WEBUI_SECRET_KEY` (optional for local dev).
-
-2. **Start Services**
-   ```bash
-   docker-compose up -d
-   ```
-   *Note: The first run will pull large images (several GBs). Use `docker-compose logs -f` to monitor progress.*
-
-3. **Pull Models**
-   Once Ollama is running, pull the foundational models:
-   ```bash
-   # Enter the Ollama container
-   docker exec -it blackbox-ollama ollama pull llama3.2
-   docker exec -it blackbox-ollama ollama pull nomic-embed-text # For RAG
+   ansible-playbook -i ansible/inventory ansible/setup.yml
    ```
 
-4. **Access the Interface**
+2. **Access the Interface**
    - Open [http://localhost:3000](http://localhost:3000)
    - The first account created becomes the Admin.
 

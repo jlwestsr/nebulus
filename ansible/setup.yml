@@ -1,0 +1,54 @@
+---
+- name: Setup Black Box AI System
+  hosts: localhost
+  gather_facts: false
+  vars:
+    project_root: "{{ playbook_dir }}/.."
+    venv_path: "{{ project_root }}/.venv"
+    models:
+      - llama3.1:latest
+      - qwen2.5-coder:latest
+      - nomic-embed-text
+
+  tasks:
+    - name: Ensure .env file exists
+      ansible.builtin.copy:
+        src: "{{ project_root }}/.env.example"
+        dest: "{{ project_root }}/.env"
+        force: no
+        mode: '0644'
+
+    - name: Create virtual environment with uv
+      ansible.builtin.command:
+        cmd: uv venv
+        chdir: "{{ project_root }}"
+        creates: "{{ venv_path }}"
+
+    - name: Install dependencies with uv
+      ansible.builtin.shell:
+        cmd: uv pip install -r requirements.txt -r requirements-dev.txt -r mcp_server/requirements.txt
+        chdir: "{{ project_root }}"
+      environment:
+        VIRTUAL_ENV: "{{ venv_path }}"
+
+    - name: Start Docker services
+      community.docker.docker_compose_v2:
+        project_src: "{{ project_root }}"
+        state: present
+        pull: always
+      register: docker_output
+
+    - name: Wait for Ollama to be ready
+      ansible.builtin.wait_for:
+        port: 11435
+        delay: 5
+        timeout: 60
+
+    - name: Pull Ollama models
+      community.docker.docker_container_exec:
+        container: blackbox-ollama
+        command: "ollama pull {{ item }}"
+      loop: "{{ models }}"
+      register: pull_result
+      changed_when: "'success' in pull_result.stdout"
+      failed_when: pull_result.rc != 0
