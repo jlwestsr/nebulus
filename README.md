@@ -1,42 +1,57 @@
-# ai_project
+# Black Box AI System
 
-This project was forged using the **Forge AI-Native Scaffolder**.
+A containerized, general-purpose local AI ecosystem.
 
-## 🚀 Getting Started
+## Stack
+- **Backend Inference**: [Ollama](https://ollama.com/)
+- **Frontend**: [Open WebUI](https://docs.openwebui.com/)
+- **RAG**: ChromaDB (Vector Store)
+- **Tools**: Custom MCP Server (Python/FastAPI)
 
-Instructions to get the project up and running on your local machine.
+## Prerequisites
+- Docker & Docker Compose
+- (Optional) NVIDIA GPU with Container Toolkit for acceleration
 
-### Prerequisites
+## Setup
 
-List the software and tools required to run this project.
+1. **Configure Environment**
+   Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` to set your `WEBUI_SECRET_KEY` (optional for local dev).
 
-```bash
-# Example
-# pip install -r requirements.txt
-```
+2. **Start Services**
+   ```bash
+   docker-compose up -d
+   ```
+   *Note: The first run will pull large images (several GBs). Use `docker-compose logs -f` to monitor progress.*
 
-### Installation
+3. **Pull Models**
+   Once Ollama is running, pull the foundational models:
+   ```bash
+   # Enter the Ollama container
+   docker exec -it blackbox-ollama ollama pull llama3.2
+   docker exec -it blackbox-ollama ollama pull nomic-embed-text # For RAG
+   ```
 
-1.  Clone the repository.
-2.  Install dependencies.
-
-## Usage
-
-Provide instructions and examples for using the project.
-
-```bash
-# Example usage command
-```
+4. **Access the Interface**
+   - Open [http://localhost:3000](http://localhost:3000)
+   - The first account created becomes the Admin.
 
 ## Features
 
--   Feature 1
--   Feature 2
+### MCP Tool Integration
+The system includes a custom MCP (Model Context Protocol) server running on the internal network at `http://mcp-server:8000/sse`.
 
-## Contributing
+**To connect in Open WebUI:**
+1. Go to **Settings > Admin Settings > Tools**.
+2. Add a new tool connection.
+3. Use the URL: `http://mcp-server:8000/sse` (this hostname works inside the Docker network).
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+This enables the agent to:
+- Read local files in this project directory (mounted at `/workspace`).
+- Search the web via DuckDuckGo.
 
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
+### RAG Pipeline
+Documents uploaded to Open WebUI are automatically vectorized using `nomic-embed-text` (running on Ollama) and stored in ChromaDB for persistent retrieval.

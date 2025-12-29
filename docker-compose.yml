@@ -1,9 +1,81 @@
 version: '3.8'
 
 services:
-  app:
-    build: .
+  ollama:
+    image: ollama/ollama:latest
+    container_name: blackbox-ollama
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
     volumes:
-      - .:/app
-    # command: python src/main.py
-    command: tail -f /dev/null # Keep the container running for development
+      - ollama_data:/root/.ollama
+    networks:
+      - ai-network
+    ports:
+      - "11434:11434"
+    # Uncomment to enable GPU support (requires nvidia-container-toolkit)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: blackbox-webui
+    restart: unless-stopped
+    depends_on:
+      - ollama
+      - chromadb
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-insecure_default_key}
+      - WEBUI_NAME=${WEBUI_NAME:-Black Box AI}
+      # Vector DB Configuration
+      - RAG_EMBEDDING_ENGINE=ollama
+      - RAG_EMBEDDING_MODEL=nomic-embed-text
+      - CHROMA_HTTP_HOST=chromadb
+      - CHROMA_HTTP_PORT=8000
+    volumes:
+      - webui_data:/app/backend/data
+    ports:
+      - "3000:8080"
+    networks:
+      - ai-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: blackbox-chromadb
+    restart: unless-stopped
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+    ports:
+      - "8001:8000"
+    networks:
+      - ai-network
+
+  mcp-server:
+    build: ./mcp_server
+    container_name: blackbox-mcp
+    restart: unless-stopped
+    volumes:
+      - .:/workspace # Mount current directory to /workspace for file tools
+    ports:
+      - "8000:8000"
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    driver: bridge
+
+volumes:
+  ollama_data:
+  webui_data:
+  chroma_data:
