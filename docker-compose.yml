@@ -12,7 +12,7 @@ services:
     networks:
       - ai-network
     ports:
-      - "11434:11434"
+      - "11435:11434"
     # Uncomment to enable GPU support (requires nvidia-container-toolkit)
     # deploy:
     #   resources:

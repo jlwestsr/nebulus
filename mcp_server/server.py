@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # though Dockerfile uses uvicorn directly on the app object.
     import uvicorn
 
-    uvicorn.run(mcp._app, host="0.0.0.0", port=8000)
+    uvicorn.run(mcp.sse_app(), host="0.0.0.0", port=8000)
 else:
     # Expose the internal FastAPI app for uvicorn
-    app = mcp._app
+    app = mcp.sse_app()
