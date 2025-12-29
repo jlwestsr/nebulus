@@ -1,0 +1,16 @@
+[flake8]
+# 88 matches the Black line length standard
+max-line-length = 88
+extend-ignore = E203
+exclude =
+    .git,
+    __pycache__,
+    docs/source/conf.py,
+    old,
+    build,
+    dist,
+    .venv,
+    venv,
+    env,
+    models,
+    data

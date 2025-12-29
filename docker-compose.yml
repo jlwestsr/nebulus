@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+    # command: python src/main.py
+    command: tail -f /dev/null # Keep the container running for development

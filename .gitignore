@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+.venv/
+.env
+*.egg-info
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Project Data & Models (Never commit these!)
+data/
+models/
+*.pkl
+*.h5
+*.pt
+*.pth
+
+# IDE Specific
+*.code-workspace
+
+# Aider / LLM tools
+.aider*
+!.aider.conf.yml

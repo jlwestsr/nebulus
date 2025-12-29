@@ -1,0 +1,6 @@
+pytest
+black
+flake8
+pre-commit
+aider-chat
+mkdocs-material

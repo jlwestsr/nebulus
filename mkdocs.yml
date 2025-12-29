@@ -1,0 +1,25 @@
+site_name: ai_project
+site_description: Documentation for ai_project
+site_author: User
+
+theme:
+  name: material
+  features:
+    - navigation.expand
+    - navigation.indexes
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Features: features/
+  - AI Behavior: rules/ai_behavior.md
+  - Context: CONTEXT.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
