@@ -48,10 +48,10 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-insecure_default_key}
       - WEBUI_NAME=Nebulus (Black Box AI)
-      - DEFAULT_MODELS=llama-3.2-vision
+      - DEFAULT_MODELS=llama3.1:latest
       - BYPASS_ADMIN_ACCESS_CONTROL=false
       - ENABLE_MODEL_FILTER=true
-      - MODEL_FILTER_LIST=llama-3.2-vision;llama-3.1;qwen-2.5-coder
+      - MODEL_FILTER_LIST=llama3.1:latest;llama3.2-vision:latest;qwen2.5-coder:latest
       # Vector DB Configuration
       - RAG_EMBEDDING_ENGINE=ollama
       - RAG_EMBEDDING_MODEL=nomic-embed-text

@@ -130,7 +130,7 @@ def generate_llm_response(prompt: str) -> str:
     # Assuming Ollama is at http://ollama:11434
     url = "http://ollama:11434/api/generate"
     payload = {
-        "model": "llama-3.2-vision",  # Use default model
+        "model": "llama3.1:latest",  # Use default model
         "prompt": prompt,
         "stream": False,
     }

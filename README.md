@@ -17,11 +17,11 @@ A containerized, general-purpose local AI ecosystem.
 - **Health Checks**: `scripts/health.sh` monitors all service statuses.
 - **Monitoring**: [Dozzle](https://dozzle.com) (Log Viewer)
 
-## Default Models
-- `llama3.1:latest` (General Purpose)
+## Default Models (Preinstalled)
+- `llama3.1:latest` (General Purpose - **Default**)
+- `llama3.2-vision:latest` (Vision Support)
 - `qwen2.5-coder:latest` (Coding Specialist)
-- `glm-4.7:cloud` (Advanced Cloud Model)
-- `nomic-embed-text` (Embeddings)
+- `nomic-embed-text` (Embeddings for RAG)
 
 ## Prerequisites
 - Docker & Docker Compose
