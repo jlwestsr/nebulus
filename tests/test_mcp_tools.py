@@ -29,6 +29,7 @@ with patch("mcp.server.fastmcp.FastMCP", return_value=mock_mcp):
         edit_file,
         list_directory,
         run_command,
+        scrape_url,
         _validate_path,
     )
 
@@ -124,6 +125,46 @@ class TestMCPTools(unittest.TestCase):
         mock_run.side_effect = subprocess.TimeoutExpired(["echo"], 30)
         result = run_command("echo test_timeout")
         self.assertIn("Error: Command timed out", result)
+
+    @patch("httpx.Client")
+    def test_scrape_url(self, mock_client_cls):
+        # Mock client context manager
+        mock_client = MagicMock()
+        mock_client_cls.return_value.__enter__.return_value = mock_client
+
+        # Mock response
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = (
+            "<html><body><h1>Title</h1><p>Content  with  spaces</p>"
+            "<script>var x=1;</script></body></html>"
+        )
+        mock_client.get.return_value = mock_response
+
+        # Call scrape_url
+        result = scrape_url("https://example.com")
+
+        # Verify
+        self.assertIn("Title", result)
+        self.assertIn("Content with spaces", result)
+        self.assertNotIn("var x=1", result)  # Script should be removed
+
+        # Verify call arguments
+        mock_client.get.assert_called_with(
+            "https://example.com",
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/91.0.4472.124 Safari/537.36"
+                )
+            },
+        )
+
+        # Test request error
+        mock_client.get.side_effect = Exception("Connection error")
+        result = scrape_url("https://example.com")
+        self.assertIn("Unexpected error", result)
 
 
 if __name__ == "__main__":

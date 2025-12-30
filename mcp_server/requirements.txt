@@ -2,3 +2,5 @@ mcp[cli]
 fastapi
 uvicorn
 duckduckgo-search
+beautifulsoup4
+httpx

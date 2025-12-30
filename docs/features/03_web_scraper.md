@@ -7,10 +7,10 @@ Add a `scrape_url` tool to the MCP server. While the search tool finds links, th
 
 ## 2. Requirements
 List specific, testable requirements:
-- [ ] Implement `scrape_url` tool: Accepts `url`.
-- [ ] **Parsing**: Extract main text content from HTML, removing ads/nav (using `beautifulsoup4` or `newspaper3k`).
-- [ ] **Formatting**: Return clean Markdown.
-- [ ] **Error Handling**: Gracefully handle 404s, timeouts, and unparseable content.
+- [x] Implement `scrape_url` tool: Accepts `url`.
+- [x] **Parsing**: Extract main text content from HTML, removing ads/nav (using `beautifulsoup4` or `newspaper3k`).
+- [x] **Formatting**: Return clean Markdown.
+- [x] **Error Handling**: Gracefully handle 404s, timeouts, and unparseable content.
 
 ## 3. Technical Implementation
 - **Modules**: Modify `mcp_server/server.py`.
@@ -19,17 +19,17 @@ List specific, testable requirements:
 
 ## 4. Verification Plan
 **Automated Tests**:
-- [ ] Script/Test: `test_scraper.py` checking extraction against a known static HTML page.
-- [ ] Logic Verified: Ensure HTML tags are stripped and text is readable.
+- [x] Script/Test: `test_scraper.py` checking extraction against a known static HTML page.
+- [x] Logic Verified: Ensure HTML tags are stripped and text is readable.
 
 **Manual Verification**:
-- [ ] Step 1: Ask agent to "Read https://example.com".
-- [ ] Step 2: Verify it returns the full text content of the page.
+- [x] Step 1: Ask agent to "Read https://example.com".
+- [x] Step 2: Verify it returns the full text content of the page.
 
 ## 5. Workflow Checklist
 Follow the AI Behavior strict workflow:
-- [ ] **Branch**: Created `feat/web-scraper` branch?
-- [ ] **Work**: Implemented changes?
-- [ ] **Test**: All tests pass (`pytest`)?
-- [ ] **Doc**: Updated `README.md` and `walkthrough.md`?
-- [ ] **Data**: `git add .`, `git commit`, `git push`?
+- [x] **Branch**: Created `feat/web-scraper` branch?
+- [x] **Work**: Implemented changes?
+- [x] **Test**: All tests pass (`pytest`)?
+- [x] **Doc**: Updated `README.md` and `walkthrough.md`?
+- [x] **Data**: `git add .`, `git commit`, `git push`?

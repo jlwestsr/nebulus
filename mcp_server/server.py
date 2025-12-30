@@ -3,6 +3,9 @@ from duckduckgo_search import DDGS
 import os
 import subprocess
 import shlex
+import re
+import httpx
+from bs4 import BeautifulSoup
 
 
 # Initialize FastMCP
@@ -133,6 +136,50 @@ def run_command(command: str) -> str:
         return "Error: Command timed out after 30 seconds."
     except Exception as e:
         return f"Error executing command: {str(e)}"
+
+
+# Tool: Scrape URL
+@mcp.tool()
+def scrape_url(url: str) -> str:
+    """Scrape and parse the textual content of a webpage."""
+    if not (url.startswith("http://") or url.startswith("https://")):
+        return "Error: Invalid URL. Must start with http:// or https://"
+
+    try:
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/91.0.4472.124 Safari/537.36"
+            )
+        }
+        with httpx.Client(timeout=15.0, follow_redirects=True) as client:
+            response = client.get(url, headers=headers)
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            # Remove scripts and styles
+            for script in soup(["script", "style"]):
+                script.decompose()
+
+            # Get text
+            text = soup.get_text(separator="\n")
+
+            # Clean whitespace
+            lines = (line.strip() for line in text.splitlines())
+            # Collapse internal whitespace
+            cleaned_lines = (re.sub(r"\s+", " ", line) for line in lines)
+            text = "\n".join(line for line in cleaned_lines if line)
+
+            return text
+
+    except httpx.RequestError as e:
+        return f"Error scraping URL: {str(e)}"
+    except httpx.HTTPStatusError as e:
+        return f"HTTP error {e.response.status_code} while scraping URL."
+    except Exception as e:
+        return f"Unexpected error: {str(e)}"
 
 
 # Tool: Web Search
