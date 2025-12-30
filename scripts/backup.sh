@@ -30,4 +30,9 @@ for vol in "${VOLUMES[@]}"; do
     echo -e "${GREEN}Done${NC} -> backups/${vol}_${TIMESTAMP}.tar.gz"
 done
 
+# Cleanup old backups (retention policy: 30 days)
+echo
+echo "Checking for backups older than 30 days..."
+find "$BACKUP_DIR" -type f -name "*.tar.gz" -mtime +30 -print -exec rm {} \;
+
 echo -e "\n${GREEN}Backup process completed successfully!${NC}"
