@@ -37,7 +37,11 @@ This document outlines the specific operational standards and behavioral expecta
 - **Node.js**: Use `community.general.npm` with `global: true` for system-wide CLI tools. Ensure `nodejs` and `npm` are installed via `apt` in the `common` role first.
 - **Verification**: After applying an Ansible role, run `ansible-playbook ansible/verify.yml` to ensure the system state matches the intended configuration.
 - **Security**: Never commit `~/.ssh/` keys or personal tokens. If a script needs to check for them, it should do so without exposing contents.
-- **Git Tracking**: All changes must be committed. Use branches for risky or complex changes to facilitate rollbacks. Never commit directly to `main` without testing.
+- **Git Tracking & Branching**:
+    - **NO DIRECT WORK ON MAIN/MASTER**. This branch is for production releases only.
+    - **Chores**: Minor maintenance or documentation ("chore" work) may be done directly on the `develop` branch.
+    - **Features/Bugs**: ALL other work (features, bug fixes, refactors) MUST be done on a new branch (e.g., `feat/...`, `fix/...`) created from `develop`.
+    - Always merge `develop` into your feature branch before requesting a merge back.
 
 ## 8. Feature Implementation Workflow
 When given a directive to work through a feature, follow these steps strictly:
