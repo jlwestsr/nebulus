@@ -6,6 +6,7 @@ Unified command-line interface for the Nebulus AI ecosystem.
 
 import subprocess
 import sys
+from pathlib import Path
 import webbrowser
 from typing import List, Optional
 
@@ -151,7 +152,51 @@ def backup() -> None:
 def restore() -> None:
     """Run the restore script."""
     console.print("[bold yellow]Starting restore...[/bold yellow]")
-    run_command(["bash", "scripts/restore.sh"])
+
+    # List available backups
+    backup_dir = Path("backups")
+    if not backup_dir.exists():
+        console.print("[bold red]Error:[/bold red] 'backups' directory not found.")
+        return
+
+    backups = sorted([f.name for f in backup_dir.glob("*.tar.gz")], reverse=True)
+    if not backups:
+        console.print(
+            "[bold red]Error:[/bold red] No backup files found in 'backups' directory."
+        )
+        return
+
+    # Prompt user to select a backup
+    from rich.prompt import Prompt, Confirm
+
+    console.print("\n[bold]Available Backups:[/bold]")
+    for i, backup in enumerate(backups, 1):
+        console.print(f"{i}. {backup}")
+
+    choice = Prompt.ask(
+        "\nSelect a backup file", choices=[str(i) for i in range(1, len(backups) + 1)]
+    )
+    selected_backup = backups[int(choice) - 1]
+
+    # Prompt user for volume name
+    # Can try to guess based on backup name or just ask
+    suggested_volume = "nebulus_webui_data"  # Default suggestion
+    if "ollama" in selected_backup:
+        suggested_volume = "nebulus_ollama_data"
+    elif "chroma" in selected_backup:
+        suggested_volume = "nebulus_chroma_data"
+
+    volume = Prompt.ask("Enter target Docker volume name", default=suggested_volume)
+
+    console.print("\n[bold green]Preparing to restore:[/bold green]")
+    console.print(f"  Backup: [cyan]{selected_backup}[/cyan]")
+    console.print(f"  Volume: [cyan]{volume}[/cyan]")
+
+    if not Confirm.ask("Proceed?"):
+        console.print("[yellow]Restore cancelled.[/yellow]")
+        return
+
+    run_command(["bash", "scripts/restore.sh", selected_backup, volume])
 
 
 @cli.command()
