@@ -1,5 +1,9 @@
 # Project Context & Coding Standards
 
+> **[IMPORTANCE: CRITICAL] AI AGENT DIRECTIVE**:
+> You MUST read and adhere to [rules/ai_behavior.md](rules/ai_behavior.md) at the start of every session. It contains strict operational guardrails, "Ansible-First" policies, and Git branching rules that supersede general instructions.
+
+
 ## 1. Project Overview
 
 **Nebulus** is a production-grade, containerized local AI ecosystem. It integrates **Ollama** (inference), **Open WebUI** (frontend), and **ChromaDB** (RAG) with a custom **MCP Server** to provide a secure, extensible platform for AI engineering.
