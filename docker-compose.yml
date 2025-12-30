@@ -5,6 +5,8 @@ services:
     pull_policy: always
     tty: true
     restart: unless-stopped
+    environment:
+      - OLLAMA_CONTEXT_LENGTH=32768
     volumes:
       - ollama_data:/root/.ollama
     networks:
