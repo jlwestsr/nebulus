@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Persistence Check
-DB_PATH = "/workspace/mcp_server/scheduler.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scheduler.db")
 JOB_STORES = {
     "default": SQLAlchemyJobStore(url=f"sqlite:///{DB_PATH}"),  # noqa: E231
 }

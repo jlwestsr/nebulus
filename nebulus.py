@@ -4,6 +4,9 @@ Nebulus Manager CLI
 Unified command-line interface for the Nebulus AI ecosystem.
 """
 
+__version__ = "0.1.0"
+
+
 import subprocess
 import sys
 from pathlib import Path
@@ -67,6 +70,7 @@ def run_interactive(command: List[str]) -> None:
 
 
 @click.group()
+@click.version_option(__version__)
 def cli() -> None:
     """Nebulus Manager - Manage your AI ecosystem."""
     pass

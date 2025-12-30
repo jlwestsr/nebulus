@@ -326,7 +326,11 @@ app.add_route("/health", health_check)
 
 # Mount Static Files
 app.mount(
-    "/static", StaticFiles(directory="/workspace/mcp_server/static"), name="static"
+    "/static",
+    StaticFiles(
+        directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+    ),
+    name="static",
 )
 
 
