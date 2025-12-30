@@ -182,6 +182,52 @@ def scrape_url(url: str) -> str:
         return f"Unexpected error: {str(e)}"
 
 
+# Tool: Search Code
+@mcp.tool()
+def search_code(query: str, path: str = ".") -> str:
+    """
+    Search for a text pattern in the codebase using grep.
+    Args:
+        query: The regex pattern to search for.
+        path: The path to search within (defaults to workspace root).
+    """
+    try:
+        target_path = _validate_path(path)
+
+        # Construct grep command
+        # -r: recursive
+        # -n: line numbers
+        # -I: ignore binary files
+        # -H: print filename
+        # --exclude-dir: skip common non-code directories
+        cmd = [
+            "grep",
+            "-r",
+            "-n",
+            "-I",
+            "-H",
+            "--exclude-dir={.git,__pycache__,node_modules,venv,.env}",
+            query,
+            target_path,
+        ]
+
+        result = subprocess.run(
+            cmd, cwd="/workspace", capture_output=True, text=True, timeout=30
+        )
+
+        if result.returncode == 0:
+            return result.stdout.strip()
+        elif result.returncode == 1:
+            return "No matches found."
+        else:
+            return f"Error executing grep (exit {result.returncode}): \n{result.stderr}"
+
+    except subprocess.TimeoutExpired:
+        return "Error: Search timed out after 30 seconds."
+    except Exception as e:
+        return f"Error executing search: {str(e)}"
+
+
 # Tool: Web Search
 @mcp.tool()
 def web_search(query: str, max_results: int = 5) -> str:

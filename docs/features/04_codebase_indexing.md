@@ -7,10 +7,10 @@ Empower the agent to search the codebase using regular expressions and semantic 
 
 ## 2. Requirements
 List specific, testable requirements:
-- [ ] Implement `search_code` tool: Accepts `query` and `path`.
-- [ ] **Engine**: Use `grep` or `ripgrep` (if installed) via subprocess.
-- [ ] **Output**: Return file paths and matching lines with context.
-- [ ] **Integration**: Ensure it respects `.gitignore` to avoid searching artifacts/dependencies.
+- [x] Implement `search_code` tool: Accepts `query` and `path`.
+- [x] **Engine**: Use `grep` or `ripgrep` (if installed) via subprocess.
+- [x] **Output**: Return file paths and matching lines with context.
+- [x] **Integration**: Ensure it respects `.gitignore` to avoid searching artifacts/dependencies.
 
 ## 3. Technical Implementation
 - **Modules**: Modify `mcp_server/server.py`.
@@ -19,16 +19,16 @@ List specific, testable requirements:
 
 ## 4. Verification Plan
 **Automated Tests**:
-- [ ] Script/Test: `test_search.py`. Search for unique string in a test file.
+- [x] Script/Test: `test_search.py`. Search for unique string in a test file.
 
 **Manual Verification**:
-- [ ] Step 1: Ask agent "Find all TODOs in the codebase".
-- [ ] Step 2: Verify it returns a list of files and lines containing "TODO".
+- [x] Step 1: Ask agent "Find all TODOs in the codebase".
+- [x] Step 2: Verify it returns a list of files and lines containing "TODO".
 
 ## 5. Workflow Checklist
 Follow the AI Behavior strict workflow:
-- [ ] **Branch**: Created `feat/codebase-indexing` branch?
-- [ ] **Work**: Implemented changes?
-- [ ] **Test**: All tests pass?
-- [ ] **Doc**: Updated `README.md`?
-- [ ] **Data**: `git add .`, `git commit`, `git push`?
+- [x] **Branch**: Created `feat/codebase-indexing` branch?
+- [x] **Work**: Implemented changes?
+- [x] **Test**: All tests pass?
+- [x] **Doc**: Updated `README.md`?
+- [x] **Data**: `git add .`, `git commit`, `git push`?

@@ -30,6 +30,7 @@ with patch("mcp.server.fastmcp.FastMCP", return_value=mock_mcp):
         list_directory,
         run_command,
         scrape_url,
+        search_code,
         _validate_path,
     )
 
@@ -165,6 +166,48 @@ class TestMCPTools(unittest.TestCase):
         mock_client.get.side_effect = Exception("Connection error")
         result = scrape_url("https://example.com")
         self.assertIn("Unexpected error", result)
+
+    @patch("subprocess.run")
+    def test_search_code(self, mock_run):
+        # Configure successful search
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "file.py:10:def foo():"
+        mock_run.return_value = mock_result
+
+        # Test search
+        result = search_code("def foo")
+        self.assertEqual(result, "file.py:10:def foo():")
+
+        # Verify command arguments
+        mock_run.assert_called_with(
+            [
+                "grep",
+                "-r",
+                "-n",
+                "-I",
+                "-H",
+                "--exclude-dir={.git,__pycache__,node_modules,venv,.env}",
+                "def foo",
+                self.test_dir
+                + "/.",  # Should use test_dir because of mock_validate side_effect
+            ],
+            cwd="/workspace",
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
+        # Test no matches
+        mock_result.returncode = 1
+        result = search_code("missing_pattern")
+        self.assertEqual(result, "No matches found.")
+
+        # Test grep error
+        mock_result.returncode = 2
+        mock_result.stderr = "grep error"
+        result = search_code("bad_pattern")
+        self.assertIn("Error executing grep", result)
 
 
 if __name__ == "__main__":
