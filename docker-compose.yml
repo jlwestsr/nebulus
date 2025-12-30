@@ -47,7 +47,7 @@ services:
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-insecure_default_key}
-      - WEBUI_NAME=${WEBUI_NAME:-Black Box AI}
+      - WEBUI_NAME=Nebulus (Black Box AI)
       - DEFAULT_MODELS=llama-3.2-vision
       - BYPASS_ADMIN_ACCESS_CONTROL=false
       - ENABLE_MODEL_FILTER=true
