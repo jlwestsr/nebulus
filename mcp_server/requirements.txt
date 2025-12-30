@@ -3,6 +3,8 @@ fastapi
 uvicorn
 duckduckgo-search
 beautifulsoup4
+apscheduler
+sqlalchemy
 httpx
 pypdf
 python-docx

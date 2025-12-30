@@ -9,10 +9,44 @@ from bs4 import BeautifulSoup
 from starlette.responses import JSONResponse
 import pypdf
 import docx
-
+from scheduler import TaskScheduler
 
 # Initialize FastMCP
 mcp = FastMCP("Black Box Tools")
+
+# Initialize Scheduler
+scheduler = TaskScheduler()
+
+
+# Tool: Schedule Task
+@mcp.tool()
+def schedule_task(
+    title: str, prompt: str, schedule_cron: str, recipients_str: str
+) -> str:
+    """
+    Schedule a recurring task that emails a report.
+    Args:
+        title: Name of the task
+        prompt: Instructions for the LLM
+        schedule_cron: Cron expression (e.g., "0 8 * * *")
+        recipients_str: Comma-separated email addresses
+    """
+    recipients = [r.strip() for r in recipients_str.split(",") if r.strip()]
+    return scheduler.add_task(title, prompt, schedule_cron, recipients)
+
+
+# Tool: List Tasks
+@mcp.tool()
+def list_scheduled_tasks() -> str:
+    """List all currently scheduled automated tasks."""
+    return scheduler.list_tasks()
+
+
+# Tool: Delete Task
+@mcp.tool()
+def delete_scheduled_task(job_id: str) -> str:
+    """Delete a scheduled task by its Job ID."""
+    return scheduler.delete_task(job_id)
 
 
 def _validate_path(path: str) -> str:

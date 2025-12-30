@@ -57,6 +57,7 @@ services:
       - RAG_EMBEDDING_MODEL=nomic-embed-text
       - CHROMA_HTTP_HOST=chromadb
       - CHROMA_HTTP_PORT=8000
+
     volumes:
       - webui_data:/app/backend/data
     ports:
@@ -89,6 +90,12 @@ services:
       - "8000:8000"
     networks:
       - ai-network
+    environment:
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - EMAIL_FROM=${EMAIL_FROM}
 
 networks:
   ai-network:
