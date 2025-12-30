@@ -3,6 +3,7 @@ import shutil
 import unittest
 from unittest.mock import patch, MagicMock
 import sys
+import subprocess
 
 # Add mcp_server to path
 sys.path.append(
@@ -22,7 +23,14 @@ mock_mcp = MagicMock()
 mock_mcp.tool.side_effect = dummy_decorator
 
 with patch("mcp.server.fastmcp.FastMCP", return_value=mock_mcp):
-    from server import read_file, write_file, edit_file, list_directory, _validate_path
+    from server import (
+        read_file,
+        write_file,
+        edit_file,
+        list_directory,
+        run_command,
+        _validate_path,
+    )
 
 
 class TestMCPTools(unittest.TestCase):
@@ -86,6 +94,36 @@ class TestMCPTools(unittest.TestCase):
         # The mock side_effect enforces the logic we want to test
         with self.assertRaises(ValueError):
             _validate_path("../outside.txt")
+
+    @patch("subprocess.run")
+    def test_run_command_security(self, mock_run):
+        # Configure successful run
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "output"
+        mock_run.return_value = mock_result
+
+        # Test allowed command
+        result = run_command("ls -la")
+        self.assertEqual(result, "output")
+        mock_run.assert_called_with(
+            ["ls", "-la"], cwd="/workspace", capture_output=True, text=True, timeout=30
+        )
+
+        # Test blocked binary
+        result = run_command("rm file.txt")
+        self.assertIn("Error: Command", result)
+        self.assertIn("not allowed", result)
+
+        # Test blocked operator
+        result = run_command("ls; rm file")
+        self.assertIn("Error: Operator", result)
+        self.assertIn("not allowed", result)
+
+        # Test timeout (simulate exception)
+        mock_run.side_effect = subprocess.TimeoutExpired(["echo"], 30)
+        result = run_command("echo test_timeout")
+        self.assertIn("Error: Command timed out", result)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 from mcp.server.fastmcp import FastMCP
 from duckduckgo_search import DDGS
 import os
+import subprocess
+import shlex
 
 
 # Initialize FastMCP
@@ -83,6 +85,54 @@ def edit_file(path: str, target_text: str, replacement_text: str) -> str:
         return f"Successfully edited {path}"
     except Exception as e:
         return f"Error editing file: {str(e)}"
+
+
+# Tool: Run Command
+@mcp.tool()
+def run_command(command: str) -> str:
+    """Run a safe shell command in the workspace."""
+    ALLOWED_COMMANDS = {
+        "ls",
+        "grep",
+        "cat",
+        "find",
+        "pytest",
+        "git",
+        "echo",
+        "pwd",
+        "tree",
+    }
+    BLOCKED_OPERATORS = {">", ">>", "&", "|", ";", "`", "$("}
+
+    try:
+        # Security: Check for blocked operators/characters in raw string
+        for op in BLOCKED_OPERATORS:
+            if op in command:
+                return f"Error: Operator '{op}' is not allowed for security."
+
+        # Security: Parse command to check first token (binary)
+        args = shlex.split(command)
+        if not args:
+            return "Error: Empty command."
+
+        binary = args[0]
+        if binary not in ALLOWED_COMMANDS:
+            return f"Error: Command '{binary}' is not allowed."
+
+        # Execute
+        result = subprocess.run(
+            args, cwd="/workspace", capture_output=True, text=True, timeout=30
+        )
+
+        if result.returncode == 0:
+            return result.stdout
+        else:
+            return f"Command failed (exit {result.returncode}): \n{result.stderr}"
+
+    except subprocess.TimeoutExpired:
+        return "Error: Command timed out after 30 seconds."
+    except Exception as e:
+        return f"Error executing command: {str(e)}"
 
 
 # Tool: Web Search
