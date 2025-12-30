@@ -7,6 +7,8 @@ import re
 import httpx
 from bs4 import BeautifulSoup
 from starlette.responses import JSONResponse
+from starlette.staticfiles import StaticFiles
+from starlette.requests import Request
 import pypdf
 import docx
 from scheduler import TaskScheduler
@@ -321,6 +323,50 @@ async def health_check(request):
 
 
 app.add_route("/health", health_check)
+
+# Mount Static Files
+app.mount(
+    "/static", StaticFiles(directory="/workspace/mcp_server/static"), name="static"
+)
+
+
+# API: List Tasks
+async def get_tasks_api(request: Request):
+    return JSONResponse(scheduler.get_tasks())
+
+
+# API: Add Task
+async def add_task_api(request: Request):
+    try:
+        data = await request.json()
+        title = data.get("title")
+        prompt = data.get("prompt")
+        schedule = data.get("schedule")
+        recipients = data.get("recipients", [])
+
+        if not title or not prompt or not schedule:
+            return JSONResponse({"error": "Missing fields"}, status_code=400)
+
+        result = scheduler.add_task(title, prompt, schedule, recipients)
+        if "Error" in result:
+            return JSONResponse({"error": result}, status_code=400)
+
+        return JSONResponse({"message": result})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+# API: Delete Task
+async def delete_task_api(request: Request):
+    job_id = request.path_params["job_id"]
+    result = scheduler.delete_task(job_id)
+    return JSONResponse({"message": result})
+
+
+# Register Routes
+app.add_route("/api/tasks", get_tasks_api, methods=["GET"])
+app.add_route("/api/tasks", add_task_api, methods=["POST"])
+app.add_route("/api/tasks/{job_id}", delete_task_api, methods=["DELETE"])
 
 
 if __name__ == "__main__":

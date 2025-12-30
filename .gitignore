@@ -26,6 +26,7 @@ models/
 *.h5
 *.pt
 *.pth
+*.db
 
 # IDE Specific
 *.code-workspace

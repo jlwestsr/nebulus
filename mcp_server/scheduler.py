@@ -75,6 +75,24 @@ class TaskScheduler:
         except Exception as e:
             return f"Error deleting task: {str(e)}"
 
+    def get_tasks(self):
+        """Returns a list of tasks as dictionaries for the API."""
+        jobs = self.scheduler.get_jobs()
+        tasks = []
+        for job in jobs:
+            # Job args: [title, prompt, recipients]
+            tasks.append(
+                {
+                    "id": job.id,
+                    "title": job.name,
+                    "prompt": job.args[1] if len(job.args) > 1 else "",
+                    "schedule": str(job.trigger),
+                    "next_run": str(job.next_run_time),
+                    "recipients": job.args[2] if len(job.args) > 2 else [],
+                }
+            )
+        return tasks
+
 
 def execute_prompt_and_email(title: str, prompt: str, recipients: list[str]):
     """Job Execution Logic"""

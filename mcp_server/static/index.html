@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebulus - Scheduler Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Scheduler Dashboard</h1>
+            <button id="add-task-btn" class="btn primary">+ New Task</button>
+        </header>
+
+        <section class="task-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Schedule (Cron)</th>
+                        <th>Next Run</th>
+                        <th>Recipients</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="task-table-body">
+                    <!-- Tasks injected here -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span id="close-modal" class="close">&times;</span>
+            <h2>Schedule New Task</h2>
+            <form id="add-task-form">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="title" required placeholder="Daily Summary">
+                </div>
+                <div class="form-group">
+                    <label>Prompt</label>
+                    <textarea id="prompt" rows="4" required placeholder="Summarize the latest AI news..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Schedule (Cron)</label>
+                    <input type="text" id="schedule" required placeholder="0 8 * * *">
+                    <small>Min Hour Day Month Weekday</small>
+                </div>
+                <div class="form-group">
+                    <label>Recipients</label>
+                    <input type="text" id="recipients" placeholder="me@example.com, other@example.com">
+                    <small>Comma separated emails</small>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn primary">Schedule Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
