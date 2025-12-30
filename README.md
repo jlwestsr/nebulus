@@ -8,9 +8,15 @@ A containerized, general-purpose local AI ecosystem.
 - **RAG**: ChromaDB (Vector Store)
 - **Tools**: Custom MCP Server (Python/FastAPI)
 
+## Default Models
+- `llama3.1:latest` (General Purpose)
+- `qwen2.5-coder:latest` (Coding Specialist)
+- `glm-4.7:cloud` (Advanced Cloud Model)
+- `nomic-embed-text` (Embeddings)
+
 ## Prerequisites
 - Docker & Docker Compose
-- (Optional) NVIDIA GPU with Container Toolkit for acceleration
+- (Recommended) NVIDIA GPU with Container Toolkit (Enable by default in `docker-compose.yml`)
 
 ## Setup
 

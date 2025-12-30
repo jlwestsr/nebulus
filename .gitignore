@@ -17,6 +17,8 @@ venv/
 # Jupyter Notebooks
 .ipynb_checkpoints
 
+discovery_results/
+
 # Project Data & Models (Never commit these!)
 data/
 models/
