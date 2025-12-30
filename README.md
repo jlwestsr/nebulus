@@ -35,6 +35,22 @@ A containerized, general-purpose local AI ecosystem.
    ./scripts/setup.sh
    ```
 
+## Management CLI
+
+Nebulus includes a unified command-line tool for managing the ecosystem.
+
+```bash
+./nebulus --help
+```
+
+**Common Commands:**
+- `up`: Start all services.
+- `down`: Stop all services.
+- `status`: Rich dashboard of service health.
+- `logs [service]`: Stream logs.
+- `monitor`: Launch the Dozzle dashboard.
+- `backup`/`restore`: Manage data persistence.
+
 2. **Access the Interface**
    - Open [http://localhost:3000](http://localhost:3000)
    - The first account created becomes the Admin.
