@@ -7,6 +7,8 @@ import re
 import httpx
 from bs4 import BeautifulSoup
 from starlette.responses import JSONResponse
+import pypdf
+import docx
 
 
 # Initialize FastMCP
@@ -245,6 +247,34 @@ def web_search(query: str, max_results: int = 5) -> str:
         return "\n---\n".join(formatted_results)
     except Exception as e:
         return f"Error performing search: {str(e)}"
+
+
+# Tool: Read PDF
+@mcp.tool()
+def read_pdf(path: str) -> str:
+    """Read text content from a PDF file."""
+    try:
+        target_path = _validate_path(path)
+        reader = pypdf.PdfReader(target_path)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text() + "\n"
+        return text.strip()
+    except Exception as e:
+        return f"Error reading PDF: {str(e)}"
+
+
+# Tool: Read DOCX
+@mcp.tool()
+def read_docx(path: str) -> str:
+    """Read text content from a DOCX file."""
+    try:
+        target_path = _validate_path(path)
+        doc = docx.Document(target_path)
+        text = "\n".join([para.text for para in doc.paragraphs])
+        return text.strip()
+    except Exception as e:
+        return f"Error reading DOCX: {str(e)}"
 
 
 # Expose the internal FastAPI app

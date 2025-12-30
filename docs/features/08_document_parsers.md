@@ -7,10 +7,10 @@ Expand the MCP server's file reading capabilities to support binary document for
 
 ## 2. Requirements
 List specific, testable requirements:
-- [ ] Implement `read_pdf` tool.
-- [ ] Implement `read_docx` tool.
-- [ ] **Library**: Use `pypdf` (or `pdfminer.six`) and `python-docx`.
-- [ ] **Output**: Return extracted text content.
+- [x] Implement `read_pdf` tool.
+- [x] Implement `read_docx` tool.
+- [x] **Library**: Use `pypdf` (or `pdfminer.six`) and `python-docx`.
+- [x] **Output**: Return extracted text content.
 
 ## 3. Technical Implementation
 - **Modules**: Modify `mcp_server/server.py`.
@@ -19,17 +19,17 @@ List specific, testable requirements:
 
 ## 4. Verification Plan
 **Automated Tests**:
-- [ ] Script/Test: `test_parsers.py`. Test against sample PDF/DOCX files.
+- [x] Script/Test: `test_parsers.py`. Test against sample PDF/DOCX files.
 
 **Manual Verification**:
-- [ ] Step 1: Upload a PDF to the workspace.
-- [ ] Step 2: Ask agent to "Summarize resume.pdf".
-- [ ] Step 3: Verify it reads and understands the content.
+- [x] Step 1: Upload a PDF to the workspace.
+- [x] Step 2: Ask agent to "Summarize resume.pdf".
+- [x] Step 3: Verify it reads and understands the content.
 
 ## 5. Workflow Checklist
 Follow the AI Behavior strict workflow:
-- [ ] **Branch**: Created `feat/document-parsers` branch?
-- [ ] **Work**: Implemented changes?
-- [ ] **Test**: All tests pass?
-- [ ] **Doc**: Updated `README.md`?
-- [ ] **Data**: `git add .`, `git commit`, `git push`?
+- [x] **Branch**: Created `feat/document-parsers` branch?
+- [x] **Work**: Implemented changes?
+- [x] **Test**: All tests pass?
+- [x] **Doc**: Updated `README.md`?
+- [x] **Data**: `git add .`, `git commit`, `git push`?

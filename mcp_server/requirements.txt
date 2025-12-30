@@ -4,3 +4,5 @@ uvicorn
 duckduckgo-search
 beautifulsoup4
 httpx
+pypdf
+python-docx

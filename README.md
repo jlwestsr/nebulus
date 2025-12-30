@@ -11,6 +11,7 @@ A containerized, general-purpose local AI ecosystem.
 - **RAG**: ChromaDB (Vector Store)
 - **Tools**: Custom MCP Server (Python/FastAPI)
 - **Backups**: `scripts/backup.sh` and `scripts/restore.sh` for data safety.
+- **Document Parsers**: Support for reading PDF and DOCX files.
 - **Health Checks**: `scripts/health.sh` monitors all service statuses.
 - **Monitoring**: [Dozzle](https://dozzle.com) (Log Viewer)
 
