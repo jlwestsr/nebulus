@@ -42,21 +42,7 @@ A containerized, general-purpose local AI ecosystem with extended tool access an
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/jlwestsr/nebulus.git
-cd nebulus
-
-# Run automated setup
-./scripts/setup.sh
-```
-
-The setup script will:
-1. ✅ Install dependencies (uv, Ansible)
-2. ✅ Create Python virtual environment
-3. ✅ Start Docker services
-4. ✅ Pull LLM models
-5. ✅ Create global `nebulus` CLI
+Please refer to the **[Setup and Installation Guide](https://github.com/jlwestsr/nebulus/wiki/Setup-and-Installation)** for complete installation instructions.
 
 ### Access
 
