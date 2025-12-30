@@ -7,9 +7,9 @@ Create a standardized workflow and set of scripts to prepare usage data (chats, 
 
 ## 2. Requirements
 List specific, testable requirements:
-- [ ] Implement `scripts/export_chat_logs.py`: Export Open WebUI chat history to JSONL.
-- [ ] Implement `scripts/prepare_dataset.py`: Format data for Unsloth or similar trainers.
-- [ ] **Format**: Output standard ShareGPT or Alpaca format JSONL.
+- [x] Implement `scripts/export_chat_logs.py`: Export Open WebUI chat history to JSONL.
+- [x] Implement `scripts/prepare_dataset.py`: Format data for Unsloth or similar trainers.
+- [x] **Format**: Output standard ShareGPT or Alpaca format JSONL.
 
 ## 3. Technical Implementation
 - **Modules**: Create `scripts/finetune/`.
@@ -18,17 +18,17 @@ List specific, testable requirements:
 
 ## 4. Verification Plan
 **Automated Tests**:
-- [ ] Script/Test: Run export script, verify JSONL validity.
+- [x] Script/Test: Run export script, verify JSONL validity.
 
 **Manual Verification**:
-- [ ] Step 1: Accumulate some chat history.
-- [ ] Step 2: Run export script.
-- [ ] Step 3: Inspect output JSONL for correctness.
+- [x] Step 1: Accumulate some chat history.
+- [x] Step 2: Run export script.
+- [x] Step 3: Inspect output JSONL for correctness.
 
 ## 5. Workflow Checklist
 Follow the AI Behavior strict workflow:
-- [ ] **Branch**: Created `feat/finetune-pipeline` branch?
-- [ ] **Work**: Implemented changes?
-- [ ] **Test**: All tests pass?
-- [ ] **Doc**: Updated `README.md`?
-- [ ] **Data**: `git add .`, `git commit`, `git push`?
+- [x] **Branch**: Created `feat/finetune-pipeline` branch?
+- [x] **Work**: Implemented changes?
+- [x] **Test**: All tests pass?
+- [x] **Doc**: Updated `README.md`?
+- [x] **Data**: `git add .`, `git commit`, `git push`?

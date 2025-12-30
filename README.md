@@ -13,6 +13,7 @@ A containerized, general-purpose local AI ecosystem.
 - **Backups**: `scripts/backup.sh` and `scripts/restore.sh` for data safety.
 - **Document Parsers**: Support for reading PDF and DOCX files.
 - **Vision Support**: `llama3.2-vision` model integrated for image analysis.
+- **Fine-tuning**: `scripts/finetune/` pipeline to create ShareGPT datasets from chat logs.
 - **Health Checks**: `scripts/health.sh` monitors all service statuses.
 - **Monitoring**: [Dozzle](https://dozzle.com) (Log Viewer)
 
