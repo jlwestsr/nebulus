@@ -47,9 +47,16 @@
 
     - name: Pull Ollama models
       community.docker.docker_container_exec:
-        container: blackbox-ollama
+        container: ollama
         command: "ollama pull {{ item }}"
       loop: "{{ models }}"
       register: pull_result
-      changed_when: "'success' in pull_result.stdout"
+      changed_when: pull_result.rc == 0
       failed_when: pull_result.rc != 0
+
+    - name: Create symlink for nebulus CLI
+      ansible.builtin.file:
+        src: "{{ (project_root + '/nebulus.py') | realpath }}"
+        dest: "{{ lookup('env', 'HOME') }}/.local/bin/nebulus"
+        state: link
+        force: yes

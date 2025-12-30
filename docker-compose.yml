@@ -1,7 +1,7 @@
 services:
   ollama:
     image: ollama/ollama:latest
-    container_name: blackbox-ollama
+    container_name: ollama
     pull_policy: always
     tty: true
     restart: unless-stopped
@@ -26,7 +26,7 @@ services:
 
   dozzle:
     image: amir20/dozzle:latest
-    container_name: blackbox-logs
+    container_name: logs
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -39,7 +39,7 @@ services:
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
-    container_name: blackbox-webui
+    container_name: webui
     restart: unless-stopped
     depends_on:
       - ollama
@@ -69,7 +69,7 @@ services:
 
   chromadb:
     image: chromadb/chroma:latest
-    container_name: blackbox-chromadb
+    container_name: chromadb
     restart: unless-stopped
     volumes:
       - chroma_data:/chroma/chroma
@@ -82,7 +82,7 @@ services:
 
   mcp-server:
     build: ./mcp_server
-    container_name: blackbox-mcp
+    container_name: mcp-server
     restart: unless-stopped
     volumes:
       - .:/workspace # Mount current directory to /workspace for file tools

@@ -1,0 +1,29 @@
+---
+- name: Verify Nebulus System State
+  hosts: localhost
+  gather_facts: false
+  vars:
+    project_root: "{{ playbook_dir }}/.."
+
+  tasks:
+    - name: Check if nebulus CLI symlink exists
+      ansible.builtin.stat:
+        path: "{{ lookup('env', 'HOME') }}/.local/bin/nebulus"
+      register: symlink_check
+
+    - name: Verify nebulus CLI is functional
+      ansible.builtin.command:
+        cmd: nebulus --help
+      register: cli_help
+      changed_when: false
+      failed_when: "'Nebulus Manager' not in cli_help.stdout"
+
+    - name: Verify core services respond via CLI
+      ansible.builtin.command:
+        cmd: nebulus status
+      register: cli_status
+      changed_when: false
+
+    - name: Report verification success
+      ansible.builtin.debug:
+        msg: "Nebulus Manager CLI is installed and functional at {{ lookup('env', 'HOME') }}/.local/bin/nebulus"
