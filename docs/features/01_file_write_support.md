@@ -7,10 +7,10 @@ Enable the MCP agent to modify the codebase directly by adding file writing capa
 
 ## 2. Requirements
 List specific, testable requirements:
-- [ ] Implement `write_file` tool: Accepts `path` and `content`. Overwrites or creates new files.
-- [ ] Implement `edit_file` tool: Accepts `path`, `target_text`, and `replacement_text` for surgical edits.
-- [ ] **Security**: Ensure all paths are validated to be strictly within `/workspace`.
-- [ ] **Security**: Prevent traversal attacks (e.g., `../`).
+- [x] Implement `write_file` tool: Accepts `path` and `content`. Overwrites or creates new files.
+- [x] Implement `edit_file` tool: Accepts `path`, `target_text`, and `replacement_text` for surgical edits.
+- [x] **Security**: Ensure all paths are validated to be strictly within `/workspace`.
+- [x] **Security**: Prevent traversal attacks (e.g., `../`).
 
 ## 3. Technical Implementation
 - **Modules**: Modify `mcp_server/server.py` to add new `@mcp.tool()` functions.
@@ -19,18 +19,18 @@ List specific, testable requirements:
 
 ## 4. Verification Plan
 **Automated Tests**:
-- [ ] Script/Test: Create `tests/test_file_ops.py` to test `write_file` and `edit_file`.
-- [ ] Logic Verified: Verify file creation, content overwriting, and correct string replacement.
+- [x] Script/Test: Create `tests/test_file_ops.py` to test `write_file` and `edit_file`.
+- [x] Logic Verified: Verify file creation, content overwriting, and correct string replacement.
 
 **Manual Verification**:
-- [ ] Step 1: Connect Open WebUI to MCP.
-- [ ] Step 2: Ask agent to "Create a file named hello.txt with content 'Hello World'".
-- [ ] Step 3: Verify file existence in `/workspace`.
+- [x] Step 1: Connect Open WebUI to MCP.
+- [x] Step 2: Ask agent to "Create a file named hello.txt with content 'Hello World'".
+- [x] Step 3: Verify file existence in `/workspace`.
 
 ## 5. Workflow Checklist
 Follow the AI Behavior strict workflow:
-- [ ] **Branch**: Created `feat/file-write-support` branch?
-- [ ] **Work**: Implemented changes?
-- [ ] **Test**: All tests pass (`pytest`)?
-- [ ] **Doc**: Updated `README.md` and `walkthrough.md`?
-- [ ] **Data**: `git add .`, `git commit`, `git push`?
+- [x] **Branch**: Created `feat/file-write-support` branch?
+- [x] **Work**: Implemented changes?
+- [x] **Test**: All tests pass (`pytest`)?
+- [x] **Doc**: Updated `README.md` and `walkthrough.md`?
+- [x] **Data**: `git add .`, `git commit`, `git push`?
