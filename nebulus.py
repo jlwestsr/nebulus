@@ -55,12 +55,14 @@ def run_interactive(command: List[str]) -> None:
     """
     sys.stdout.flush()
     sys.stderr.flush()
-    try:
-        subprocess.check_call(command)
-    except subprocess.CalledProcessError:
-        sys.exit(1)
-    except KeyboardInterrupt:
-        pass
+    result = subprocess.run(command)
+    if result.returncode != 0:
+        console.print(
+            f"\n[bold red]Note:[/bold red] Command returned exit code {result.returncode}"  # noqa: E231, E501
+        )
+        # We don't always exit 1 here to allow viewing output
+    sys.stdout.flush()
+    sys.stderr.flush()
 
 
 @click.group()
@@ -74,6 +76,7 @@ def up() -> None:
     """Start all services."""
     console.print("[bold green]Starting Nebulus services...[/bold green]")
     run_interactive(["docker", "compose", "up", "-d"])
+    console.print("[bold green]Done.[/bold green]")
 
 
 @cli.command()
@@ -81,6 +84,7 @@ def down() -> None:
     """Stop all services."""
     console.print("[bold yellow]Stopping Nebulus services...[/bold yellow]")
     run_interactive(["docker", "compose", "down"])
+    console.print("[bold yellow]Done.[/bold yellow]")
 
 
 @cli.command()
@@ -88,6 +92,7 @@ def restart() -> None:
     """Restart all services."""
     console.print("[bold blue]Restarting Nebulus services...[/bold blue]")
     run_interactive(["docker", "compose", "restart"])
+    console.print("[bold green]Restart complete.[/bold green]")
 
 
 @cli.command()
