@@ -7,10 +7,10 @@ Integrate [Dozzle](https://dozzle.com) into the Docker Compose stack. This provi
 
 ## 2. Requirements
 List specific, testable requirements:
-- [ ] Add `dozzle` service to `docker-compose.yml`.
-- [ ] **Configuration**: Mount `/var/run/docker.sock`.
-- [ ] **Access**: Expose on port `8888` (or similar).
-- [ ] **Security**: Limit access (basic auth if possible, or note for local use only).
+- [x] Add `dozzle` service to `docker-compose.yml`.
+- [x] **Configuration**: Mount `/var/run/docker.sock`.
+- [x] **Access**: Expose on port `8888` (or similar).
+- [x] **Security**: Limit access (basic auth if possible, or note for local use only).
 
 ## 3. Technical Implementation
 - **Modules**: Update `docker-compose.yml`.
@@ -19,17 +19,17 @@ List specific, testable requirements:
 
 ## 4. Verification Plan
 **Automated Tests**:
-- [ ] Docker Healtcheck: Verify container starts.
+- [x] Docker Healtcheck: Verify container starts.
 
 **Manual Verification**:
-- [ ] Step 1: Run `docker compose up -d`.
-- [ ] Step 2: Open `http://localhost:8888`.
-- [ ] Step 3: Verify logs from `blackbox-ollama` and `blackbox-mcp` are visible.
+- [x] Step 1: Run `docker compose up -d`.
+- [x] Step 2: Open `http://localhost:8888`.
+- [x] Step 3: Verify logs from `blackbox-ollama` and `blackbox-mcp` are visible.
 
 ## 5. Workflow Checklist
 Follow the AI Behavior strict workflow:
-- [ ] **Branch**: Created `feat/log-management` branch?
-- [ ] **Work**: Implemented changes?
-- [ ] **Test**: Verified UI?
-- [ ] **Doc**: Updated `README.md` with URL?
-- [ ] **Data**: `git add .`, `git commit`, `git push`?
+- [x] **Branch**: Created `feat/log-management` branch?
+- [x] **Work**: Implemented changes?
+- [x] **Test**: Verified UI?
+- [x] **Doc**: Updated `README.md` with URL?
+- [x] **Data**: `git add .`, `git commit`, `git push`?

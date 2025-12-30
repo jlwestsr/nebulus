@@ -10,6 +10,7 @@ A containerized, general-purpose local AI ecosystem.
 - **Frontend**: [Open WebUI](https://docs.openwebui.com/)
 - **RAG**: ChromaDB (Vector Store)
 - **Tools**: Custom MCP Server (Python/FastAPI)
+- **Monitoring**: [Dozzle](https://dozzle.com) (Log Viewer)
 
 ## Default Models
 - `llama3.1:latest` (General Purpose)
