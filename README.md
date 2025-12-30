@@ -2,6 +2,9 @@
 
 A containerized, general-purpose local AI ecosystem.
 
+> [!WARNING]
+> **Use at your own risk.** This project allows AI models to read local files and browse the internet. Ensure you review all code and run in a safe environment.
+
 ## Stack
 - **Backend Inference**: [Ollama](https://ollama.com/)
 - **Frontend**: [Open WebUI](https://docs.openwebui.com/)
@@ -46,3 +49,9 @@ This enables the agent to:
 
 ### RAG Pipeline
 Documents uploaded to Open WebUI are automatically vectorized using `nomic-embed-text` (running on Ollama) and stored in ChromaDB for persistent retrieval.
+
+## Contributing
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
