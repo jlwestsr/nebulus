@@ -20,10 +20,10 @@ A containerized, general-purpose local AI ecosystem.
 
 ## Setup
 
-1. **Run the Setup Playbook**
-   This single command creates the environment, starts the services, and pulls the models.
+1. **Run the Setup Script**
+   This automated script checks for dependencies (uv, ansible) and runs the playbook to provision the system.
    ```bash
-   ansible-playbook -i ansible/inventory ansible/setup.yml
+   ./scripts/setup.sh
    ```
 
 2. **Access the Interface**
