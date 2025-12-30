@@ -10,6 +10,7 @@ A containerized, general-purpose local AI ecosystem.
 - **Frontend**: [Open WebUI](https://docs.openwebui.com/)
 - **RAG**: ChromaDB (Vector Store)
 - **Tools**: Custom MCP Server (Python/FastAPI)
+- **Backups**: `scripts/backup.sh` and `scripts/restore.sh` for data safety.
 - **Health Checks**: `scripts/health.sh` monitors all service statuses.
 - **Monitoring**: [Dozzle](https://dozzle.com) (Log Viewer)
 

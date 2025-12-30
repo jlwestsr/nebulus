@@ -33,3 +33,6 @@ models/
 # Aider / LLM tools
 .aider*
 !.aider.conf.yml
+
+# Backups
+backups/
