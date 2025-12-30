@@ -7,9 +7,9 @@ Enable the system to process images by integrating a vision-language model (VLM)
 
 ## 2. Requirements
 List specific, testable requirements:
-- [ ] **Model**: Add `llava:latest` (or `llama3.2-vision` if available) to the default model list.
-- [ ] **Config**: Ensure Open WebUI is configured to use this model for image inputs.
-- [ ] **Pull**: Update `ansible/setup.yml` to pull the vision model.
+- [x] **Model**: Add `llava:latest` (or `llama3.2-vision` if available) to the default model list.
+- [x] **Config**: Ensure Open WebUI is configured to use this model for image inputs.
+- [x] **Pull**: Update `ansible/setup.yml` to pull the vision model.
 
 ## 3. Technical Implementation
 - **Modules**: Update `ansible/setup.yml` and `README.md`.
@@ -28,8 +28,8 @@ List specific, testable requirements:
 
 ## 5. Workflow Checklist
 Follow the AI Behavior strict workflow:
-- [ ] **Branch**: Created `feat/vision-support` branch?
-- [ ] **Work**: Implemented changes?
-- [ ] **Test**: Verified manually?
-- [ ] **Doc**: Updated `README.md`?
-- [ ] **Data**: `git add .`, `git commit`, `git push`?
+- [x] **Branch**: Created `feat/vision-support` branch?
+- [x] **Work**: Implemented changes?
+- [x] **Test**: Verified manually?
+- [x] **Doc**: Updated `README.md`?
+- [x] **Data**: `git add .`, `git commit`, `git push`?
