@@ -4,7 +4,7 @@ import time
 
 # Configuration
 USER_ID = "682267a5-e64f-4d20-94eb-1b685d514c70"
-MODELS = [
+FRIENDLY_MODELS = [
     {
         "id": "llama-3.2-vision",
         "name": "Llama 3.2 Vision",
@@ -22,42 +22,19 @@ MODELS = [
         "name": "Qwen 2.5 Coder",
         "base_model_id": "qwen2.5-coder:latest",
         "description": "Qwen 2.5 Coder (7B) - Specialized for code",
-        "is_active": 1,
     },
-    # Hidden Base Models
-    {
-        "id": "llama3.2-vision:latest",
-        "name": "llama3.2-vision:latest",
-        "base_model_id": "llama3.2-vision:latest",
-        "description": "Base Model (Hidden)",
-        "is_active": 0,
-    },
-    {
-        "id": "llama3.1:latest",
-        "name": "llama3.1:latest",
-        "base_model_id": "llama3.1:latest",
-        "description": "Base Model (Hidden)",
-        "is_active": 0,
-    },
-    {
-        "id": "qwen2.5-coder:latest",
-        "name": "qwen2.5-coder:latest",
-        "base_model_id": "qwen2.5-coder:latest",
-        "description": "Base Model (Hidden)",
-        "is_active": 0,
-    },
-    {
-        "id": "nomic-embed-text:latest",
-        "name": "nomic-embed-text:latest",
-        "base_model_id": "nomic-embed-text:latest",
-        "description": "Base Model (Hidden)",
-        "is_active": 0,
-    },
+]
+
+RAW_MODELS = [
+    "llama3.2-vision:latest",
+    "llama3.1:latest",
+    "qwen2.5-coder:latest",
+    "nomic-embed-text:latest",
 ]
 
 
 def configure_models():
-    print(f"Configuring {len(MODELS)} friendly models...")
+    print("Configuring friendly models...")
 
     try:
         conn = sqlite3.connect("/data/webui.db")
@@ -65,18 +42,16 @@ def configure_models():
 
         now = int(time.time())
 
-        for model in MODELS:
+        # 1. Upsert Friendly Models
+        for model in FRIENDLY_MODELS:
             print(f"Upserting {model['name']}...")
 
             meta = json.dumps({"description": model["description"]})
             params = json.dumps({})
-            access_control = json.dumps({})  # Open access
+            access_control = json.dumps({})
 
-            # Check if exists
             cursor.execute("SELECT id FROM model WHERE id=?", (model["id"],))
             exists = cursor.fetchone()
-
-            is_active = model.get("is_active", 1)
 
             if exists:
                 cursor.execute(
@@ -84,7 +59,7 @@ def configure_models():
                     UPDATE model
                     SET
                         user_id=?, base_model_id=?, name=?, meta=?, params=?,
-                        updated_at=?, is_active=?
+                        updated_at=?, is_active=1
                     WHERE id=?
                     """,
                     (
@@ -94,7 +69,6 @@ def configure_models():
                         meta,
                         params,
                         now,
-                        is_active,
                         model["id"],
                     ),
                 )
@@ -105,7 +79,7 @@ def configure_models():
                         id, user_id, base_model_id, name, meta, params,
                         created_at, updated_at, access_control, is_active
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
                     """,
                     (
                         model["id"],
@@ -117,9 +91,13 @@ def configure_models():
                         now,
                         now,
                         access_control,
-                        is_active,
                     ),
                 )
+
+        # 2. Delete Raw Models (Let Filter Handle Them)
+        for raw_id in RAW_MODELS:
+            print(f"Deleting raw model entry: {raw_id}...")
+            cursor.execute("DELETE FROM model WHERE id=?", (raw_id,))
 
         conn.commit()
         print("Success! Models configured.")
