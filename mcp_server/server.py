@@ -6,6 +6,7 @@ import shlex
 import re
 import httpx
 from bs4 import BeautifulSoup
+from starlette.responses import JSONResponse
 
 
 # Initialize FastMCP
@@ -246,12 +247,22 @@ def web_search(query: str, max_results: int = 5) -> str:
         return f"Error performing search: {str(e)}"
 
 
+# Expose the internal FastAPI app
+app = mcp.sse_app()
+
+
+async def health_check(request):
+    """Health check endpoint."""
+    return JSONResponse({"status": "ok"})
+
+
+app.add_route("/health", health_check)
+
+
 if __name__ == "__main__":
-    # Import uvicorn here to allow strictly running this as a script if needed,
-    # though Dockerfile uses uvicorn directly on the app object.
     import uvicorn
 
-    uvicorn.run(mcp.sse_app(), host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 else:
-    # Expose the internal FastAPI app for uvicorn
-    app = mcp.sse_app()
+    # Expose app for uvicorn (if running via uvicorn mcp_server.server:app)
+    pass
