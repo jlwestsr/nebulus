@@ -120,7 +120,7 @@ def status() -> None:
         ("Ollama", "http://localhost:11435/api/tags", "11435"),
         ("ChromaDB", "http://localhost:8001/api/v2/heartbeat", "8001"),
         ("MCP Server", "http://localhost:8000/health", "8000"),
-        ("Open WebUI", "http://localhost:3000", "3000"),
+        ("Open WebUI", "http://localhost:3000/health", "3000"),
     ]
 
     with console.status("[bold green]Checking health..."):
