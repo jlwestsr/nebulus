@@ -30,12 +30,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${formatDate(task.next_run)}</td>
                 <td>${task.recipients.join(', ')}</td>
                 <td>
+                    <button class="btn primary sm" onclick="runTask('${task.id}')">Run</button>
                     <button class="btn danger sm" onclick="deleteTask('${task.id}')">Delete</button>
                 </td>
             `;
             tableBody.appendChild(tr);
         });
     }
+
+    // Run Task
+    window.runTask = function (id) {
+        fetch(`/api/tasks/${id}/run`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) alert(data.error);
+                else alert(data.message);
+            });
+    };
 
     // Add Task
     form.addEventListener('submit', (e) => {

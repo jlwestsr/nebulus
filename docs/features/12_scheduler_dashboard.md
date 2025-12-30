@@ -10,7 +10,7 @@ Provide a graphical user interface (GUI) for users to manage Scheduled Tasks (Ad
 ## User Stories
 - **As a user**, I want to see a list of all active scheduled jobs with their next run times.
 - **As a user**, I want a form to easily create a new task (Title, Prompt, Schedule, Recipients).
-- **As a user**, I want to delete old tasks with a simple click.
+- **As a user**, I want to manually trigger a task immediately to verify it works ("Run Now").
 
 ## Technical Components
 
@@ -21,6 +21,7 @@ Provide a graphical user interface (GUI) for users to manage Scheduled Tasks (Ad
     - `GET /api/tasks`: List tasks (JSON).
     - `POST /api/tasks`: Create task.
     - `DELETE /api/tasks/{job_id}`: Delete task.
+    - `POST /api/tasks/{job_id}/run`: Manually trigger task.
     - *Note*: These endpoints will reuse the logic from `scheduler.py`.
 
 ### 2. Frontend

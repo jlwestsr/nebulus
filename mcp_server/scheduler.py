@@ -93,6 +93,18 @@ class TaskScheduler:
             )
         return tasks
 
+    def run_task(self, job_id: str):
+        """Manually trigger a task immediately."""
+        job = self.scheduler.get_job(job_id)
+        if not job:
+            return f"Error: Job {job_id} not found."
+
+        # Execute in background to avoid blocking API
+        # job.func is execute_prompt_and_email
+        # job.args are [title, prompt, recipients]
+        self.scheduler.add_job(job.func, args=job.args, name=f"Manual Run: {job.name}")
+        return f"Task '{job.name}' triggered manually."
+
 
 def execute_prompt_and_email(title: str, prompt: str, recipients: list[str]):
     """Job Execution Logic"""

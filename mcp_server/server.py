@@ -363,10 +363,20 @@ async def delete_task_api(request: Request):
     return JSONResponse({"message": result})
 
 
+# API: Run Task
+async def run_task_api(request: Request):
+    job_id = request.path_params["job_id"]
+    result = scheduler.run_task(job_id)
+    if "Error" in result:
+        return JSONResponse({"error": result}, status_code=404)
+    return JSONResponse({"message": result})
+
+
 # Register Routes
 app.add_route("/api/tasks", get_tasks_api, methods=["GET"])
 app.add_route("/api/tasks", add_task_api, methods=["POST"])
 app.add_route("/api/tasks/{job_id}", delete_task_api, methods=["DELETE"])
+app.add_route("/api/tasks/{job_id}/run", run_task_api, methods=["POST"])
 
 
 if __name__ == "__main__":
