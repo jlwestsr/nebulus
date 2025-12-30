@@ -10,7 +10,6 @@
       - llama3.2-vision:latest
       - qwen2.5-coder:latest
       - nomic-embed-text
-      - glm-4.7:cloud
 
   tasks:
     - name: Ensure .env file exists
