@@ -51,7 +51,7 @@ services:
       - DEFAULT_MODELS=llama3.2-vision:latest
       - BYPASS_ADMIN_ACCESS_CONTROL=false
       - ENABLE_MODEL_FILTER=true
-      - MODEL_FILTER_LIST='llama-3.2-vision;llama-3.1;qwen-2.5-coder'
+      - MODEL_FILTER_LIST=llama-3.2-vision;llama-3.1;qwen-2.5-coder
       # Vector DB Configuration
       - RAG_EMBEDDING_ENGINE=ollama
       - RAG_EMBEDDING_MODEL=nomic-embed-text
