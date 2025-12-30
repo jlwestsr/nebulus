@@ -1,79 +1,183 @@
-# Black Box AI System
+# Nebulus - Black Box AI System
 
-A containerized, general-purpose local AI ecosystem.
+A containerized, general-purpose local AI ecosystem with extended tool access and automation capabilities.
 
 > [!WARNING]
 > **Use at your own risk.** This project allows AI models to read local files and browse the internet. Ensure you review all code and run in a safe environment.
 
+## 📚 Documentation
+
+**Complete documentation available in the [Nebulus Wiki](https://github.com/jlwestsr/nebulus/wiki)**
+
+### Quick Links
+- **[Setup and Installation](https://github.com/jlwestsr/nebulus/wiki/Setup-and-Installation)** - Get started in minutes
+- **[CLI Reference](https://github.com/jlwestsr/nebulus/wiki/CLI-Reference)** - Master the `nebulus` command
+- **[Features](https://github.com/jlwestsr/nebulus/wiki/Features)** - Explore all capabilities
+- **[Architecture](https://github.com/jlwestsr/nebulus/wiki/Architecture)** - Understand the system design
+- **[Troubleshooting](https://github.com/jlwestsr/nebulus/wiki/Troubleshooting)** - Common issues and solutions
+
 ## Stack
-- **Backend Inference**: [Ollama](https://ollama.com/)
-- **Frontend**: [Open WebUI](https://docs.openwebui.com/)
-- **RAG**: ChromaDB (Vector Store)
-- **Tools**: Custom MCP Server (Python/FastAPI)
-- **Backups**: `scripts/backup.sh` and `scripts/restore.sh` for data safety.
-- **Document Parsers**: Support for reading PDF and DOCX files.
-- **Vision Support**: `llama3.2-vision` model integrated for image analysis.
-- **Fine-tuning**: `scripts/finetune/` pipeline to create ShareGPT datasets from chat logs.
-- **Health Checks**: `scripts/health.sh` monitors all service statuses.
-- **Monitoring**: [Dozzle](https://dozzle.com) (Log Viewer)
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Inference** | [Ollama](https://ollama.com/) | Local LLM runtime with GPU support |
+| **Frontend** | [Open WebUI](https://docs.openwebui.com/) | Chat interface and RAG |
+| **Vector DB** | ChromaDB | Persistent embeddings storage |
+| **Tools** | Custom MCP Server | Extended AI capabilities |
+| **Monitoring** | [Dozzle](https://dozzle.com) | Real-time log viewer |
+| **Automation** | Ansible | Infrastructure as code |
 
 ## Default Models (Preinstalled)
+
 - `llama3.1:latest` (General Purpose - **Default**)
 - `llama3.2-vision:latest` (Vision Support)
 - `qwen2.5-coder:latest` (Coding Specialist)
 - `nomic-embed-text` (Embeddings for RAG)
 
-## Prerequisites
+## Quick Start
+
+### Prerequisites
 - Docker & Docker Compose
-- (Recommended) NVIDIA GPU with Container Toolkit (Enable by default in `docker-compose.yml`)
+- (Recommended) NVIDIA GPU with Container Toolkit
 
-## Setup
+### Installation
 
-1. **Run the Setup Script**
-   This automated script checks for dependencies (uv, ansible) and runs the playbook to provision the system.
-   ```bash
-   ./scripts/setup.sh
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/jlwestsr/nebulus.git
+cd nebulus
+
+# Run automated setup
+./scripts/setup.sh
+```
+
+The setup script will:
+1. ✅ Install dependencies (uv, Ansible)
+2. ✅ Create Python virtual environment
+3. ✅ Start Docker services
+4. ✅ Pull LLM models
+5. ✅ Create global `nebulus` CLI
+
+### Access
+
+- **Open WebUI**: [http://localhost:3000](http://localhost:3000)
+- **MCP Server**: [http://localhost:8000](http://localhost:8000)
+- **Dozzle (Logs)**: [http://localhost:8888](http://localhost:8888)
+
+**First-time setup**: The first account created becomes the admin.
 
 ## Management CLI
 
-Nebulus includes a unified command-line tool for managing the ecosystem.
+Nebulus includes a unified command-line tool:
 
 ```bash
-./nebulus --help
+nebulus --help
 ```
 
 **Common Commands:**
-- `up`: Start all services.
-- `down`: Stop all services.
-- `status`: Rich dashboard of service health.
-- `logs [service]`: Stream logs.
-- `monitor`: Launch the Dozzle dashboard.
-- `backup`/`restore`: Manage data persistence.
+```bash
+nebulus up          # Start all services
+nebulus down        # Stop all services
+nebulus status      # Service health dashboard
+nebulus logs        # Stream logs
+nebulus monitor     # Launch Dozzle
+nebulus backup      # Backup data volumes
+nebulus restore     # Restore from backup
+```
 
-2. **Access the Interface**
-   - Open [http://localhost:3000](http://localhost:3000)
-   - The first account created becomes the Admin.
+See **[CLI Reference](https://github.com/jlwestsr/nebulus/wiki/CLI-Reference)** for complete documentation.
 
 ## Features
 
-### MCP Tool Integration
-The system includes a custom MCP (Model Context Protocol) server running on the internal network at `http://mcp-server:8000/sse`.
+### 🛠️ MCP Tool Integration
+
+The custom MCP server provides AI agents with extended capabilities:
+
+**File Operations**
+- Read, write, and edit files in the workspace
+- List directories and search code
+
+**Web Access**
+- DuckDuckGo web search
+- URL scraping and content extraction
+
+**Terminal Access**
+- Safe command execution (whitelisted commands only)
+- Git operations, pytest, grep, find
+
+**Document Parsing**
+- PDF text extraction
+- DOCX document reading
+
+**Vision Support**
+- Image analysis with `llama3.2-vision`
+
+**Task Automation**
+- Schedule recurring AI tasks with cron
+- Email reports automatically
+- Web dashboard for task management
 
 **To connect in Open WebUI:**
-1. Go to **Settings > Admin Settings > Tools**.
-2. Add a new tool connection.
-3. Use the URL: `http://mcp-server:8000/sse` (this hostname works inside the Docker network).
+1. Go to **Settings → Admin Settings → Tools**
+2. Add a new tool connection
+3. URL: `http://mcp-server:8000/sse`
 
-This enables the agent to:
-- Read local files in this project directory (mounted at `/workspace`).
-- Search the web via DuckDuckGo.
+See **[MCP Server](https://github.com/jlwestsr/nebulus/wiki/MCP-Server)** for complete tool documentation.
 
-### RAG Pipeline
-Documents uploaded to Open WebUI are automatically vectorized using `nomic-embed-text` (running on Ollama) and stored in ChromaDB for persistent retrieval.
+### 📊 RAG Pipeline
+
+Documents uploaded to Open WebUI are automatically:
+1. Chunked into segments
+2. Embedded using `nomic-embed-text` (via Ollama)
+3. Stored in ChromaDB for persistent retrieval
+4. Available for semantic search in conversations
+
+### 🔄 Automation
+
+- **Ansible-driven setup** - Reproducible infrastructure
+- **Scheduled tasks** - Recurring AI workflows with email delivery
+- **Automated backups** - Data persistence and recovery
+- **Health monitoring** - Service status checks
+
+### 🧪 Development Features
+
+- **Fine-tuning pipeline** - Export chat logs to ShareGPT format
+- **Unit tests** - Comprehensive test coverage
+- **Code formatting** - Black and Flake8 integration
+- **Pre-commit hooks** - Automated quality checks
+
+See **[Features](https://github.com/jlwestsr/nebulus/wiki/Features)** for the complete feature catalog.
+
+## Documentation
+
+| Topic | Link |
+|-------|------|
+| **Getting Started** | [Setup and Installation](https://github.com/jlwestsr/nebulus/wiki/Setup-and-Installation) |
+| **System Design** | [Architecture](https://github.com/jlwestsr/nebulus/wiki/Architecture) |
+| **CLI Tool** | [CLI Reference](https://github.com/jlwestsr/nebulus/wiki/CLI-Reference) |
+| **All Features** | [Features](https://github.com/jlwestsr/nebulus/wiki/Features) |
+| **Docker Config** | [Docker Services](https://github.com/jlwestsr/nebulus/wiki/Docker-Services) |
+| **Tool Server** | [MCP Server](https://github.com/jlwestsr/nebulus/wiki/MCP-Server) |
+| **Contributing** | [Development Guide](https://github.com/jlwestsr/nebulus/wiki/Development-Guide) |
+| **Model Management** | [Models](https://github.com/jlwestsr/nebulus/wiki/Models) |
+| **Infrastructure** | [Ansible Automation](https://github.com/jlwestsr/nebulus/wiki/Ansible-Automation) |
+| **API Docs** | [API Reference](https://github.com/jlwestsr/nebulus/wiki/API-Reference) |
+| **Support** | [Troubleshooting](https://github.com/jlwestsr/nebulus/wiki/Troubleshooting) |
 
 ## Contributing
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+Contributions are welcome! Please see the **[Development Guide](https://github.com/jlwestsr/nebulus/wiki/Development-Guide)** for:
+- Coding standards (unit tests, type hints, documentation)
+- Git workflow (Git Flow)
+- Adding new MCP tools
+- Testing practices
 
 ## License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- **Documentation**: [Nebulus Wiki](https://github.com/jlwestsr/nebulus/wiki)
+- **Issues**: [GitHub Issues](https://github.com/jlwestsr/nebulus/issues)
+- **Troubleshooting**: [Common Issues](https://github.com/jlwestsr/nebulus/wiki/Troubleshooting)
