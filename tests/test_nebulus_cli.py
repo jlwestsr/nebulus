@@ -14,24 +14,20 @@ def runner():
     return CliRunner()
 
 
-@patch("nebulus.subprocess.run")
+@patch("nebulus.run_interactive")
 def test_up(mock_run, runner):
     """Verifies that 'up' calls the correct docker command."""
     result = runner.invoke(cli, ["up"])
     assert result.exit_code == 0
-    mock_run.assert_called_with(
-        ["docker", "compose", "up", "-d"], check=True, text=True, capture_output=False
-    )
+    mock_run.assert_called_with(["docker", "compose", "up", "-d"])
 
 
-@patch("nebulus.subprocess.run")
+@patch("nebulus.run_interactive")
 def test_down(mock_run, runner):
     """Verifies that 'down' calls the correct docker command."""
     result = runner.invoke(cli, ["down"])
     assert result.exit_code == 0
-    mock_run.assert_called_with(
-        ["docker", "compose", "down"], check=True, text=True, capture_output=False
-    )
+    mock_run.assert_called_with(["docker", "compose", "down"])
 
 
 @patch("nebulus.httpx.get")
@@ -80,4 +76,6 @@ def test_shell(mock_run, runner):
     """Verifies that shell calls docker compose exec."""
     result = runner.invoke(cli, ["shell", "mcp-server"])
     assert result.exit_code == 0
-    mock_run.assert_called_with(["docker", "compose", "exec", "mcp-server", "sh"])
+    mock_run.assert_called_with(
+        ["docker", "compose", "exec", "mcp-server", "sh"], check=False
+    )

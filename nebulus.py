@@ -29,6 +29,8 @@ def run_command(
     Returns:
         The result of the subprocess run.
     """
+    sys.stdout.flush()
+    sys.stderr.flush()
     try:
         return subprocess.run(
             command,
@@ -45,6 +47,22 @@ def run_command(
         sys.exit(1)
 
 
+def run_interactive(command: List[str]) -> None:
+    """Runs a command directly in the terminal for real-time output.
+
+    Args:
+        command: The command and its arguments as a list of strings.
+    """
+    sys.stdout.flush()
+    sys.stderr.flush()
+    try:
+        subprocess.check_call(command)
+    except subprocess.CalledProcessError:
+        sys.exit(1)
+    except KeyboardInterrupt:
+        pass
+
+
 @click.group()
 def cli() -> None:
     """Nebulus Manager - Manage your AI ecosystem."""
@@ -55,21 +73,21 @@ def cli() -> None:
 def up() -> None:
     """Start all services."""
     console.print("[bold green]Starting Nebulus services...[/bold green]")
-    run_command(["docker", "compose", "up", "-d"])
+    run_interactive(["docker", "compose", "up", "-d"])
 
 
 @cli.command()
 def down() -> None:
     """Stop all services."""
     console.print("[bold yellow]Stopping Nebulus services...[/bold yellow]")
-    run_command(["docker", "compose", "down"])
+    run_interactive(["docker", "compose", "down"])
 
 
 @cli.command()
 def restart() -> None:
     """Restart all services."""
     console.print("[bold blue]Restarting Nebulus services...[/bold blue]")
-    run_command(["docker", "compose", "restart"])
+    run_interactive(["docker", "compose", "restart"])
 
 
 @cli.command()
