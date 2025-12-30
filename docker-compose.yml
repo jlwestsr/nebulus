@@ -48,7 +48,7 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-insecure_default_key}
       - WEBUI_NAME=${WEBUI_NAME:-Black Box AI}
-      - DEFAULT_MODELS=llama3.2-vision:latest
+      - DEFAULT_MODELS=llama-3.2-vision
       - BYPASS_ADMIN_ACCESS_CONTROL=false
       - ENABLE_MODEL_FILTER=true
       - MODEL_FILTER_LIST=llama-3.2-vision;llama-3.1;qwen-2.5-coder
