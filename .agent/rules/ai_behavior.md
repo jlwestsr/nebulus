@@ -2,6 +2,24 @@
 
 This document outlines the specific operational standards and behavioral expectations for AI agents working on this project.
 
+## 0. Agent Configuration & Rule Hierarchy
+
+When opening a project, the Google Antigravity IDE looks first for rules in the local workspace folder before falling back to global system-wide rules.
+
+### Rule Locations
+- **Workspace Rules**: The IDE first checks the project's local directory at `your-workspace/.agent/rules/`. It may also load configuration from files like `.cursorrules` or `.antigravity/rules.md` within the workspace root.
+- **Global Rules**: If no workspace-specific rules are found, the IDE uses the global rule file at `~/.gemini/GEMINI.md`.
+
+### Directory Structure & Use Cases
+| Type | Default File Path | Use Case |
+|------|-------------------|----------|
+| **Workspace Rule** | `your-workspace/.agent/rules/` | Project-specific coding standards or restrictions. |
+| **Global Rule** | `~/.gemini/GEMINI.md` | Universal behavior guidelines across all projects. |
+| **Workspace Workflow** | `your-workspace/.agent/workflows/` | On-demand tasks (e.g., `/generate-unit-tests`). |
+| **Global Workflow** | `~/.gemini/antigravity/global_workflows/` | Reusable prompts available in every workspace. |
+
+Rules control the autonomous agent's behavior. They can enforce coding styles or require documentation. The Customizations panel in the IDE's menu allows managing these settings.
+
 ## 1. Operational Guardrails
 - **Pre-Commit Verification**: Before marking any task as complete, the agent MUST run `pytest` and ensure all tests pass.
 - **Linting Compliance**: All code must pass `flake8` checks. If new code introduces linting errors, the agent must fix them immediately.

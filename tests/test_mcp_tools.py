@@ -23,6 +23,10 @@ mock_mcp = MagicMock()
 mock_mcp.tool.side_effect = dummy_decorator
 
 with patch("mcp.server.fastmcp.FastMCP", return_value=mock_mcp):
+    import importlib
+    import server
+
+    importlib.reload(server)
     from server import (
         read_file,
         write_file,

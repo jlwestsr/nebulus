@@ -1,6 +1,6 @@
 # .aider.conf.yml
 read:
-  - rules/ai_behavior.md
+  - .agent/rules/ai_behavior.md
   - CONTEXT.md
 
 auto-commits: false  # We want manual control over commits to review them

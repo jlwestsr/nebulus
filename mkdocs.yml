@@ -14,7 +14,7 @@ plugins:
 nav:
   - Home: index.md
   - Features: features/
-  - AI Behavior: rules/ai_behavior.md
+  - AI Behavior: .agent/rules/ai_behavior.md
   - Context: CONTEXT.md
 
 markdown_extensions:

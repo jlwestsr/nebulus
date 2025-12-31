@@ -1,8 +1,7 @@
 # Project Context & Coding Standards
 
 > **[IMPORTANCE: CRITICAL] AI AGENT DIRECTIVE**:
-> You MUST read and adhere to [rules/ai_behavior.md](rules/ai_behavior.md) at the start of every session. It contains strict operational guardrails, "Ansible-First" policies, and Git branching rules that supersede general instructions.
-
+> You MUST read and adhere to [.agent/rules/ai_behavior.md](.agent/rules/ai_behavior.md) at the start of every session. It contains strict operational guardrails, "Ansible-First" policies, and Git branching rules that supersede general instructions.
 
 ## 1. Project Overview
 
@@ -40,6 +39,9 @@
 
 ```
 nebulus/
+├── .agent/              # Antigravity AI Settings
+│   ├── rules/           # AI Behavior Rules
+│   └── workflows/       # On-demand Agent Tasks
 ├── ansible/              # Infrastructure automation
 │   ├── setup.yml        # Main setup playbook
 │   └── verify.yml       # System verification
@@ -52,7 +54,6 @@ nebulus/
 │   └── static/          # Dashboard UI
 ├── models/              # Local LLM weights (git-ignored)
 ├── nebulus.py           # CLI Management Tool (`nebulus`)
-├── rules/               # AI Behavior & Project Rules
 ├── scripts/             # Shell & Python utilities
 │   ├── backup.sh        # Backup logic with retention
 │   ├── restore.sh       # Restore logic

@@ -86,3 +86,47 @@ def test_shell(mock_run, runner):
     mock_run.assert_called_with(
         ["docker", "compose", "exec", "mcp-server", "sh"], check=False
     )
+
+
+@patch("nebulus.run_interactive")
+def test_restart(mock_run, runner):
+    """Verifies that 'restart' calls the correct docker command."""
+    result = runner.invoke(cli, ["restart"])
+    assert result.exit_code == 0
+    mock_run.assert_called_with(["docker", "compose", "restart"])
+
+
+@patch("nebulus.subprocess.run")
+def test_logs(mock_run, runner):
+    """Verifies that 'logs' calls the correct docker command."""
+    result = runner.invoke(cli, ["logs", "webui"])
+    assert result.exit_code == 0
+    mock_run.assert_called_with(["docker", "compose", "logs", "-f", "webui"])
+
+
+@patch("nebulus.run_command")
+@patch("nebulus.Path")
+@patch("rich.prompt.Prompt.ask")
+@patch("rich.prompt.Confirm.ask")
+def test_restore(mock_confirm, mock_prompt, mock_path, mock_run_cmd, runner):
+    """Verifies the restore flow."""
+    # Mock backup listing
+    mock_glob = [MagicMock(name="backup1.tar.gz")]
+    mock_glob[0].name = "backup1.tar.gz"
+
+    # Configure Path.exists and glob
+    mock_path.return_value.exists.return_value = True
+    mock_path.return_value.glob.return_value = mock_glob
+
+    mock_prompt.side_effect = [
+        "1",
+        "target_vol",
+    ]  # Select 1st backup, enter volume name
+    mock_confirm.return_value = True  # Confirm restore
+
+    result = runner.invoke(cli, ["restore"])
+
+    assert result.exit_code == 0
+    mock_run_cmd.assert_called_with(
+        ["bash", "scripts/restore.sh", "backup1.tar.gz", "target_vol"]
+    )
