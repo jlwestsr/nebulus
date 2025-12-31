@@ -91,7 +91,7 @@ def up() -> None:
         ("Open WebUI", "http://localhost:3000"),
         ("Dozzle (Logs)", "http://localhost:8888"),
         ("MCP Server API", "http://localhost:8000/docs"),
-        ("ChromaDB", "http://localhost:8001"),
+        ("ChromaDB", "http://localhost:8001/docs"),
         ("Ollama", "http://localhost:11435"),
     ]
 
