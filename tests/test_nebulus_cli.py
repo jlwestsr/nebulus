@@ -16,10 +16,17 @@ def runner():
 
 @patch("nebulus.run_interactive")
 def test_up(mock_run, runner):
-    """Verifies that 'up' calls the correct docker command."""
+    """Verifies that 'up' calls the correct docker command and shows URLs."""
     result = runner.invoke(cli, ["up"])
     assert result.exit_code == 0
     mock_run.assert_called_with(["docker", "compose", "up", "-d"])
+
+    # Verify Dashboard URLs are shown
+    assert "http://localhost:3000" in result.output  # WebUI
+    assert "http://localhost:8888" in result.output  # Dozzle
+    assert "http://localhost:8000/docs" in result.output  # MCP Server
+    assert "http://localhost:8001" in result.output  # ChromaDB
+    assert "http://localhost:11435" in result.output  # Ollama
 
 
 @patch("nebulus.run_interactive")

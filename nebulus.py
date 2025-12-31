@@ -81,6 +81,24 @@ def up() -> None:
     """Start all services."""
     console.print("[bold green]Starting Nebulus services...[/bold green]")
     run_interactive(["docker", "compose", "up", "-d"])
+
+    # Display Access Points
+    table = Table(title="Nebulus Access Points")
+    table.add_column("Service", style="cyan")
+    table.add_column("URL", style="magenta")
+
+    services = [
+        ("Open WebUI", "http://localhost:3000"),
+        ("Dozzle (Logs)", "http://localhost:8888"),
+        ("MCP Server API", "http://localhost:8000/docs"),
+        ("ChromaDB", "http://localhost:8001"),
+        ("Ollama", "http://localhost:11435"),
+    ]
+
+    for name, url in services:
+        table.add_row(name, url)
+
+    console.print(table)
     console.print("[bold green]Done.[/bold green]")
 
 
