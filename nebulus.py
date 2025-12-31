@@ -88,7 +88,6 @@ def up() -> None:
     table.add_column("URL", style="magenta")
 
     services = [
-        ("Open WebUI", "http://localhost:3000"),
         ("Dozzle (Logs)", "http://localhost:8888"),
         ("MCP Server Dashboard", "http://localhost:8000/static/index.html"),
         ("ChromaDB", "http://localhost:8001/docs"),
@@ -143,7 +142,6 @@ def status() -> None:
         ("Ollama", "http://localhost:11435/api/tags", "11435"),
         ("ChromaDB", "http://localhost:8001/api/v2/heartbeat", "8001"),
         ("MCP Server", "http://localhost:8000/health", "8000"),
-        ("Open WebUI", "http://localhost:3000/health", "3000"),
     ]
 
     with console.status("[bold green]Checking health..."):

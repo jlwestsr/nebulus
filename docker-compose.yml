@@ -37,36 +37,6 @@ services:
     networks:
       - ai-network
 
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: webui
-    restart: unless-stopped
-    depends_on:
-      - ollama
-      - chromadb
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-insecure_default_key}
-      - WEBUI_NAME=Nebulus (Black Box AI)
-      - DEFAULT_MODELS=llama3.1:latest
-      - BYPASS_ADMIN_ACCESS_CONTROL=false
-      - ENABLE_MODEL_FILTER=true
-      - MODEL_FILTER_LIST=llama3.1:latest;llama3.2-vision:latest;qwen2.5-coder:latest
-      # Vector DB Configuration
-      - RAG_EMBEDDING_ENGINE=ollama
-      - RAG_EMBEDDING_MODEL=nomic-embed-text
-      - CHROMA_HTTP_HOST=chromadb
-      - CHROMA_HTTP_PORT=8000
-
-    volumes:
-      - webui_data:/app/backend/data
-    ports:
-      - "3000:8080"
-    networks:
-      - ai-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
   chromadb:
     image: chromadb/chroma:latest
     container_name: chromadb
@@ -103,5 +73,4 @@ networks:
 
 volumes:
   ollama_data:
-  webui_data:
   chroma_data:

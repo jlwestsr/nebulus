@@ -40,15 +40,5 @@ else
     exit 1
 fi
 
-# 4. Open WebUI
-echo -n "Open WebUI (3000): "
-# Use -I for HEAD request to avoid downloading index.html
-if curl -s -f -I "http://localhost:3000" > /dev/null; then
-    echo -e "${GREEN}OK${NC}"
-else
-    echo -e "${RED}FAIL${NC}"
-    exit 1
-fi
-
 echo -e "\n${GREEN}All Systems Operational!${NC}"
 exit 0

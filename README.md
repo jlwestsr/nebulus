@@ -21,7 +21,6 @@ A containerized, general-purpose local AI ecosystem with extended tool access an
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | **Inference** | [Ollama](https://ollama.com/) | Local LLM runtime with GPU support |
-| **Frontend** | [Open WebUI](https://docs.openwebui.com/) | Chat interface and RAG |
 | **Vector DB** | ChromaDB | Persistent embeddings storage |
 | **Tools** | Custom MCP Server | Extended AI capabilities |
 | **Monitoring** | [Dozzle](https://dozzle.com) | Real-time log viewer |
@@ -46,7 +45,6 @@ Please refer to the **[Setup and Installation Guide](https://github.com/jlwestsr
 
 ### Access
 
-- **Open WebUI**: [http://localhost:3000](http://localhost:3000)
 - **MCP Server**: [http://localhost:8000](http://localhost:8000)
 - **Dozzle (Logs)**: [http://localhost:8888](http://localhost:8888)
 
@@ -103,20 +101,7 @@ The custom MCP server provides AI agents with extended capabilities:
 - Email reports automatically
 - Web dashboard for task management
 
-**To connect in Open WebUI:**
-1. Go to **Settings → Admin Settings → Tools**
-2. Add a new tool connection
-3. URL: `http://mcp-server:8000/sse`
-
 See **[MCP Server](https://github.com/jlwestsr/nebulus/wiki/MCP-Server)** for complete tool documentation.
-
-### 📊 RAG Pipeline
-
-Documents uploaded to Open WebUI are automatically:
-1. Chunked into segments
-2. Embedded using `nomic-embed-text` (via Ollama)
-3. Stored in ChromaDB for persistent retrieval
-4. Available for semantic search in conversations
 
 ### 🔄 Automation
 
