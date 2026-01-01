@@ -40,5 +40,14 @@ else
     exit 1
 fi
 
+# 4. Gantry (Chainlit)
+echo -n "Gantry (8002): "
+if curl -s -f -I "http://localhost:8002" > /dev/null; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${RED}FAIL${NC}"
+    exit 1
+fi
+
 echo -e "\n${GREEN}All Systems Operational!${NC}"
 exit 0

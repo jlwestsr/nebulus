@@ -22,6 +22,7 @@ def test_up(mock_run, runner):
     mock_run.assert_called_with(["docker", "compose", "up", "-d"])
 
     # Verify Dashboard URLs are shown
+    assert "http://localhost:8002" in result.output  # Gantry
     assert "http://localhost:8888" in result.output  # Dozzle
     assert "http://localhost:8000/static/index.html" in result.output  # MCP Server
     assert "http://localhost:8001/docs" in result.output  # ChromaDB
@@ -46,6 +47,7 @@ def test_status_online(mock_get, runner):
     result = runner.invoke(cli, ["status"])
     assert result.exit_code == 0
     assert "ONLINE" in result.output
+    assert "Nebulus Gantry" in result.output
     assert "Ollama" in result.output
 
 

@@ -35,7 +35,20 @@ services:
     environment:
       - DOZZLE_LEVEL=info
     networks:
+  gantry:
+    build: ./gantry
+    container_name: gantry
+    restart: unless-stopped
+    depends_on:
+      - ollama
+      - chromadb
+    ports:
+      - "8002:8000"
+    networks:
       - ai-network
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - CHROMA_HOST=http://chromadb:8000
 
   chromadb:
     image: chromadb/chroma:latest

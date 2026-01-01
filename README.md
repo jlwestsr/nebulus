@@ -20,6 +20,7 @@ A containerized, general-purpose local AI ecosystem with extended tool access an
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
+| **Frontend** | [Chainlit](https://chainlit.io/) | Gantry Interface (Chat & UI) |
 | **Inference** | [Ollama](https://ollama.com/) | Local LLM runtime with GPU support |
 | **Vector DB** | ChromaDB | Persistent embeddings storage |
 | **Tools** | Custom MCP Server | Extended AI capabilities |
@@ -45,6 +46,7 @@ Please refer to the **[Setup and Installation Guide](https://github.com/jlwestsr
 
 ### Access
 
+- **Nebulus Gantry (UI)**: [http://localhost:8002](http://localhost:8002)
 - **MCP Server**: [http://localhost:8000](http://localhost:8000)
 - **Dozzle (Logs)**: [http://localhost:8888](http://localhost:8888)
 
