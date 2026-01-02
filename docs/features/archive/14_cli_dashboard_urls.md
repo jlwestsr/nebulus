@@ -1,6 +1,6 @@
 # Feature: CLI Dashboard URL Display
 
-**Status**: Draft
+**Status**: Implemented
 **Owner**: AI Agent
 **Created**: 2024-12-30
 
@@ -14,7 +14,7 @@ Currently, when a user runs `nebulus up`, the services start, but the user is le
 ## 3. Scope
 - **In Scope**:
   - Modify `nebulus up` command.
-  - List URLs for: Open WebUI, Dozzle, MCP Server, Ollama, ChromaDB.
+  - List URLs for: Gantry, Dozzle, MCP Server, Ollama, ChromaDB.
 - **Out of Scope**:
   - dynamic port detection (we assume standard ports from docker-compose).
 
@@ -23,9 +23,9 @@ Currently, when a user runs `nebulus up`, the services start, but the user is le
   - Enhance `up()` function.
   - Use `rich.table` or `rich.panel` to present links attractively.
   - URLs:
-    - Web Interface: `http://localhost:3000`
+    - Gantry: `http://localhost:8002`
     - Logs (Dozzle): `http://localhost:8888`
-    - MCP API: `http://localhost:8000/docs`
+    - MCP Dashboard: `http://localhost:8000/static/index.html`
     - ChromaDB: `http://localhost:8001`
     - Ollama: `http://localhost:11435`
 

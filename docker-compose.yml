@@ -35,10 +35,13 @@ services:
     environment:
       - DOZZLE_LEVEL=info
     networks:
+      - ai-network
   gantry:
     build: ./gantry
     container_name: gantry
     restart: unless-stopped
+    volumes:
+      - gantry_data:/app/data
     depends_on:
       - ollama
       - chromadb
@@ -49,6 +52,7 @@ services:
     environment:
       - OLLAMA_HOST=http://ollama:11434
       - CHROMA_HOST=http://chromadb:8000
+      - CHAINLIT_AUTH_SECRET=supersecret-dev-key-change-me-in-prod
 
   chromadb:
     image: chromadb/chroma:latest
@@ -87,3 +91,4 @@ networks:
 volumes:
   ollama_data:
   chroma_data:
+  gantry_data:

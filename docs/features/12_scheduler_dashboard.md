@@ -4,8 +4,8 @@
 Provide a graphical user interface (GUI) for users to manage Scheduled Tasks (Add, List, Edit, Delete) without using chat commands.
 
 ## Constraints
-- Open WebUI does not natively support adding custom links/views to the sidebar.
-- **Solution**: We will host a standalone dashboard on the MCP Server (`http://localhost:8000/dashboard`) which runs alongside Open WebUI.
+- Gantry is the primary chat interface, but adding complex custom dashboards to it requires avoiding deep coupling.
+- **Solution**: We will host a standalone dashboard on the MCP Server (`http://localhost:8000/static/index.html`) which runs alongside Gantry.
 
 ## User Stories
 - **As a user**, I want to see a list of all active scheduled jobs with their next run times.

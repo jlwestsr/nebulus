@@ -45,8 +45,8 @@ To remove Open WebUI, the following changes are required:
 - [ ] `scripts/health.sh`: Verify it passes without checking port 3000.
 
 **Manual Verification**:
-- [ ] Run `nebulus up` and ensure no errors.
-- [ ] Run `nebulus status` and ensure all remaining services (Ollama, Chroma, MCP) are ONLINE.
+- [x] Run `nebulus up` and ensure no errors.
+- [x] Run `nebulus status` and ensure all remaining services (Ollama, Chroma, MCP) are ONLINE.
 
 ## 5. Workflow Checklist
 Follow the AI Behavior strict workflow:

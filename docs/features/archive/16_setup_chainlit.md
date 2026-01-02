@@ -6,12 +6,12 @@
 We will implement Chainlit as the new "Gantry" interface for the Nebulus ecosystem. This replaces the recently removed Open WebUI. It will run as a separate Docker service, connecting to the existing Ollama and ChromaDB instances.
 
 ## 2. Requirements
-- [ ] Create a new service `gantry` running Chainlit.
-- [ ] Map port `8002` (reserved for UI) to container.
-- [ ] Connect to `ollama` (port 11434).
-- [ ] Connect to `chromadb` (port 8000).
-- [ ] Connect to `mcp-server` (port 8000).
-- [ ] Implement basic "Hello World" or chat interface to verify connectivity.
+- [x] Create a new service `gantry` running Chainlit.
+- [x] Map port `8002` (reserved for UI) to container.
+- [x] Connect to `ollama` (port 11434).
+- [x] Connect to `chromadb` (port 8000).
+- [x] Connect to `mcp-server` (port 8000).
+- [x] Implement basic "Hello World" or chat interface to verify connectivity.
 
 ## 3. Technical Implementation
 - **Directory**: `gantry/`
