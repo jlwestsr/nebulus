@@ -22,7 +22,8 @@ async def start():
     cl.user_session.set("settings", settings)
 
     await cl.Message(
-        content="Hello from Gantry! I am connected to your local Ollama instance."
+        content=f"Hello from Nebulus! I am connected to your local Ollama instance "
+        f"using {settings['model']}"
     ).send()
 
 

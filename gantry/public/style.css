@@ -1,0 +1,279 @@
+:root {
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 60px;
+    --sidebar-bg: #0d1117;
+    --sidebar-hover: #161b22;
+    --text-primary: #e6edf3;
+    --text-secondary: #7d8590;
+    --accent-color: #FA3860;
+    /* Pinkish red from the screenshot */
+}
+
+body {
+    transition: padding-left 0.3s ease;
+    padding-left: var(--sidebar-width) !important;
+    /* Force space for sidebar */
+}
+
+body.sidebar-collapsed {
+    padding-left: var(--sidebar-collapsed-width) !important;
+}
+
+/* Hide default Chainlit header if needed, or specific elements */
+/* We might need to inspect this later, but for now assuming we live alongside it */
+
+#nebulus-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width);
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid #30363d;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+body.sidebar-collapsed #nebulus-sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
+/* Logo Area */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 20px;
+    height: 50px;
+    overflow: hidden;
+}
+
+.logo-icon {
+    min-width: 30px;
+    height: 30px;
+    background-color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: bold;
+    margin-right: 12px;
+}
+
+.logo-text {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.2s;
+}
+
+body.sidebar-collapsed .logo-text {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Navigation Items */
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.nav-item:hover {
+    background-color: var(--sidebar-hover);
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    background-color: #1f242c;
+    color: var(--text-primary);
+    border-left: 3px solid var(--accent-color);
+}
+
+.nav-icon {
+    min-width: 24px;
+    display: flex;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 1.2rem;
+}
+
+.nav-label {
+    opacity: 1;
+    transition: opacity 0.2s;
+}
+
+body.sidebar-collapsed .nav-label {
+    opacity: 0;
+}
+
+/* New Chat Button */
+.new-chat-btn {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 10px 0 20px 0;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.new-chat-btn:hover {
+    background-color: var(--sidebar-hover);
+}
+
+body.sidebar-collapsed .new-chat-btn {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+body.sidebar-collapsed .new-chat-btn span {
+    display: none;
+}
+
+/* Toggle Button */
+.toggle-btn {
+    position: absolute;
+    top: 15px;
+    right: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 5px;
+    display: none;
+    /* Show on hover of sidebar maybe? or always */
+}
+
+#nebulus-sidebar:hover .toggle-btn {
+    display: block;
+}
+
+/* Divider */
+.divider {
+    height: 1px;
+    background-color: #30363d;
+    margin: 10px 0;
+}
+
+/* User Profile at Bottom */
+.user-profile {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Dashboard / Empty State */
+#nebulus-dashboard {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-width);
+    /* Push to the right of sidebar */
+    width: calc(100% - var(--sidebar-width));
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #0d1117;
+    /* Match main bg */
+    z-index: 50;
+    /* Above regular content but below sidebar */
+    transition: left 0.3s ease, width 0.3s ease;
+}
+
+body.sidebar-collapsed #nebulus-dashboard {
+    left: var(--sidebar-collapsed-width);
+    width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+.dashboard-content {
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+}
+
+.dashboard-logo {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    display: inline-block;
+    background: #fff;
+    color: #000;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    line-height: 60px;
+}
+
+.dashboard-greeting {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 40px;
+    font-weight: 500;
+}
+
+.suggestions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 0 20px;
+}
+
+.suggestion-card {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.suggestion-card:hover {
+    background-color: #1f242c;
+    transform: translateY(-2px);
+}
+
+.suggestion-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+.suggestion-desc {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
