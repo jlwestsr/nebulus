@@ -8,7 +8,7 @@ This document serves as the master roadmap and meta-feature for transforming the
 ## 2. Requirements
 List specific, testable requirements:
 - [ ] **Track Sub-Features**:
-    - [ ] **Sidebar Navigation**: Complete `20_sidebar_navigation.md` (feat/sidebar-nav).
+    - [x] **Sidebar Navigation**: Complete `20_sidebar_navigation.md` (feat/sidebar-nav).
     - [ ] **Global Search**: Complete `24_global_search.md` (feat/global-search).
     - [ ] **Notes System**: Complete `25_notes_system.md` (feat/notes-system).
     - [ ] **Workspace Management**: Complete `21_workspace_management.md` (feat/workspace-ui).
