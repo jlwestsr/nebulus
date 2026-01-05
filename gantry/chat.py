@@ -100,9 +100,7 @@ async def start():
     initial_model = (
         default_friendly
         if default_friendly in friendly_names
-        else friendly_names[0]
-        if friendly_names
-        else "Llama 3.1"
+        else friendly_names[0] if friendly_names else "Llama 3.1"
     )
 
     settings.update(
