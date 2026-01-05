@@ -7,15 +7,15 @@ This document outlines the specific operational standards and behavioral expecta
 When opening a project, the Google Antigravity IDE looks first for rules in the local workspace folder before falling back to global system-wide rules.
 
 ### Rule Locations
-- **Workspace Rules**: The IDE first checks the project's local directory at `your-workspace/.agent/rules/`. It may also load configuration from files like `.cursorrules` or `.antigravity/rules.md` within the workspace root.
+- **Workspace Rules**: The IDE first checks the project's local directory at `your-workspace/agent/rules/`. It may also load configuration from files like `.cursorrules` or `.antigravity/rules.md` within the workspace root.
 - **Global Rules**: If no workspace-specific rules are found, the IDE uses the global rule file at `~/.gemini/GEMINI.md`.
 
 ### Directory Structure & Use Cases
 | Type | Default File Path | Use Case |
 |------|-------------------|----------|
-| **Workspace Rule** | `your-workspace/.agent/rules/` | Project-specific coding standards or restrictions. |
+| **Workspace Rule** | `your-workspace/agent/rules/` | Project-specific coding standards or restrictions. |
 | **Global Rule** | `~/.gemini/GEMINI.md` | Universal behavior guidelines across all projects. |
-| **Workspace Workflow** | `your-workspace/.agent/workflows/` | On-demand tasks (e.g., `/generate-unit-tests`). |
+| **Workspace Workflow** | `your-workspace/agent/workflows/` | On-demand tasks (e.g., `/generate-unit-tests`). |
 | **Global Workflow** | `~/.gemini/antigravity/global_workflows/` | Reusable prompts available in every workspace. |
 
 Rules control the autonomous agent's behavior. They can enforce coding styles or require documentation. The Customizations panel in the IDE's menu allows managing these settings.
@@ -48,6 +48,7 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
 - **System Verification**: New Ulauncher extensions or major system configurations (desktop entries, services) MUST be added to the `ansible/verify.yml` playbook.
 - **Test Runner**: Always run `./scripts/run_tests.sh` before finalizing work to ensure no regressions in linting, unit tests, or system state.
 - **Ansible Lint**: While some pre-existing debt exists, all *new* Ansible code should aim for zero legacy warnings. Use specific tasks instead of generic `shell` where possible.
+- **Validate Frontend Assets**: Before verification or deployment, MUST lint/validate all JavaScript and CSS files (e.g., using `eslint` or manual syntax checks) to prevent syntax errors that could break the UI.
 
 ## 7. Development Workflow
 - **Conventional Commits**: Use `feat:`, `fix:`, `docs:`, or `chore:` prefixes.

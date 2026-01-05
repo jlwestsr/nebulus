@@ -100,9 +100,9 @@ def test_restart(mock_run, runner):
 @patch("nebulus.subprocess.run")
 def test_logs(mock_run, runner):
     """Verifies that 'logs' calls the correct docker command."""
-    result = runner.invoke(cli, ["logs", "webui"])
+    result = runner.invoke(cli, ["logs", "gantry"])
     assert result.exit_code == 0
-    mock_run.assert_called_with(["docker", "compose", "logs", "-f", "webui"])
+    mock_run.assert_called_with(["docker", "compose", "logs", "-f", "gantry"])
 
 
 @patch("nebulus.run_command")

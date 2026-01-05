@@ -1,7 +1,7 @@
 # Project Context & Coding Standards
 
 > **[IMPORTANCE: CRITICAL] AI AGENT DIRECTIVE**:
-> You MUST read and adhere to [.agent/rules/ai_behavior.md](.agent/rules/ai_behavior.md) at the start of every session. It contains strict operational guardrails, "Ansible-First" policies, and Git branching rules that supersede general instructions.
+> You MUST read and adhere to [agent/rules/ai_behavior.md](agent/rules/ai_behavior.md) at the start of every session. It contains strict operational guardrails, "Ansible-First" policies, and Git branching rules that supersede general instructions.
 
 ## 1. Project Overview
 
@@ -23,7 +23,7 @@
 
 ### Services
 - **Inference**: [Ollama](https://ollama.com/) (Local LLMs)
-- **Frontend**: [Open WebUI](https://docs.openwebui.com/) (ChatGPT-like interface)
+- **Frontend**: [Nebulus Gantry](https://chainlit.io/) (Chat & UI Interface)
 - **Vector DB**: [ChromaDB](https://www.trychroma.com/) (Knowledge retrieval)
 - **Tools**: Custom MCP Server (FastMCP/FastAPI)
 - **Monitoring**: [Dozzle](https://dozzle.com/) (Real-time logs)
@@ -39,7 +39,7 @@
 
 ```
 nebulus/
-├── .agent/              # Antigravity AI Settings
+├── agent/              # Antigravity AI Settings
 │   ├── rules/           # AI Behavior Rules
 │   └── workflows/       # On-demand Agent Tasks
 ├── ansible/              # Infrastructure automation

@@ -17,6 +17,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 "/public",
                 "/favicon",
                 "/logo",
+                "/models",
             )
         ):
             return await call_next(request)
