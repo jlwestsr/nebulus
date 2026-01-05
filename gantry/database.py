@@ -1,5 +1,13 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    DateTime,
+    ForeignKey,
+    text,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -20,6 +28,7 @@ class User(Base):
     full_name = Column(String)
     hashed_password = Column(String)
     role = Column(String, default="user")
+    current_model = Column(String, default="Llama 3.1")
     created_at = Column(DateTime, default=datetime.utcnow)
     chats = relationship("Chat", back_populates="user")
     folders = relationship("Folder", back_populates="user")
@@ -79,3 +88,18 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def migrate_db():
+    """Simple migration to add missing columns"""
+    with engine.connect() as conn:
+        try:
+            conn.execute(
+                text(
+                    "ALTER TABLE users ADD COLUMN current_model VARCHAR DEFAULT 'Llama 3.1'"
+                )
+            )
+            print("Migration: Added current_model column.")
+        except Exception:
+            # Column likely exists
+            pass

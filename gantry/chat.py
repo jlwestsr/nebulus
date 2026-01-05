@@ -93,15 +93,14 @@ async def start():
         if name not in FRIENDLY_TO_RAW:
             FRIENDLY_TO_RAW[name] = raw_id
 
-    # Default settings
-    default_friendly = "Llama 3.1"
+    # Convert to friendly name for comparison if stored as raw ID, or just store friendly?
+    # Let's store friendly name in DB for simplicity with UI, or raw ID?
+    # script.js uses friendly names for display. But chat logic maps friendly->raw.
+    # Let's assume DB stores Friendly Name as default was "Llama 3.1"
 
-    # Check if default is available, otherwise pick first
-    initial_model = (
-        default_friendly
-        if default_friendly in friendly_names
-        else friendly_names[0] if friendly_names else "Llama 3.1"
-    )
+    default_friendly = "Llama 3.1"
+    # Force default on startup (User requested no persistence on reload)
+    initial_model = default_friendly
 
     settings.update(
         {
@@ -126,6 +125,22 @@ async def start():
     ).send()
 
 
+def sync_model_from_db(user_id, settings):
+    if not user_id:
+        return settings
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user and user.current_model:
+            settings["model"] = user.current_model
+    except Exception as e:
+        print(f"Error syncing model from DB: {e}")
+    finally:
+        db.close()
+    return settings
+
+
 @cl.on_message
 async def main(message: cl.Message):
     settings = cl.user_session.get("settings")
@@ -134,8 +149,14 @@ async def main(message: cl.Message):
     # Ah, in previous edit, it was used. Let's make sure it is effectively used or remove local var if direct access.
 
     chat_id = cl.user_session.get("id")
+    user_id = cl.user_session.get("db_user_id")
+
+    # Refresh Model from DB
+    settings = sync_model_from_db(user_id, settings)
+    cl.user_session.set("settings", settings)
 
     # Command Interception for Model Switching
+
     if message.content.startswith("/model "):
         new_model = message.content.replace("/model ", "").strip()
         available_models = cl.user_session.get("available_models", [])
@@ -152,6 +173,23 @@ async def main(message: cl.Message):
 
         settings["model"] = new_model
         cl.user_session.set("settings", settings)
+
+        # Persist to DB
+        db = SessionLocal()
+        try:
+            # Re-fetch user to attach to session
+            user = (
+                db.query(User)
+                .filter(User.id == cl.user_session.get("db_user_id"))
+                .first()
+            )
+            if user:
+                user.current_model = new_model
+                db.commit()
+        except Exception as e:
+            print(f"Error saving model preference: {e}")
+        finally:
+            db.close()
 
         # Hijack the user's command message and convert it to the system confirmation
         # This avoids race conditions with message.remove()

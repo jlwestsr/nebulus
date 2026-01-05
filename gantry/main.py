@@ -1,11 +1,9 @@
 from fastapi import FastAPI
 from chainlit.utils import mount_chainlit
-from database import init_db
+from database import init_db, migrate_db
 from starlette.middleware import Middleware
 from middleware import AuthMiddleware
 from routers import auth_routes, chat_routes
-
-# ... existing code ...
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import os
@@ -48,9 +46,6 @@ async def get_models():
         return JSONResponse(
             content={"models": ["Llama 3.1"], "error": str(e)}, status_code=500
         )
-
-
-# ... existing code ...
 
 
 @app.get("/notes", response_class=HTMLResponse)
@@ -98,6 +93,7 @@ app.include_router(chat_routes.router)
 @app.on_event("startup")
 async def startup():
     init_db()
+    migrate_db()
 
 
 # Mount Chainlit app on root

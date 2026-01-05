@@ -48,10 +48,10 @@ function injectSidebar() {
                     <span>New Chat</span>
                 </div>
 
-                <a class="nav-item" href="/">
+                <div class="nav-item" onclick="window.openSearchModal(event)">
                     <div class="nav-icon">🔍</div>
                     <span class="nav-label">Search</span>
-                </a>
+                </div>
 
                  <a class="nav-item" href="/notes">
                     <div class="nav-icon">📝</div>
@@ -119,6 +119,8 @@ function injectSidebar() {
 
     //    injectDashboard();
 
+    let cachedModels = [];
+
     // Fetch models from API for the dropdown
     fetch('/models')
         .then(response => response.json())
@@ -137,6 +139,7 @@ function injectSidebar() {
                     models.sort();
                 }
 
+                cachedModels = models; // Cache for observer
                 injectModelDropdown(models);
             }
         })
@@ -202,6 +205,13 @@ function injectSidebar() {
     }
 
     function injectModelDropdown(models) {
+        // Use cache if no args provided (e.g. from observer)
+        if (!models) models = cachedModels;
+
+        // If still no models (fetch hasn't returned yet), do nothing.
+        // The fetch callback will call us later.
+        if (!models || models.length === 0) return;
+
         if (document.getElementById('model-selector-container')) return;
 
         const container = document.createElement('div');
@@ -211,36 +221,43 @@ function injectSidebar() {
         select.id = 'model-selector';
 
         // Add options
-        if (Array.isArray(models)) {
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.text = model;
-                select.appendChild(option);
-            });
-        }
+        models.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.text = model;
+            select.appendChild(option);
+        });
 
         // Handle change
         select.addEventListener('change', (e) => {
             const newModel = e.target.value;
-            const textarea = document.querySelector('textarea');
-            if (textarea) {
-                // Send command hiddenly if possible, or just type it
-                window.setInput(`/model ${newModel}`);
 
-                // Try to trigger send (Chainlit specific)
-                setTimeout(() => {
-                    // Use robust ID selector found via inspection
-                    const sendBtn = document.getElementById('chat-submit');
-                    if (sendBtn) {
-                        sendBtn.click();
+            // Backend Update via API (No page refresh, no chat clutter)
+            fetch('/api/model', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: newModel })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showToast(`Switched to ${newModel}`);
+
+                        // Update source of truth so Observer doesn't revert it
+                        const hiddenDiv = document.getElementById('model-data');
+                        if (hiddenDiv) {
+                            hiddenDiv.setAttribute('data-model', newModel);
+                            hiddenDiv.setAttribute('data-shown', 'true'); // Prevent toast duplicate
+                        }
                     } else {
-                        // Fallback just in case
-                        const fallback = document.querySelector('button[aria-label="Send message"]');
-                        if (fallback) fallback.click();
+                        console.error("Model switch failed", data);
+                        showToast("Failed to switch model");
                     }
-                }, 100);
-            }
+                })
+                .catch(err => {
+                    console.error("Model switch error", err);
+                    showToast("Error switching model");
+                });
         });
 
         container.appendChild(select);
@@ -321,5 +338,109 @@ function injectSidebar() {
                 }, 200);
             }, 100);
         }
+    }
+
+    // Search Logic
+    window.openSearchModal = function (e) {
+        console.log("Opening Search Modal");
+        if (e) e.preventDefault();
+        injectSearchModal(); // Ensure it exists
+        const overlay = document.getElementById('search-modal-overlay');
+        overlay.classList.add('open');
+        document.getElementById('search-input').focus();
+    };
+
+    function injectSearchModal() {
+        if (document.getElementById('search-modal-overlay')) return;
+
+        const modalHTML = `
+            <div id="search-modal-overlay">
+                <div id="search-modal">
+                    <div class="search-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7d8590" stroke-width="2" style="margin-right: 10px;">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search chats..." autocomplete="off">
+                    </div>
+                    <div class="search-results" id="search-results">
+                        <div style="text-align:center; padding: 20px; color: #555;">Type to search...</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        const div = document.createElement('div');
+        div.innerHTML = modalHTML;
+        document.body.appendChild(div.firstElementChild);
+
+        // Bind events
+        const overlay = document.getElementById('search-modal-overlay');
+        const input = document.getElementById('search-input');
+
+        // Close on background click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('open');
+            }
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                overlay.classList.remove('open');
+            }
+        });
+
+        // Debounced Search
+        let timeout;
+        input.addEventListener('input', (e) => {
+            clearTimeout(timeout);
+            const val = e.target.value;
+            if (val.length < 2) {
+                document.getElementById('search-results').innerHTML = '<div style="text-align:center; padding: 20px; color: #555;">Type to search...</div>';
+                return;
+            }
+            timeout = setTimeout(() => performSearch(val), 300);
+        });
+    }
+
+    function performSearch(query) {
+        const resultsContainer = document.getElementById('search-results');
+        resultsContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #7d8590;">Searching...</div>';
+
+        fetch(`/api/search?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    resultsContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #7d8590;">No results found.</div>';
+                    return;
+                }
+                renderSearchResults(data);
+            })
+            .catch(err => {
+                console.error("Search failed", err);
+                resultsContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #fa3860;">Search failed.</div>';
+            });
+    }
+
+    function renderSearchResults(results) {
+        const container = document.getElementById('search-results');
+        container.innerHTML = results.map(item => `
+            <div class="search-result-item" onclick="window.location.href='/?chat_id=${item.chat_id}'">
+                <div class="result-title">${item.title}</div>
+                <div class="result-snippet">${escapeHtml(item.snippet)}</div>
+                <div class="result-meta">${new Date(item.created_at).toLocaleDateString()}</div>
+            </div>
+        `).join('');
+    }
+
+    function escapeHtml(text) {
+        if (!text) return "";
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 }

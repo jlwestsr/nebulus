@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
-from database import Chat, Folder, get_db
+from database import Chat, Folder, Message, get_db
 from routers.auth_routes import get_current_user
 
 router = APIRouter(prefix="/api", tags=["chat"])
@@ -50,19 +50,17 @@ async def delete_folder(
 @router.get("/history")
 async def get_chat_history(user=Depends(get_current_user), db=Depends(get_db)):
     # Fetch all chats for user, ordered by creation desc
-    # Chainlit likely handles 'Session' logic differently, but we are building a persistent history view.
-    # We might need to sync Chainlit sessions to this DB if they aren't already.
-    # For now, we assume simple retrieval.
-
+    # Filter out empty chats by joining with Message (Inner Join)
+    # Use distinct to avoid duplicates if multiple messages
     chats = (
         db.query(Chat)
+        .join(Message)
         .filter(Chat.user_id == user.id)
         .order_by(Chat.created_at.desc())
+        .distinct()
         .all()
     )
 
-    # Format for sidebar: Group by folder if present, or "Recent"
-    # Or just return flat list and let frontend group
     result = []
     for chat in chats:
         result.append(
@@ -101,3 +99,60 @@ async def delete_chat(chat_id: str, user=Depends(get_current_user), db=Depends(g
     db.delete(chat)
     db.commit()
     return {"status": "success"}
+
+
+@router.get("/search")
+async def search_messages(q: str, user=Depends(get_current_user), db=Depends(get_db)):
+    if not q or len(q.strip()) < 2:
+        return []
+
+    results = (
+        db.query(Message)
+        .join(Chat)
+        .filter(Chat.user_id == user.id)
+        .filter(Message.content.ilike(f"%{q}%"))
+        .order_by(Message.created_at.desc())
+        .limit(50)
+        .all()
+    )
+
+    response = []
+    for msg in results:
+        # Simple snippet generation
+        content = msg.content
+        try:
+            mid_idx = content.lower().index(q.lower())
+            start = max(0, mid_idx - 60)
+            end = min(len(content), mid_idx + 60)
+            snippet = content[start:end]
+            if start > 0:
+                snippet = "..." + snippet
+            if end < len(content):
+                snippet = snippet + "..."
+        except ValueError:
+            snippet = content[:150]
+
+        response.append(
+            {
+                "chat_id": msg.chat_id,
+                "title": msg.chat.title or "Untitled Chat",
+                "snippet": snippet,
+                "created_at": msg.created_at.isoformat(),
+            }
+        )
+    return response
+
+
+@router.post("/model")
+async def set_model(
+    model: str = Body(..., embed=True),
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+):
+    db.add(user)  # Re-attach or merge if detached?
+    # Since get_current_user closes its session, user is detached.
+    # We must merge it into the current db session.
+    user = db.merge(user)
+    user.current_model = model
+    db.commit()
+    return {"status": "success", "model": model}

@@ -46,7 +46,7 @@ services:
       - ollama
       - chromadb
     ports:
-      - "8002:8000"
+      - "8000:8000"
     networks:
       - ai-network
     environment:
@@ -74,7 +74,7 @@ services:
     volumes:
       - .:/workspace # Mount current directory to /workspace for file tools
     ports:
-      - "8000:8000"
+      - "8002:8000"
     networks:
       - ai-network
     environment:

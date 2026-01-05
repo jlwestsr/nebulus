@@ -22,9 +22,11 @@ def test_up(mock_run, runner):
     mock_run.assert_called_with(["docker", "compose", "up", "-d"])
 
     # Verify Dashboard URLs are shown
-    assert "http://localhost:8002" in result.output  # Gantry
+    assert "http://localhost:8000" in result.output  # Gantry (New Port)
     assert "http://localhost:8888" in result.output  # Dozzle
-    assert "http://localhost:8000/static/index.html" in result.output  # MCP Server
+    assert (
+        "http://localhost:8002/static/index.html" in result.output
+    )  # MCP Server (New Port)
     assert "http://localhost:8001/docs" in result.output  # ChromaDB
     assert "http://localhost:11435" in result.output  # Ollama
 
