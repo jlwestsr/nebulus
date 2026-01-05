@@ -23,7 +23,7 @@
 
 ### Services
 - **Inference**: [Ollama](https://ollama.com/) (Local LLMs)
-- **Frontend**: [Open WebUI](https://docs.openwebui.com/) (ChatGPT-like interface)
+- **Frontend**: [Nebulus Gantry](https://chainlit.io/) (Chat & UI Interface)
 - **Vector DB**: [ChromaDB](https://www.trychroma.com/) (Knowledge retrieval)
 - **Tools**: Custom MCP Server (FastMCP/FastAPI)
 - **Monitoring**: [Dozzle](https://dozzle.com/) (Real-time logs)

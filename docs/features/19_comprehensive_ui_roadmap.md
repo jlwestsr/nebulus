@@ -19,7 +19,7 @@
 
 ## 2. Main Chat Interface
 - **Model Selector**:
-    - Dropdown header to switch active models mid-conversation.
+    - Dropdown in the prompt area to switch active models mid-conversation.
     - "Set as default" capability.
 - **Enhanced Input Area**:
     - **Multi-modal Support**: File attachments (images, docs).

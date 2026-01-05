@@ -232,9 +232,45 @@ body.sidebar-collapsed #nebulus-dashboard {
     background: #fff;
     color: #000;
     width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    line-height: 60px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+}
+
+/* Hide the message bubble that acts as data carrier for model switching */
+.step:has(#model-data),
+.message:has(#model-data),
+.cl-message:has(#model-data),
+.message-content:has(#model-data),
+div:has(> #model-data) {
+    display: none !important;
+}
+
+/* Toast Notification Styles */
+#model-toast {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 16px;
+    position: fixed;
+    z-index: 10000;
+    left: 50%;
+    top: 30px;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transition: opacity 0.3s, top 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#model-toast.show {
+    visibility: visible;
+    opacity: 1;
+    top: 50px;
 }
 
 .dashboard-greeting {
@@ -276,4 +312,33 @@ body.sidebar-collapsed #nebulus-dashboard {
 .suggestion-desc {
     color: var(--text-secondary);
     font-size: 0.85rem;
+}
+
+/* Header Model Selector */
+#model-selector-container {
+    position: fixed;
+    top: 15px;
+    right: 80px;
+    /* Leave space for user profile/settings if top right, or just general spacing */
+    z-index: 1000;
+}
+
+#model-selector {
+    background-color: #1f242c;
+    color: var(--text-primary);
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+#model-selector:hover {
+    border-color: #8b949e;
+}
+
+#model-selector option {
+    background-color: #1f242c;
 }

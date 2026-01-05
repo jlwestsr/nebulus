@@ -202,7 +202,7 @@ def restore() -> None:
 
     # Prompt user for volume name
     # Can try to guess based on backup name or just ask
-    suggested_volume = "nebulus_webui_data"  # Default suggestion
+    suggested_volume = "nebulus_gantry_data"  # Default suggestion
     if "ollama" in selected_backup:
         suggested_volume = "nebulus_ollama_data"
     elif "chroma" in selected_backup:
