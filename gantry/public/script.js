@@ -11,78 +11,109 @@ if (document.readyState === 'loading') {
 function injectSidebar() {
     if (document.getElementById('nebulus-sidebar')) return;
 
-    const sidebarHTML = `
-        <div id="nebulus-sidebar">
-            <div class="sidebar-header">
-                <!-- <div class="logo-icon">OI</div> -->
-                <div class="logo-text" style="font-size: 1.2rem; margin-left: 10px;">Nebulus</div>
-                <div class="toggle-btn" id="sidebar-toggle">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
+    // Fetch data in parallel
+    Promise.all([
+        fetch('/api/history').then(res => res.json()),
+        fetch('/me').then(res => res.json())
+    ]).then(([history, user]) => {
+        renderSidebar(history, user);
+    }).catch(err => {
+        console.error("Failed to load sidebar data", err);
+        // Fallback or empty state
+        renderSidebar([], { full_name: "Guest", username: "guest" });
+    });
+
+    function renderSidebar(history, user) {
+        // Group history by folders (logic to be improved later, flat for now or "Recent")
+        let recentChatsHTML = history.map(chat => `
+            <a class="nav-item sub-item" href="/?chat_id=${chat.id}">
+                <span class="nav-label">${chat.title}</span>
+            </a>
+        `).join('');
+
+        const sidebarHTML = `
+            <div id="nebulus-sidebar">
+                <div class="sidebar-header">
+                    <!-- <div class="logo-icon">OI</div> -->
+                    <div class="logo-text" style="font-size: 1.2rem; margin-left: 10px;">Nebulus</div>
+                    <div class="toggle-btn" id="sidebar-toggle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="new-chat-btn" onclick="window.location.href='/'">
+                    <div class="nav-icon">+</div>
+                    <span>New Chat</span>
+                </div>
+
+                <a class="nav-item" href="/">
+                    <div class="nav-icon">🔍</div>
+                    <span class="nav-label">Search</span>
+                </a>
+
+                 <a class="nav-item" href="/notes">
+                    <div class="nav-icon">📝</div>
+                    <span class="nav-label">Notes</span>
+                </a>
+
+                <a class="nav-item" href="/workspace">
+                    <div class="nav-icon">❖</div>
+                    <span class="nav-label">Workspace</span>
+                </a>
+
+                <div class="divider"></div>
+
+                <div style="padding: 10px; color: #7d8590; font-size: 0.8rem;" class="nav-label">
+                    Recent Chats
+                </div>
+                <div class="scroll-area">
+                    ${recentChatsHTML || '<div style="padding: 10px; color: #555; font-size: 0.8rem;" class="nav-label">No recent chats</div>'}
+                </div>
+
+                 <div class="user-profile">
+                    <div class="user-avatar">${getInitials(user.full_name || user.username)}</div>
+                    <span class="nav-label">${user.full_name || user.username}</span>
                 </div>
             </div>
+        `;
 
-            <div class="new-chat-btn" onclick="window.location.href='/'">
-                <div class="nav-icon">+</div>
-                <span>New Chat</span>
-            </div>
+        const sidebarContainer = document.createElement('div');
+        sidebarContainer.innerHTML = sidebarHTML;
+        document.body.prepend(sidebarContainer.firstElementChild);
 
-            <a class="nav-item" href="/">
-                <div class="nav-icon">🔍</div>
-                <span class="nav-label">Search</span>
-            </a>
-
-             <a class="nav-item" href="/notes">
-                <div class="nav-icon">📝</div>
-                <span class="nav-label">Notes</span>
-            </a>
-
-            <a class="nav-item" href="/workspace">
-                <div class="nav-icon">❖</div>
-                <span class="nav-label">Workspace</span>
-            </a>
-
-            <div class="divider"></div>
-
-            <div style="padding: 10px; color: #7d8590; font-size: 0.8rem;" class="nav-label">
-                Folders
-            </div>
-             <div style="padding: 10px; color: #7d8590; font-size: 0.8rem;" class="nav-label">
-                Chats
-            </div>
-
-             <div class="user-profile">
-                <div class="user-avatar">JW</div>
-                <span class="nav-label">Jason L West</span>
-            </div>
-        </div>
-    `;
-
-    const sidebarContainer = document.createElement('div');
-    sidebarContainer.innerHTML = sidebarHTML;
-    document.body.prepend(sidebarContainer.firstElementChild);
-
-    // Initial state check (optional usage of localStorage)
-    const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
-    if (isCollapsed) {
-        document.body.classList.add('sidebar-collapsed');
+        setupSidebarEvents();
     }
 
-    // Toggle Logic
-    const toggleBtn = document.getElementById('sidebar-toggle');
-    toggleBtn.addEventListener('click', () => {
-        document.body.classList.toggle('sidebar-collapsed');
-        const collapsed = document.body.classList.contains('sidebar-collapsed');
-        localStorage.setItem('sidebar-collapsed', collapsed);
+    function getInitials(name) {
+        return name.match(/(\b\S)?/g).join("").match(/(^\S|\S$)?/g).join("").toUpperCase();
+    }
 
-        // Update toggle icon rotation
-        if (collapsed) {
-            toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
-        } else {
-            toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
+    function setupSidebarEvents() {
+        // Initial state check (optional usage of localStorage)
+        const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+        if (isCollapsed) {
+            document.body.classList.add('sidebar-collapsed');
         }
-    });
+
+        // Toggle Logic
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('sidebar-collapsed');
+                const collapsed = document.body.classList.contains('sidebar-collapsed');
+                localStorage.setItem('sidebar-collapsed', collapsed);
+
+                // Update toggle icon rotation
+                if (collapsed) {
+                    toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+                } else {
+                    toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
+                }
+            });
+        }
+    }
 
     //    injectDashboard();
 

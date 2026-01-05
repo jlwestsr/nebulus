@@ -3,7 +3,7 @@ from chainlit.utils import mount_chainlit
 from database import init_db
 from starlette.middleware import Middleware
 from middleware import AuthMiddleware
-from routers import auth_routes
+from routers import auth_routes, chat_routes
 
 # ... existing code ...
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -13,7 +13,10 @@ from openai import AsyncOpenAI
 
 app = FastAPI(middleware=[Middleware(AuthMiddleware)])
 
-app.mount("/public", StaticFiles(directory="public"), name="public")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.mount(
+    "/public", StaticFiles(directory=os.path.join(BASE_DIR, "public")), name="public"
+)
 
 # Configure Ollama client for API
 client = AsyncOpenAI(
@@ -88,6 +91,7 @@ async def workspace_page():
 
 # Include routers
 app.include_router(auth_routes.router)
+app.include_router(chat_routes.router)
 
 
 # Initialize Database on startup
@@ -97,4 +101,4 @@ async def startup():
 
 
 # Mount Chainlit app on root
-mount_chainlit(app=app, target="chat.py", path="/")
+mount_chainlit(app=app, target=os.path.join(BASE_DIR, "chat.py"), path="/")

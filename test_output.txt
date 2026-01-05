@@ -1,0 +1,22 @@
+
+==================================== ERRORS ====================================
+__________________ ERROR collecting tests/test_chat_routes.py __________________
+ImportError while importing test module '/home/jlwestsr/projects/west_ai_labs/nebulus/tests/test_chat_routes.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_chat_routes.py:5: in <module>
+    from database import Base, User, Chat, Folder, get_db
+E   ImportError: cannot import name 'get_db' from 'database' (/home/jlwestsr/projects/west_ai_labs/nebulus/gantry/database.py)
+=============================== warnings summary ===============================
+gantry/database.py:11
+  /home/jlwestsr/projects/west_ai_labs/nebulus/gantry/database.py:11: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_chat_routes.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 warning, 1 error in 0.31s

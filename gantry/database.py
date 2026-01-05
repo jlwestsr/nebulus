@@ -1,7 +1,7 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 
 # Database Setup
@@ -21,6 +21,48 @@ class User(Base):
     hashed_password = Column(String)
     role = Column(String, default="user")
     created_at = Column(DateTime, default=datetime.utcnow)
+    chats = relationship("Chat", back_populates="user")
+    folders = relationship("Folder", back_populates="user")
+
+
+class Folder(Base):
+    __tablename__ = "folders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    name = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="folders")
+    chats = relationship("Chat", back_populates="folder")
+
+
+class Chat(Base):
+    __tablename__ = "chats"
+
+    id = Column(String, primary_key=True, index=True)  # Chainlit Session ID
+    user_id = Column(Integer, ForeignKey("users.id"))
+    folder_id = Column(Integer, ForeignKey("folders.id"), nullable=True)
+    title = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="chats")
+    folder = relationship("Folder", back_populates="chats")
+    messages = relationship(
+        "Message", back_populates="chat", cascade="all, delete-orphan"
+    )
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(String, ForeignKey("chats.id"))
+    author = Column(String)  # User or Assistant
+    content = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    chat = relationship("Chat", back_populates="messages")
 
 
 def init_db():
@@ -29,3 +71,11 @@ def init_db():
         db_file = DB_PATH.replace("sqlite:///", "")
         os.makedirs(os.path.dirname(os.path.abspath(db_file)), exist_ok=True)
     Base.metadata.create_all(bind=engine)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

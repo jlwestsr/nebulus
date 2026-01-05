@@ -1,5 +1,5 @@
 # flake8: noqa: E501
-from fastapi import APIRouter, Request, Form, Response
+from fastapi import APIRouter, Request, Form, Response, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database import SessionLocal
 from auth import (
@@ -8,9 +8,47 @@ from auth import (
     get_user,
     verify_password,
     create_access_token,
+    verify_token,
 )
 
 router = APIRouter()
+
+
+def get_current_user(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+        )
+
+    if token.startswith("Bearer "):
+        token = token.split(" ")[1]
+
+    username = verify_token(token)
+    if not username:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
+
+    db = SessionLocal()
+    user = get_user(db, username)
+    db.close()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
+        )
+    return user
+
+
+@router.get("/me")
+async def read_users_me(user=Depends(get_current_user)):
+    return {
+        "username": user.username,
+        "full_name": user.full_name,
+        "email": user.email,
+        "role": user.role,
+    }
 
 
 @router.get("/login", response_class=HTMLResponse)
