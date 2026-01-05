@@ -19,6 +19,19 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+class Note(Base):
+    __tablename__ = "notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    title = Column(String, default="Untitled")
+    content = Column(String, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="notes")
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -32,6 +45,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     chats = relationship("Chat", back_populates="user")
     folders = relationship("Folder", back_populates="user")
+    notes = relationship("Note", back_populates="user")
 
 
 class Folder(Base):
