@@ -55,39 +55,39 @@ async def notes_page():
     <head>
         <title>Nebulus - Notes</title>
         <link rel="stylesheet" href="/public/style.css">
-        <style>
-             body { background-color: #111; color: white; margin: 0; display: flex; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-             #notes-app { padding: 80px 20px 20px 80px; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; gap: 20px; height: 100vh; box-sizing: border-box; }
-             .notes-list { width: 300px; background: #1a1a1a; border-radius: 8px; border: 1px solid #333; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
-             .notes-editor { flex: 1; background: #1a1a1a; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; padding: 20px; }
-             .note-item { padding: 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s; color: #ccc; }
-             .note-item:hover, .note-item.active { background: #333; color: white; }
-             .note-item .date { font-size: 0.75rem; color: #777; margin-top: 4px; }
-             input.note-title { background: transparent; border: none; font-size: 1.5rem; color: white; width: 100%; margin-bottom: 20px; outline: none; font-weight: bold; }
-             textarea.note-content { background: transparent; border: none; width: 100%; flex: 1; color: #ddd; font-size: 1rem; line-height: 1.5; resize: none; outline: none; font-family: monospace; }
-             .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: opacity 0.2s; }
-             .btn-primary { background: #F80061; color: white; }
-             .btn-danger { background: #dc3545; color: white; }
-             .btn:hover { opacity: 0.9; }
-             .toolbar { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        </style>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+        <script>
+            (function() {
+                const storedTheme = localStorage.getItem('vite-ui-theme');
+                const isDark = storedTheme === 'dark';
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     </head>
-    <body class="dark">
+    <body>
         <!-- Sidebar injected by script.js -->
 
         <div id="notes-app">
             <div class="notes-list" id="notes-list">
-                <div style="padding: 10px; text-align: center; color: #777;">Loading notes...</div>
+                <div style="padding: 10px; text-align: center; color: var(--text-secondary);">Loading notes...</div>
             </div>
             <div class="notes-editor" id="notes-editor" style="display: none;">
                 <div class="toolbar">
                     <button id="save-btn" class="btn btn-primary">Save Note</button>
+                    <button id="preview-btn" class="btn btn-secondary" style="margin-left: 10px;">Preview</button>
+                    <div style="flex:1"></div>
                     <button id="delete-btn" class="btn btn-danger">Delete</button>
                 </div>
+                <input type="text" id="note-category" class="note-category" placeholder="Category (e.g. Work, Personal)" style="margin-bottom: 5px; width: 100%; padding: 8px; background: transparent; border: none; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9em;">
                 <input type="text" id="note-title" class="note-title" placeholder="Untitled Note">
                 <textarea id="note-content" class="note-content" placeholder="Start typing..."></textarea>
+                <div id="note-preview" class="note-preview" style="display: none;"></div>
             </div>
-            <div class="notes-editor" id="empty-state" style="align-items: center; justify-content: center; color: #555;">
+            <div class="notes-editor" id="empty-state" style="align-items: center; justify-content: center; color: var(--text-secondary);">
                 <p>Select a note or create a new one.</p>
                 <button id="new-note-btn" class="btn btn-primary" style="margin-top: 10px;">+ New Note</button>
             </div>

@@ -1,6 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from gantry.database import get_db, Note, User
+
+try:
+    from gantry.database import get_db, Note, User
+except ImportError:
+    from database import get_db, Note, User
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
@@ -12,11 +16,13 @@ router = APIRouter(prefix="/api/notes", tags=["notes"])
 class NoteCreate(BaseModel):
     title: str = "Untitled"
     content: str = ""
+    category: Optional[str] = "Uncategorized"
 
 
 class NoteUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
+    category: Optional[str] = None
 
 
 class NoteResponse(BaseModel):
@@ -24,6 +30,7 @@ class NoteResponse(BaseModel):
     user_id: int
     title: str
     content: str
+    category: Optional[str]
     created_at: datetime
     updated_at: datetime
 
@@ -61,6 +68,7 @@ async def create_note(
         user_id=user_id,
         title=note.title,
         content=note.content,
+        category=note.category,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
     )
@@ -97,6 +105,8 @@ async def update_note(
         note.title = note_update.title
     if note_update.content is not None:
         note.content = note_update.content
+    if note_update.category is not None:
+        note.category = note_update.category
 
     note.updated_at = datetime.utcnow()
 

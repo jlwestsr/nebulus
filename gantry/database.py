@@ -26,6 +26,7 @@ class Note(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     title = Column(String, default="Untitled")
     content = Column(String, default="")
+    category = Column(String, default="Uncategorized", nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -113,6 +114,18 @@ def migrate_db():
                     "ALTER TABLE users ADD COLUMN current_model VARCHAR DEFAULT 'Llama 3.1'"
                 )
             )
+            # Migration for notes category
+            try:
+                conn.execute(
+                    text(
+                        "ALTER TABLE notes ADD COLUMN category VARCHAR DEFAULT 'Uncategorized'"
+                    )
+                )
+                print("Migration: Added category column to notes.")
+            except Exception:
+                pass
+
+            print("Migration: Added current_model column.")
             print("Migration: Added current_model column.")
         except Exception:
             # Column likely exists

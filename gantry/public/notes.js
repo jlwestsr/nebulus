@@ -3,33 +3,84 @@ document.addEventListener('DOMContentLoaded', () => {
     const editorContainer = document.getElementById('notes-editor');
     const emptyState = document.getElementById('empty-state');
     const titleInput = document.getElementById('note-title');
+    const categoryInput = document.getElementById('note-category');
     const contentInput = document.getElementById('note-content');
     const saveBtn = document.getElementById('save-btn');
     const deleteBtn = document.getElementById('delete-btn');
     const newNoteBtn = document.getElementById('new-note-btn');
-    const navNewBtn = document.querySelector('.new-chat-btn'); // Sidebar btn override? No, distinct.
+    const navNewBtn = document.querySelector('.new-chat-btn');
 
     let notes = [];
     let currentNoteId = null;
+    let isPreviewMode = false;
+    let isDirty = false;
+
+    // State for expanded/collapsed categories (true = expanded)
+    let categoryStates = {};
+
+    const previewBtn = document.getElementById('preview-btn');
+    const previewContainer = document.getElementById('note-preview');
+
+    // Configure Marked with Highlight.js
+    if (window.marked && window.hljs) {
+        marked.setOptions({
+            highlight: function (code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-'
+        });
+    }
 
     // Load Notes
     fetchNotes();
 
     // Event Listeners
     if (newNoteBtn) newNoteBtn.addEventListener('click', createNewNote);
-    if (saveBtn) saveBtn.addEventListener('click', saveCurrentNote);
+    if (saveBtn) saveBtn.addEventListener('click', () => saveCurrentNote(false));
     if (deleteBtn) deleteBtn.addEventListener('click', deleteCurrentNote);
+
+    if (previewBtn) {
+        previewBtn.addEventListener('click', () => {
+            isPreviewMode = !isPreviewMode;
+            if (isPreviewMode) {
+                // Show Preview
+                const rawContent = contentInput.value;
+                previewContainer.innerHTML = marked.parse(rawContent);
+                if (window.hljs) hljs.highlightAll();
+                contentInput.style.display = 'none';
+                previewContainer.style.display = 'block';
+                previewBtn.textContent = 'Edit';
+            } else {
+                // Show Editor
+                contentInput.style.display = 'block';
+                previewContainer.style.display = 'none';
+                previewBtn.textContent = 'Preview';
+                contentInput.focus();
+            }
+        });
+    }
 
     // Auto-save logic (debounce)
     let timeoutId;
     const autoSave = () => {
+        isDirty = true;
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
             if (currentNoteId) saveCurrentNote(true);
         }, 2000);
     };
 
+    // Auto-save Interval Failsafe (Every 30s)
+    setInterval(() => {
+        if (currentNoteId && isDirty) {
+            console.log('Interval auto-save triggered');
+            saveCurrentNote(true);
+        }
+    }, 30000);
+
     titleInput.addEventListener('input', autoSave);
+    categoryInput.addEventListener('input', autoSave);
     contentInput.addEventListener('input', autoSave);
 
 
@@ -48,9 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add "New Note" at top of list for convenience
         const newBtn = document.createElement('div');
-        newBtn.className = 'note-item';
+        newBtn.className = 'note-item text-accent';
         newBtn.style.textAlign = 'center';
-        newBtn.style.color = '#F80061';
         newBtn.textContent = '+ New Note';
         newBtn.onclick = createNewNote;
         listContainer.appendChild(newBtn);
@@ -59,31 +109,86 @@ document.addEventListener('DOMContentLoaded', () => {
             // listContainer.innerHTML += '<div style="padding:10px; color:#555;">No notes yet.</div>';
         }
 
-        notes.forEach(note => {
-            const el = document.createElement('div');
-            el.className = `note-item ${currentNoteId === note.id ? 'active' : ''}`;
-            el.onclick = () => loadNote(note.id);
+        // Group notes by category
+        const grouped = notes.reduce((acc, note) => {
+            const cat = note.category || 'Uncategorized';
+            if (!acc[cat]) acc[cat] = [];
+            acc[cat].push(note);
+            return acc;
+        }, {});
 
-            const title = document.createElement('div');
-            title.style.fontWeight = '500';
-            title.textContent = note.title || 'Untitled';
+        // Render categories
+        Object.keys(grouped).sort().forEach(cat => {
+            // Default to expanded if state not set
+            if (categoryStates[cat] === undefined) {
+                categoryStates[cat] = true;
+            }
+            const isExpanded = categoryStates[cat];
 
-            const date = document.createElement('div');
-            date.className = 'date';
-            date.textContent = new Date(note.updated_at).toLocaleDateString();
+            const catHeader = document.createElement('div');
+            catHeader.className = 'category-header';
+            catHeader.innerHTML = `
+                <span>${cat}</span>
+                <span class="category-toggle-icon" style="transform: rotate(${isExpanded ? '90deg' : '180deg'})">▶</span>
+            `;
 
-            el.appendChild(title);
-            el.appendChild(date);
-            listContainer.appendChild(el);
+            catHeader.onclick = () => {
+                categoryStates[cat] = !isExpanded;
+                renderNotesList();
+            };
+
+            listContainer.appendChild(catHeader);
+
+            if (isExpanded) {
+                grouped[cat].forEach(note => {
+                    const el = document.createElement('div');
+                    el.className = `note-item ${currentNoteId === note.id ? 'active' : ''}`;
+                    el.style.paddingLeft = '20px'; // Indent
+                    el.onclick = () => loadNote(note.id);
+
+                    const title = document.createElement('div');
+                    title.style.fontWeight = '500';
+                    title.textContent = note.title || 'Untitled';
+
+                    const date = document.createElement('div');
+                    date.className = 'date';
+                    date.textContent = new Date(note.updated_at).toLocaleDateString();
+
+                    const snippet = document.createElement('div');
+                    snippet.className = 'snippet';
+                    // Simple truncation
+                    const raw = note.content || '';
+                    snippet.textContent = raw.slice(0, 60) + (raw.length > 60 ? '...' : '');
+
+                    el.appendChild(title);
+                    el.appendChild(date);
+                    el.appendChild(snippet);
+                    listContainer.appendChild(el);
+                });
+            }
         });
     }
 
     function loadNote(id) {
+        // If switching notes, save the previous one immediately if dirty
+        if (currentNoteId && isDirty) {
+            saveCurrentNote(true);
+        }
+
         currentNoteId = id;
+        isDirty = false;
+
+        // Reset preview mode on load
+        isPreviewMode = false;
+        if (previewBtn) previewBtn.textContent = 'Preview';
+        contentInput.style.display = 'block';
+        if (previewContainer) previewContainer.style.display = 'none';
+
         const note = notes.find(n => n.id === id);
         if (!note) return;
 
         titleInput.value = note.title;
+        categoryInput.value = note.category || '';
         contentInput.value = note.content;
 
         editorContainer.style.display = 'flex';
@@ -97,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/api/notes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: 'Untitled Note', content: '' })
+            body: JSON.stringify({ title: 'Untitled Note', content: '', category: 'Uncategorized' })
         })
             .then(res => res.json())
             .then(note => {
@@ -112,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const updatedData = {
             title: titleInput.value,
+            category: categoryInput.value || 'Uncategorized',
             content: contentInput.value
         };
 
@@ -134,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then(res => res.json())
             .then(data => {
+                isDirty = false;
                 if (!silent) {
                     saveBtn.textContent = 'Saved';
                     setTimeout(() => {
@@ -159,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(() => {
                 notes = notes.filter(n => n.id !== currentNoteId);
                 currentNoteId = null;
+                isDirty = false;
                 editorContainer.style.display = 'none';
                 emptyState.style.display = 'flex';
                 renderNotesList();

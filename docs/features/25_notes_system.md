@@ -3,42 +3,47 @@
 ## 1. Overview
 **Branch**: `feat/notes-system`
 
-Create a dedicated "Notes" system within Gantry. This serves as a persistent "memory" or scratchpad for the user, independent of the ephemeral or linear nature of chat threads.
+A comprehensive Notes system within Gantry, serving as a persistent memory scratchpad. It features Markdown support, code syntax highlighting, auto-save, and collapsible categorization.
 
 ## 2. Requirements
-List specific, testable requirements:
-- [ ] **Notes Interface**:
-    - [ ] Dedicated view in the Sidebar ("Notes").
-    - [ ] List of existing notes.
-    - [ ] Editor area for viewing/editing note content.
-- [ ] **CRUD Operations**:
-    - [ ] **Create**: Ability to start a new blank note.
-    - [ ] **Read**: View note contents.
-    - [ ] **Update**: Edit and save changes (auto-save preferred).
-    - [ ] **Delete**: Remove unwanted notes.
-- [ ] **Integration**:
-    - [ ] (Future) Ability to reference notes in Chat.
+- [x] **Notes Interface**:
+    - [x] Dedicated view in the Sidebar.
+    - [x] List of notes grouped by Category.
+    - [x] Collapsible Category headers (Left/Down chevron).
+- [x] **Editor Capabilities**:
+    - [x] **Markdown Support**: Render Markdown preview (toggleable).
+    - [x] **Syntax Highlighting**: `highlight.js` caching for code blocks.
+    - [x] **Auto-Save**: Automatic saving after 2 seconds of inactivity (Hybrid approach).
+- [x] **CRUD Operations**:
+    - [x] **Create**: New blank note.
+    - [x] **Read**: View/Edit note content.
+    - [x] **Update**: Edit title, content, and category.
+    - [x] **Delete**: Remove notes with visual confirmation.
+- [x] **Data Structure**:
+    - [x] `category` column added to database.
 
 ## 3. Technical Implementation
-- **Modules**: `gantry/ui/notes.py`, `gantry/api/notes.py`
-- **Dependencies**: Markdown editor component (if rich text needed).
-- **Data**: New `notes` table in database (id, user_id, title, content, created_at, updated_at).
+- **Frontend**:
+    - `notes.js`: Handles UI logic, `marked.js` configuration, `hljs` integration, and `categoryStates` transient storage for collapsibles.
+    - `style.css`: Accordion styles, Markdown typography, and snippet styling.
+- **Backend**:
+    - `notes_routes.py`: Updated Pydantic models and CRUD endpoints to support `category`.
+    - `database.py`: Schema migration for `category` column.
+- **Libs**: `marked.js`, `highlight.js` (CDN).
 
 ## 4. Verification Plan
 **Automated Tests**:
-- [ ] Script: `pytest tests/api/test_notes.py`
-- [ ] Logic Verified: Create, Read, Update, Delete flows.
+- [x] **Unit Tests**: `pytest tests/test_notes.py` validated CRUD operations and Category handling.
+- [x] **Browser Tests**:
+    - Verified Auto-save triggers.
+    - Verified Syntax Highlighting renders correctly.
+    - Verified Category collapse/expand logic and icon rotation.
 
 **Manual Verification**:
-- [ ] Step 1: Navigate to "Notes".
-- [ ] Step 2: Click "New Note", type content "Test Note", and save.
-- [ ] Step 3: Navigate away and return. Verify "Test Note" persists.
-- [ ] Step 4: Delete the note and verify it disappears.
+- [x] Full "Day in the Life" test pass completed.
 
 ## 5. Workflow Checklist
-Follow the AI Behavior strict workflow:
-- [ ] **Branch**: Created `feat/notes-system` branch?
-- [ ] **Work**: Implemented changes?
-- [ ] **Test**: All tests pass (`pytest`)?
-- [ ] **Doc**: Updated `README.md` and `walkthrough.md`?
-- [ ] **Data**: `git add .`, `git commit`, `git push`?
+- [x] **Branch**: `feat/notes-system`
+- [x] **Work**: Implemented all features.
+- [x] **Test**: Unit and Browser tests passed.
+- [x] **Doc**: Updated roadmap and walkthrough.

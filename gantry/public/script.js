@@ -197,6 +197,72 @@ function injectSidebar() {
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
+    // Theme Observer: Watch <html> for class changes (Chainlit theme toggle)
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const isDark = document.documentElement.classList.contains('dark');
+                // Optional: Sync legacy body class if needed (though CSS handles it mostly)
+                // document.body.classList.toggle('dark', isDark);
+                console.log('Theme changed:', isDark ? 'Dark' : 'Light');
+            }
+        });
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    // Initial injection
+    injectThemeToggle();
+
+    function injectThemeToggle() {
+        if (document.getElementById('nebulus-theme-toggle')) return;
+
+        const toggleBtn = document.createElement('div');
+        toggleBtn.id = 'nebulus-theme-toggle';
+        toggleBtn.className = 'theme-toggle-btn';
+
+        // Initial State from LocalStorage
+        const storedTheme = localStorage.getItem('vite-ui-theme');
+        const isDark = storedTheme === 'dark';
+
+        // Sync HTML Class with Storage if needed (Chainlit might handle it, but we double-check)
+        if (isDark && !document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.add('dark');
+        } else if (!isDark && document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Set Icon
+        toggleBtn.innerHTML = isDark ? getSunIcon() : getMoonIcon();
+        toggleBtn.title = "Toggle Theme";
+
+        toggleBtn.onclick = () => {
+            const currentIsDark = document.documentElement.classList.contains('dark');
+            const newIsDark = !currentIsDark;
+
+            // Toggle Class
+            document.documentElement.classList.toggle('dark', newIsDark);
+
+            // Update Icon
+            toggleBtn.innerHTML = newIsDark ? getSunIcon() : getMoonIcon();
+
+            // Persist
+            localStorage.setItem('vite-ui-theme', newIsDark ? 'dark' : 'light');
+
+            // Dispatch event for other listeners if needed
+            window.dispatchEvent(new Event('storage'));
+        };
+
+        document.body.appendChild(toggleBtn);
+    }
+
+    function getMoonIcon() {
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+    }
+
+    function getSunIcon() {
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+    }
+
     function updateModelDropdown(currentModel) {
         const select = document.getElementById('model-selector');
         if (select) {
