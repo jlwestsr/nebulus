@@ -1,45 +1,50 @@
-function initNebulus() {
-    injectSidebar();
-}
+/**
+ * Nebulus Gantry Client Script
+ * Refactored for modularity and maintainability.
+ */
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initNebulus);
-} else {
-    initNebulus();
-}
+const Nebulus = {
+    state: {
+        cachedModels: [],
+        username: "Guest",
+        sidebarCollapsed: localStorage.getItem('sidebar-collapsed') === 'true'
+    },
 
-function injectSidebar() {
-    if (document.getElementById('nebulus-sidebar')) return;
+    init: function () {
+        // Initialize all modules
+        this.Theme.init();
+        this.Sidebar.init();
+        this.Search.init();
+        this.Models.init();
+        this.Dashboard.checkAndInject();
 
-    // Fetch data in parallel
-    Promise.all([
-        fetch('/api/history').then(res => res.json()),
-        fetch('/me').then(res => res.json())
-    ]).then(([history, user]) => {
-        renderSidebar(history, user);
-    }).catch(err => {
-        console.error("Failed to load sidebar data", err);
-        // Fallback or empty state
-        renderSidebar([], { full_name: "Guest", username: "guest" });
-    });
+        // Global Event Observers
+        this.setupObservers();
+    },
 
-    function renderSidebar(history, user) {
-        // Group history by folders (logic to be improved later, flat for now or "Recent")
-        let recentChatsHTML = history.map(chat => `
-            <div class="nav-item sub-item" onclick="loadChatHistory('${chat.id}')">
-                <span class="nav-label">${chat.title}</span>
-            </div>
-        `).join('');
+    setupObservers: function () {
+        const observer = new MutationObserver(() => {
+            // Re-inject critical UI if lost (e.g. React hydration)
+            this.Sidebar.inject();
+            this.Models.injectDropdown();
+            this.Dashboard.checkAndInject();
 
-        const sidebarHTML = `
+            // Check for Model Switch data
+            this.Models.checkForSwitch();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    },
+
+    /* =========================================
+       Templates
+       ========================================= */
+    Templates: {
+        getSidebar: (recentChatsHTML, user) => `
             <div id="nebulus-sidebar">
                 <div class="sidebar-header">
-                    <!-- <div class="logo-icon">OI</div> -->
                     <div class="logo-text" style="font-size: 1.2rem; margin-left: 10px;">Nebulus</div>
                     <div class="toggle-btn" id="sidebar-toggle">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 12H5M12 19l-7-7 7-7"/>
-                        </svg>
+                        ${Nebulus.Icons.chevronLeft}
                     </div>
                 </div>
 
@@ -48,7 +53,7 @@ function injectSidebar() {
                     <span>New Chat</span>
                 </div>
 
-                <div class="nav-item" onclick="window.openSearchModal(event)">
+                <div class="nav-item" onclick="Nebulus.Search.open(event)">
                     <div class="nav-icon">🔍</div>
                     <span class="nav-label">Search</span>
                 </div>
@@ -73,269 +78,363 @@ function injectSidebar() {
                 </div>
 
                  <div class="user-profile">
-                    <div class="user-avatar">${getInitials(user.full_name || user.username)}</div>
+                    <div class="user-avatar">${Nebulus.Utils.getInitials(user.full_name || user.username)}</div>
                     <span class="nav-label">${user.full_name || user.username}</span>
                 </div>
             </div>
-        `;
+        `,
 
-        const sidebarContainer = document.createElement('div');
-        sidebarContainer.innerHTML = sidebarHTML;
-        document.body.prepend(sidebarContainer.firstElementChild);
+        getDashboard: () => `
+            <div id="nebulus-dashboard">
+                <div class="dashboard-content">
+                    <div class="dashboard-logo">OI</div>
+                    <div class="dashboard-greeting">How can I help you today?</div>
 
-        setupSidebarEvents();
-    }
+                    <div class="suggestions-grid">
+                        <div class="suggestion-card" onclick="Nebulus.Chat.setInput('Tell me a fun fact about the Roman Empire')">
+                            <div class="suggestion-title">Tell me a fun fact</div>
+                            <div class="suggestion-desc">about the Roman Empire</div>
+                        </div>
+                        <div class="suggestion-card" onclick="Nebulus.Chat.setInput('Help me study vocabulary for a college entrance exam')">
+                            <div class="suggestion-title">Help me study</div>
+                            <div class="suggestion-desc">vocabulary for a college entrance exam</div>
+                        </div>
+                         <div class="suggestion-card" onclick="Nebulus.Chat.setInput('Show me a code snippet of a website header')">
+                            <div class="suggestion-title">Show me a code snippet</div>
+                            <div class="suggestion-desc">of a website sticky header</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
 
-    // Soft Navigation Handler
-    window.loadChatHistory = function (chatId) {
-        console.log("Loading chat history:", chatId);
+        getSearchModal: () => `
+            <div id="search-modal-overlay">
+                <div id="search-modal">
+                    <div class="search-header">
+                        ${Nebulus.Icons.search}
+                        <input type="text" id="search-input" placeholder="Search chats..." autocomplete="off">
+                    </div>
+                    <div class="search-results" id="search-results">
+                        <div style="text-align:center; padding: 20px; color: #555;">Type to search...</div>
+                    </div>
+                </div>
+            </div>
+        `
+    },
 
-        // 1. Update URL without reload
-        const newUrl = `/?chat_id=${chatId}`;
-        history.pushState({ chat_id: chatId }, "", newUrl);
+    Icons: {
+        chevronLeft: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`,
+        chevronRight: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`,
+        moon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
+        sun: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
+        search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7d8590" stroke-width="2" style="margin-right: 10px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`
+    },
 
-        // 2. Hide Dashboard if present
-        const dashboard = document.getElementById('nebulus-dashboard');
-        if (dashboard) {
-            dashboard.style.display = 'none';
-        }
+    /* =========================================
+       Modules
+       ========================================= */
+    Sidebar: {
+        init: function () {
+            this.inject();
+            this.applyState();
+        },
 
-        // 3. Clear UI: Disabled as React handles state primarily.
-        // We rely on appending for now.
-        // Ideally, we would emit a 'clear_history' event if Chainlit supported it.
+        inject: function () {
+            if (document.getElementById('nebulus-sidebar')) return;
 
-        // 3. Send Command to Backend
-        // We use the existing setInput to trigger a send
-        if (window.setInput) {
-            window.setInput(`/load_history ${chatId}`);
-        } else {
-            console.error("setInput not found, cannot trigger load");
-        }
-    };
-
-    function getInitials(name) {
-        return name.match(/(\b\S)?/g).join("").match(/(^\S|\S$)?/g).join("").toUpperCase();
-    }
-
-    function setupSidebarEvents() {
-        // Initial state check (optional usage of localStorage)
-        const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
-        if (isCollapsed) {
-            document.body.classList.add('sidebar-collapsed');
-        }
-
-        // Toggle Logic
-        const toggleBtn = document.getElementById('sidebar-toggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                document.body.classList.toggle('sidebar-collapsed');
-                const collapsed = document.body.classList.contains('sidebar-collapsed');
-                localStorage.setItem('sidebar-collapsed', collapsed);
-
-                // Update toggle icon rotation
-                if (collapsed) {
-                    toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
-                } else {
-                    toggleBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
-                }
+            // Fetch data
+            Promise.all([
+                fetch('/api/history').then(res => res.json()),
+                fetch('/me').then(res => res.json())
+            ]).then(([history, user]) => {
+                this.render(history, user);
+            }).catch(err => {
+                console.error("Failed to load sidebar data", err);
+                this.render([], { full_name: "Guest", username: "guest" });
             });
-        }
-    }
+        },
 
-    // Initial Routing Logic
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialChatId = urlParams.get('chat_id');
+        render: function (history, user) {
+            // Check if already rendered during async wait
+            if (document.getElementById('nebulus-sidebar')) return;
 
-    if (initialChatId) {
-        // Deep Link: Load History immediately
-        console.log("Deep link detected:", initialChatId);
-        // Small delay to ensure WebSocket is ready (though backend handles queueing usually)
-        setTimeout(() => loadChatHistory(initialChatId), 500);
-    } else {
-        // New Chat: Show Dashboard
-        injectDashboard();
-    }
+            const recentChatsHTML = history.map(chat => `
+                <div class="nav-item sub-item" onclick="Nebulus.Chat.loadHistory('${chat.id}')">
+                    <span class="nav-label">${chat.title}</span>
+                </div>
+            `).join('');
 
-    let cachedModels = [];
+            const sidebarContainer = document.createElement('div');
+            sidebarContainer.innerHTML = Nebulus.Templates.getSidebar(recentChatsHTML, user);
+            document.body.prepend(sidebarContainer.firstElementChild);
 
-    // Fetch models from API for the dropdown
-    fetch('/models')
-        .then(response => response.json())
-        .then(data => {
-            if (data.models) {
-                let models = data.models;
-                // Get current model from the injected div to prioritize it
-                const modelData = document.getElementById('model-data');
-                const currentModel = modelData ? modelData.dataset.model : null;
+            this.setupEvents();
+        },
 
-                if (currentModel) {
-                    // Move current model to the start of the array
-                    models = [currentModel, ...models.filter(m => m !== currentModel)];
-                } else {
-                    // Fallback sort (optional, but good for consistency)
-                    models.sort();
-                }
-
-                cachedModels = models; // Cache for observer
-                injectModelDropdown(models);
+        setupEvents: function () {
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => this.toggle());
             }
-        })
-        .catch(err => console.error('Error fetching models:', err));
+        },
 
+        toggle: function () {
+            document.body.classList.toggle('sidebar-collapsed');
+            const collapsed = document.body.classList.contains('sidebar-collapsed');
+            localStorage.setItem('sidebar-collapsed', collapsed);
 
-    // Toast Notification Helper
-    function showToast(message) {
-        let toast = document.getElementById('model-toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'model-toast';
-            document.body.appendChild(toast);
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            if (toggleBtn) {
+                toggleBtn.innerHTML = collapsed ? Nebulus.Icons.chevronRight : Nebulus.Icons.chevronLeft;
+            }
+        },
+
+        applyState: function () {
+            if (Nebulus.state.sidebarCollapsed) {
+                document.body.classList.add('sidebar-collapsed');
+            }
         }
-        toast.textContent = message;
-        toast.className = 'show';
-        setTimeout(function () {
-            toast.className = toast.className.replace('show', '');
-        }, 3000);
-    }
+    },
 
-    const observer = new MutationObserver(() => {
-        const hiddenDiv = document.getElementById('model-data');
-        if (hiddenDiv) {
-            const modelName = hiddenDiv.getAttribute('data-model');
-            if (modelName) {
-                // Update dropdown if needed (existing logic)
-                const select = document.getElementById('model-selector');
-                if (select && select.value !== modelName) {
-                    select.value = modelName;
+    Dashboard: {
+        checkAndInject: function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialChatId = urlParams.get('chat_id');
 
-                    // Reorder options to put current at top
-                    const options = Array.from(select.options);
-                    const currentOpt = options.find(o => o.value === modelName);
-                    if (currentOpt) {
-                        currentOpt.remove();
-                        select.prepend(currentOpt);
-                        select.selectedIndex = 0;
+            // Strategy:
+            // 1. If Deep Link exists, load history (hide dashboard).
+            // 2. If NO Deep Link, show dashboard.
+
+            if (initialChatId) {
+                // We let the Chat module handle the loading logic, ensuring Dashboard is hidden
+                // Only load if not already loaded?
+                // We rely on the fact that if dashboard is present, we must be in 'new chat' mode unless URL says otherwise.
+                if (!this.hasAutoLoaded) {
+                    // Small delay to ensure ws connection
+                    console.log("Deep link detected:", initialChatId);
+                    this.hasAutoLoaded = true;
+                    setTimeout(() => Nebulus.Chat.loadHistory(initialChatId), 500);
+                }
+                this.hide();
+            } else {
+                this.inject();
+            }
+        },
+
+        inject: function () {
+            if (document.getElementById('nebulus-dashboard')) return;
+
+            const dashboardContainer = document.createElement('div');
+            dashboardContainer.innerHTML = Nebulus.Templates.getDashboard();
+            document.body.appendChild(dashboardContainer.firstElementChild);
+        },
+
+        hide: function () {
+            const dashboard = document.getElementById('nebulus-dashboard');
+            if (dashboard) dashboard.style.display = 'none';
+        }
+    },
+
+    Chat: {
+        loadHistory: function (chatId) {
+            console.log("Loading chat history:", chatId);
+
+            // 1. Update URL
+            const newUrl = `/?chat_id=${chatId}`;
+            history.pushState({ chat_id: chatId }, "", newUrl);
+
+            // 2. Hide Dashboard
+            Nebulus.Dashboard.hide();
+
+            // 3. Send Command
+            if (window.setInput) { // Chainlit internal or our wrapper
+                // Use our wrapper logic or direct call
+                Nebulus.Chat.setInput(`/load_history ${chatId}`);
+            } else {
+                console.error("setInput not found");
+            }
+        },
+
+        setInput: function (text) {
+            const textarea = document.querySelector('#chat-input, textarea');
+            if (textarea) {
+                const nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+                nativeTextAreaValueSetter.call(textarea, text);
+                textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                textarea.focus();
+
+                setTimeout(() => {
+                    const event = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', which: 13, keyCode: 13, bubbles: true, cancelable: true });
+                    textarea.dispatchEvent(event);
+                    setTimeout(() => {
+                        if (textarea.value === text) {
+                            const sendBtn = document.getElementById('chat-submit');
+                            if (sendBtn) sendBtn.click();
+                        }
+                    }, 200);
+                }, 100);
+            }
+        }
+    },
+
+    Search: {
+        init: function () {
+            // Exposed for onclick events
+            window.openSearchModal = this.open.bind(this);
+        },
+
+        open: function (e) {
+            if (e) e.preventDefault();
+            this.inject();
+            const overlay = document.getElementById('search-modal-overlay');
+            overlay.classList.add('open');
+            document.getElementById('search-input').focus();
+        },
+
+        inject: function () {
+            if (document.getElementById('search-modal-overlay')) return;
+
+            const div = document.createElement('div');
+            div.innerHTML = Nebulus.Templates.getSearchModal();
+            document.body.appendChild(div.firstElementChild);
+
+            this.setupEvents();
+        },
+
+        setupEvents: function () {
+            const overlay = document.getElementById('search-modal-overlay');
+            const input = document.getElementById('search-input');
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('open');
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && overlay.classList.contains('open')) overlay.classList.remove('open');
+            });
+
+            let timeout;
+            input.addEventListener('input', (e) => {
+                clearTimeout(timeout);
+                const val = e.target.value;
+                if (val.length < 2) {
+                    document.getElementById('search-results').innerHTML = '<div style="text-align:center; padding: 20px; color: #555;">Type to search...</div>';
+                    return;
+                }
+                timeout = setTimeout(() => this.perform(val), 300);
+            });
+        },
+
+        perform: function (query) {
+            const resultsContainer = document.getElementById('search-results');
+            resultsContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #7d8590;">Searching...</div>';
+
+            fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => this.renderResults(data, resultsContainer))
+                .catch(err => {
+                    console.error("Search failed", err);
+                    resultsContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #fa3860;">Search failed.</div>';
+                });
+        },
+
+        renderResults: function (data, container) {
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 20px; color: #7d8590;">No results found.</div>';
+                return;
+            }
+            container.innerHTML = data.map(item => `
+                <div class="search-result-item" onclick="window.location.href='/?chat_id=${item.chat_id}'">
+                    <div class="result-title">${item.title}</div>
+                    <div class="result-snippet">${Nebulus.Utils.escapeHtml(item.snippet)}</div>
+                    <div class="result-meta">${new Date(item.created_at).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+    },
+
+    Models: {
+        init: function () {
+            this.injectDropdown();
+        },
+
+        checkForSwitch: function () {
+            const hiddenDiv = document.getElementById('model-data');
+            if (hiddenDiv) {
+                const modelName = hiddenDiv.getAttribute('data-model');
+                if (modelName) {
+                    const select = document.getElementById('model-selector');
+                    if (select && select.value !== modelName) {
+                        select.value = modelName;
+                        // Put current at top
+                        const options = Array.from(select.options);
+                        const currentOpt = options.find(o => o.value === modelName);
+                        if (currentOpt) {
+                            currentOpt.remove();
+                            select.prepend(currentOpt);
+                            select.selectedIndex = 0;
+                        }
+                    }
+                    // Toast
+                    if (hiddenDiv.getAttribute('data-shown') !== 'true') {
+                        Nebulus.Utils.showToast(`Model switched to ${modelName}`);
+                        hiddenDiv.setAttribute('data-shown', 'true');
                     }
                 }
+            }
+        },
 
-                // Show Toast Alert only if it's a new switch or we want to confirm
-                // We use a small debounce or check to avoid spamming on page load
-                if (hiddenDiv.getAttribute('data-shown') !== 'true') {
-                    showToast(`Model switched to ${modelName}`);
-                    hiddenDiv.setAttribute('data-shown', 'true');
+        injectDropdown: function (models) {
+            if (document.getElementById('model-selector-container')) return;
+
+            // If models not provided, try cache or fetch
+            if (!models) {
+                if (Nebulus.state.cachedModels.length > 0) {
+                    models = Nebulus.state.cachedModels;
+                } else {
+                    // Fetch
+                    fetch('/models')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.models) {
+                                // Simple sort or logic here
+                                Nebulus.state.cachedModels = data.models.sort();
+                                this.injectDropdown(Nebulus.state.cachedModels);
+                            }
+                        })
+                        .catch(err => console.error(err));
+                    return; // Wait for async
                 }
             }
-        }
 
-        // Ensure the model selector is injected if missing
-        injectModelDropdown();
-        // Ensure sidebar is injected if missing (e.g. after React hydration)
-        injectSidebar();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+            if (!models || models.length === 0) return;
 
-    // Theme Observer: Watch <html> for class changes (Chainlit theme toggle)
-    const themeObserver = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                const isDark = document.documentElement.classList.contains('dark');
-                // Optional: Sync legacy body class if needed (though CSS handles it mostly)
-                // document.body.classList.toggle('dark', isDark);
-                console.log('Theme changed:', isDark ? 'Dark' : 'Light');
+            const container = document.createElement('div');
+            container.id = 'model-selector-container';
+            const select = document.createElement('select');
+            select.id = 'model-selector';
+
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.text = model;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', (e) => this.switchModel(e.target.value));
+
+            container.appendChild(select);
+            document.body.appendChild(container); // Append
+
+            // Set initial
+            const modelData = document.getElementById('model-data');
+            if (modelData && modelData.dataset.model) {
+                select.value = modelData.dataset.model;
             }
-        });
-    });
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        },
 
-    // Initial injection
-    injectThemeToggle();
-
-    function injectThemeToggle() {
-        if (document.getElementById('nebulus-theme-toggle')) return;
-
-        const toggleBtn = document.createElement('div');
-        toggleBtn.id = 'nebulus-theme-toggle';
-        toggleBtn.className = 'theme-toggle-btn';
-
-        // Initial State from LocalStorage
-        const storedTheme = localStorage.getItem('vite-ui-theme');
-        const isDark = storedTheme === 'dark';
-
-        // Sync HTML Class with Storage if needed (Chainlit might handle it, but we double-check)
-        if (isDark && !document.documentElement.classList.contains('dark')) {
-            document.documentElement.classList.add('dark');
-        } else if (!isDark && document.documentElement.classList.contains('dark')) {
-            document.documentElement.classList.remove('dark');
-        }
-
-        // Set Icon
-        toggleBtn.innerHTML = isDark ? getSunIcon() : getMoonIcon();
-        toggleBtn.title = "Toggle Theme";
-
-        toggleBtn.onclick = () => {
-            const currentIsDark = document.documentElement.classList.contains('dark');
-            const newIsDark = !currentIsDark;
-
-            // Toggle Class
-            document.documentElement.classList.toggle('dark', newIsDark);
-
-            // Update Icon
-            toggleBtn.innerHTML = newIsDark ? getSunIcon() : getMoonIcon();
-
-            // Persist
-            localStorage.setItem('vite-ui-theme', newIsDark ? 'dark' : 'light');
-
-            // Dispatch event for other listeners if needed
-            window.dispatchEvent(new Event('storage'));
-        };
-
-        document.body.appendChild(toggleBtn);
-    }
-
-    function getMoonIcon() {
-        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-    }
-
-    function getSunIcon() {
-        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-    }
-
-    function updateModelDropdown(currentModel) {
-        const select = document.getElementById('model-selector');
-        if (select) {
-            select.value = currentModel;
-        }
-    }
-
-    function injectModelDropdown(models) {
-        // Use cache if no args provided (e.g. from observer)
-        if (!models) models = cachedModels;
-
-        // If still no models (fetch hasn't returned yet), do nothing.
-        // The fetch callback will call us later.
-        if (!models || models.length === 0) return;
-
-        if (document.getElementById('model-selector-container')) return;
-
-        const container = document.createElement('div');
-        container.id = 'model-selector-container';
-
-        const select = document.createElement('select');
-        select.id = 'model-selector';
-
-        // Add options
-        models.forEach(model => {
-            const option = document.createElement('option');
-            option.value = model;
-            option.text = model;
-            select.appendChild(option);
-        });
-
-        // Handle change
-        select.addEventListener('change', (e) => {
-            const newModel = e.target.value;
-
-            // Backend Update via API (No page refresh, no chat clutter)
+        switchModel: function (newModel) {
             fetch('/api/model', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -344,206 +443,109 @@ function injectSidebar() {
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        showToast(`Switched to ${newModel}`);
-
-                        // Update source of truth so Observer doesn't revert it
+                        Nebulus.Utils.showToast(`Switched to ${newModel}`);
                         const hiddenDiv = document.getElementById('model-data');
                         if (hiddenDiv) {
                             hiddenDiv.setAttribute('data-model', newModel);
-                            hiddenDiv.setAttribute('data-shown', 'true'); // Prevent toast duplicate
+                            hiddenDiv.setAttribute('data-shown', 'true');
                         }
                     } else {
-                        console.error("Model switch failed", data);
-                        showToast("Failed to switch model");
+                        Nebulus.Utils.showToast("Failed to switch model");
                     }
                 })
-                .catch(err => {
-                    console.error("Model switch error", err);
-                    showToast("Error switching model");
-                });
-        });
-
-        container.appendChild(select);
-        document.body.appendChild(container);
-
-        // Set initial value if we have a data attribute somewhere or just default
-        const modelData = document.getElementById('model-data');
-        if (modelData && modelData.dataset.model) {
-            select.value = modelData.dataset.model;
+                .catch(err => Nebulus.Utils.showToast("Error switching model"));
         }
-    }
+    },
 
-    function injectDashboard() {
-        // Basic check if we are in an empty chat (Chainlit usually puts a welcome screen or empty lists)
-        // We will blindly inject and hide if we later detect messages
-        if (document.getElementById('nebulus-dashboard')) return;
+    Theme: {
+        init: function () {
+            this.injectToggle();
+            this.observe();
+        },
 
-        const dashboardHTML = `
-        <div id="nebulus-dashboard">
-            <div class="dashboard-content">
-                <div class="dashboard-logo">OI</div> <!-- Using text for now as in sidebar -->
-                <div class="dashboard-greeting">How can I help you today?</div>
-
-                <div class="suggestions-grid">
-                    <div class="suggestion-card" onclick="setInput('Tell me a fun fact about the Roman Empire')">
-                        <div class="suggestion-title">Tell me a fun fact</div>
-                        <div class="suggestion-desc">about the Roman Empire</div>
-                    </div>
-                    <div class="suggestion-card" onclick="setInput('Help me study vocabulary for a college entrance exam')">
-                        <div class="suggestion-title">Help me study</div>
-                        <div class="suggestion-desc">vocabulary for a college entrance exam</div>
-                    </div>
-                     <div class="suggestion-card" onclick="setInput('Show me a code snippet of a website header')">
-                        <div class="suggestion-title">Show me a code snippet</div>
-                        <div class="suggestion-desc">of a website sticky header</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-        // Try to find the chat container. In Chainlit, it's often dynamic.
-        // We'll append to body and use fixed centering for now, z-index high but below sidebar
-        const dashboardContainer = document.createElement('div');
-        dashboardContainer.innerHTML = dashboardHTML;
-        document.body.appendChild(dashboardContainer.firstElementChild);
-    }
-
-    // Helper to set React input value robustly
-    window.setInput = function (text) {
-        const textarea = document.querySelector('#chat-input, textarea');
-        if (textarea) {
-            // Native setter for React
-            const nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-            nativeTextAreaValueSetter.call(textarea, text);
-
-            textarea.dispatchEvent(new Event('input', { bubbles: true }));
-            textarea.focus();
-
-            // Try to trigger send via Enter key first (most reliable for Chat inputs)
-            setTimeout(() => {
-                const event = new KeyboardEvent('keydown', {
-                    key: 'Enter',
-                    code: 'Enter',
-                    which: 13,
-                    keyCode: 13,
-                    bubbles: true,
-                    cancelable: true
-                });
-                textarea.dispatchEvent(event);
-
-                // Fallback click if text remains (simple check)
-                setTimeout(() => {
-                    if (textarea.value === text) {
-                        const sendBtn = document.getElementById('chat-submit');
-                        if (sendBtn) sendBtn.click();
+        observe: function () {
+            const themeObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isDark = document.documentElement.classList.contains('dark');
+                        console.log('Theme changed:', isDark ? 'Dark' : 'Light');
                     }
-                }, 200);
-            }, 100);
+                });
+            });
+            themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        },
+
+        injectToggle: function () {
+            if (document.getElementById('nebulus-theme-toggle')) return;
+
+            const toggleBtn = document.createElement('div');
+            toggleBtn.id = 'nebulus-theme-toggle';
+            toggleBtn.className = 'theme-toggle-btn';
+
+            const storedTheme = localStorage.getItem('vite-ui-theme');
+            const isDark = storedTheme === 'dark';
+
+            if (isDark && !document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.add('dark');
+            } else if (!isDark && document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+            }
+
+            toggleBtn.innerHTML = isDark ? Nebulus.Icons.sun : Nebulus.Icons.moon;
+            toggleBtn.title = "Toggle Theme";
+
+            toggleBtn.onclick = () => {
+                const currentIsDark = document.documentElement.classList.contains('dark');
+                const newIsDark = !currentIsDark;
+                document.documentElement.classList.toggle('dark', newIsDark);
+                toggleBtn.innerHTML = newIsDark ? Nebulus.Icons.sun : Nebulus.Icons.moon;
+                localStorage.setItem('vite-ui-theme', newIsDark ? 'dark' : 'light');
+                window.dispatchEvent(new Event('storage'));
+            };
+
+            document.body.appendChild(toggleBtn);
+        }
+    },
+
+    Utils: {
+        escapeHtml: function (text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        },
+
+        getInitials: function (name) {
+            return name.match(/(\b\S)?/g).join("").match(/(^\S|\S$)?/g).join("").toUpperCase();
+        },
+
+        showToast: function (message) {
+            let toast = document.getElementById('model-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'model-toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.className = 'show';
+            setTimeout(() => {
+                toast.className = toast.className.replace('show', '');
+            }, 3000);
         }
     }
+};
 
-    // Search Logic
-    window.openSearchModal = function (e) {
-        console.log("Opening Search Modal");
-        if (e) e.preventDefault();
-        injectSearchModal(); // Ensure it exists
-        const overlay = document.getElementById('search-modal-overlay');
-        overlay.classList.add('open');
-        document.getElementById('search-input').focus();
-    };
-
-    function injectSearchModal() {
-        if (document.getElementById('search-modal-overlay')) return;
-
-        const modalHTML = `
-            <div id="search-modal-overlay">
-                <div id="search-modal">
-                    <div class="search-header">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7d8590" stroke-width="2" style="margin-right: 10px;">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                        <input type="text" id="search-input" placeholder="Search chats..." autocomplete="off">
-                    </div>
-                    <div class="search-results" id="search-results">
-                        <div style="text-align:center; padding: 20px; color: #555;">Type to search...</div>
-                    </div>
-                </div>
-            </div>
-        `;
-        const div = document.createElement('div');
-        div.innerHTML = modalHTML;
-        document.body.appendChild(div.firstElementChild);
-
-        // Bind events
-        const overlay = document.getElementById('search-modal-overlay');
-        const input = document.getElementById('search-input');
-
-        // Close on background click
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.classList.remove('open');
-            }
-        });
-
-        // Close on Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && overlay.classList.contains('open')) {
-                overlay.classList.remove('open');
-            }
-        });
-
-        // Debounced Search
-        let timeout;
-        input.addEventListener('input', (e) => {
-            clearTimeout(timeout);
-            const val = e.target.value;
-            if (val.length < 2) {
-                document.getElementById('search-results').innerHTML = '<div style="text-align:center; padding: 20px; color: #555;">Type to search...</div>';
-                return;
-            }
-            timeout = setTimeout(() => performSearch(val), 300);
-        });
-    }
-
-    function performSearch(query) {
-        const resultsContainer = document.getElementById('search-results');
-        resultsContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #7d8590;">Searching...</div>';
-
-        fetch(`/api/search?q=${encodeURIComponent(query)}`)
-            .then(res => res.json())
-            .then(data => {
-                if (!data || data.length === 0) {
-                    resultsContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #7d8590;">No results found.</div>';
-                    return;
-                }
-                renderSearchResults(data);
-            })
-            .catch(err => {
-                console.error("Search failed", err);
-                resultsContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: #fa3860;">Search failed.</div>';
-            });
-    }
-
-    function renderSearchResults(results) {
-        const container = document.getElementById('search-results');
-        container.innerHTML = results.map(item => `
-            <div class="search-result-item" onclick="window.location.href='/?chat_id=${item.chat_id}'">
-                <div class="result-title">${item.title}</div>
-                <div class="result-snippet">${escapeHtml(item.snippet)}</div>
-                <div class="result-meta">${new Date(item.created_at).toLocaleDateString()}</div>
-            </div>
-        `).join('');
-    }
-
-    function escapeHtml(text) {
-        if (!text) return "";
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
+// Initialize
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => Nebulus.init());
+} else {
+    Nebulus.init();
 }
+
+// Global Exports for Legacy/Inline Compatibility
+window.Nebulus = Nebulus;
+window.loadChatHistory = Nebulus.Chat.loadHistory;
+window.setInput = Nebulus.Chat.setInput;
