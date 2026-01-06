@@ -33,10 +33,26 @@ def mock_auth():
         yield
 
 
-@patch("routers.workspace_routes.client.models.list", new_callable=AsyncMock)
-def test_list_models(mock_list):
+@patch("httpx.AsyncClient.get", new_callable=AsyncMock)
+def test_list_models(mock_get):
     """Test listing models via API."""
-    mock_list.return_value = MOCK_MODELS_RESPONSE
+    mock_get.return_value = MagicMock(
+        status_code=200,
+        json=lambda: {
+            "models": [
+                {
+                    "name": "llama3:latest",
+                    "size": 4000000000,
+                    "details": {"family": "llama"},
+                },
+                {
+                    "name": "nomic-embed-text:latest",
+                    "size": 500000000,
+                    "details": {"family": "bert"},
+                },
+            ]
+        },
+    )
 
     response = client.get("/api/workspace/models")
 
@@ -45,6 +61,7 @@ def test_list_models(mock_list):
     assert "models" in data
     assert len(data["models"]) == 2
     assert data["models"][0]["name"] == "llama3:latest"
+    assert data["models"][0]["size"] == 4000000000
 
 
 @patch("httpx.post")

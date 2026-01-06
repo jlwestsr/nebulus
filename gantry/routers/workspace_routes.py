@@ -21,11 +21,25 @@ client = AsyncOpenAI(
 
 @router.get("/models")
 async def list_models():
-    """List available models from Ollama."""
+    """List available models from Ollama with detailed metadata."""
     try:
-        models = await client.models.list()
-        # Filter embeddings if desired, or return all
-        return JSONResponse(content={"models": [m.model_dump() for m in models.data]})
+        # We use raw Ollama API (/api/tags) to get 'size' and 'details'
+        # which the OpenAI SDK strips out.
+        async with httpx.AsyncClient() as http_client:
+            resp = await http_client.get(f"{OLLAMA_HOST}/api/tags")
+
+            if resp.status_code == 200:
+                data = resp.json()
+                # Ollama returns {"models": [...]}
+                # We can just return this directly as it matches our expected structure
+                # keys: name, model, modified_at, size, digest, details
+                return JSONResponse(content=data)
+            else:
+                return JSONResponse(
+                    content={"error": f"Ollama Error: {resp.text}"},
+                    status_code=resp.status_code,
+                )
+
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
