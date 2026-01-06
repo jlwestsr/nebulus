@@ -1,129 +1,107 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const listContainer = document.getElementById('notes-list');
-    const editorContainer = document.getElementById('notes-editor');
-    const emptyState = document.getElementById('empty-state');
-    const titleInput = document.getElementById('note-title');
-    const categoryInput = document.getElementById('note-category');
-    const contentInput = document.getElementById('note-content');
-    const saveBtn = document.getElementById('save-btn');
-    const deleteBtn = document.getElementById('delete-btn');
-    const newNoteBtn = document.getElementById('new-note-btn');
-    const navNewBtn = document.querySelector('.new-chat-btn');
+/**
+ * Nebulus Notes Module
+ * Refactored to Nebulus.Notes namespace
+ */
 
-    let notes = [];
-    let currentNoteId = null;
-    let isPreviewMode = false;
-    let isDirty = false;
+if (!window.Nebulus) window.Nebulus = {};
 
-    // State for expanded/collapsed categories (true = expanded)
-    let categoryStates = {};
+Nebulus.Notes = {
+    state: {
+        notes: [],
+        currentNoteId: null,
+        isPreviewMode: false,
+        isDirty: false,
+        categoryStates: {},
+        timeoutId: null
+    },
 
-    const previewBtn = document.getElementById('preview-btn');
-    const previewContainer = document.getElementById('note-preview');
+    init: function () {
+        this.cacheDOM();
+        this.bindEvents();
+        this.configureMarkdown();
+        this.fetchNotes();
+        this.startAutoSaveInterval();
+    },
 
-    // Configure Marked with Highlight.js
-    if (window.marked && window.hljs) {
-        marked.setOptions({
-            highlight: function (code, lang) {
-                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-                return hljs.highlight(code, { language }).value;
-            },
-            langPrefix: 'hljs language-'
-        });
-    }
+    cacheDOM: function () {
+        this.dom = {
+            listContainer: document.getElementById('notes-list'),
+            editorContainer: document.getElementById('notes-editor'),
+            emptyState: document.getElementById('empty-state'),
+            titleInput: document.getElementById('note-title'),
+            categoryInput: document.getElementById('note-category'),
+            contentInput: document.getElementById('note-content'),
+            saveBtn: document.getElementById('save-btn'),
+            deleteBtn: document.getElementById('delete-btn'),
+            newNoteBtn: document.getElementById('new-note-btn'),
+            previewBtn: document.getElementById('preview-btn'),
+            previewContainer: document.getElementById('note-preview')
+        };
+    },
 
-    // Load Notes
-    fetchNotes();
+    bindEvents: function () {
+        const d = this.dom;
+        if (d.newNoteBtn) d.newNoteBtn.addEventListener('click', () => this.createNewNote());
+        if (d.saveBtn) d.saveBtn.addEventListener('click', () => this.saveCurrentNote(false));
+        if (d.deleteBtn) d.deleteBtn.addEventListener('click', () => this.deleteCurrentNote());
+        if (d.previewBtn) d.previewBtn.addEventListener('click', () => this.togglePreview());
 
-    // Event Listeners
-    if (newNoteBtn) newNoteBtn.addEventListener('click', createNewNote);
-    if (saveBtn) saveBtn.addEventListener('click', () => saveCurrentNote(false));
-    if (deleteBtn) deleteBtn.addEventListener('click', deleteCurrentNote);
+        // Auto-save triggers
+        const autoSaveHandler = () => this.handleAutoSaveInput();
+        if (d.titleInput) d.titleInput.addEventListener('input', autoSaveHandler);
+        if (d.categoryInput) d.categoryInput.addEventListener('input', autoSaveHandler);
+        if (d.contentInput) d.contentInput.addEventListener('input', autoSaveHandler);
+    },
 
-    if (previewBtn) {
-        previewBtn.addEventListener('click', () => {
-            isPreviewMode = !isPreviewMode;
-            if (isPreviewMode) {
-                // Show Preview
-                const rawContent = contentInput.value;
-                previewContainer.innerHTML = marked.parse(rawContent);
-                if (window.hljs) hljs.highlightAll();
-                contentInput.style.display = 'none';
-                previewContainer.style.display = 'block';
-                previewBtn.textContent = 'Edit';
-            } else {
-                // Show Editor
-                contentInput.style.display = 'block';
-                previewContainer.style.display = 'none';
-                previewBtn.textContent = 'Preview';
-                contentInput.focus();
-            }
-        });
-    }
-
-    // Auto-save logic (debounce)
-    let timeoutId;
-    const autoSave = () => {
-        isDirty = true;
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            if (currentNoteId) saveCurrentNote(true);
-        }, 2000);
-    };
-
-    // Auto-save Interval Failsafe (Every 30s)
-    setInterval(() => {
-        if (currentNoteId && isDirty) {
-            console.log('Interval auto-save triggered');
-            saveCurrentNote(true);
+    configureMarkdown: function () {
+        if (window.marked && window.hljs) {
+            marked.setOptions({
+                highlight: function (code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                },
+                langPrefix: 'hljs language-'
+            });
         }
-    }, 30000);
+    },
 
-    titleInput.addEventListener('input', autoSave);
-    categoryInput.addEventListener('input', autoSave);
-    contentInput.addEventListener('input', autoSave);
-
-
-    function fetchNotes() {
+    fetchNotes: function () {
         fetch('/api/notes')
             .then(res => res.json())
             .then(data => {
-                notes = data;
-                renderNotesList();
+                this.state.notes = data;
+                this.renderNotesList();
             })
             .catch(err => console.error("Failed to load notes", err));
-    }
+    },
 
-    function renderNotesList() {
-        listContainer.innerHTML = '';
+    renderNotesList: function () {
+        const container = this.dom.listContainer;
+        if (!container) return;
 
-        // Add "New Note" at top of list for convenience
+        container.innerHTML = '';
+
+        // "New Note" Button in List
         const newBtn = document.createElement('div');
         newBtn.className = 'note-item text-accent';
         newBtn.style.textAlign = 'center';
         newBtn.textContent = '+ New Note';
-        newBtn.onclick = createNewNote;
-        listContainer.appendChild(newBtn);
+        newBtn.onclick = () => this.createNewNote();
+        container.appendChild(newBtn);
 
-        if (notes.length === 0) {
-            // listContainer.innerHTML += '<div style="padding:10px; color:#555;">No notes yet.</div>';
-        }
-
-        // Group notes by category
-        const grouped = notes.reduce((acc, note) => {
+        const grouped = this.state.notes.reduce((acc, note) => {
             const cat = note.category || 'Uncategorized';
             if (!acc[cat]) acc[cat] = [];
             acc[cat].push(note);
             return acc;
         }, {});
 
-        // Render categories
         Object.keys(grouped).sort().forEach(cat => {
-            // Default to expanded if state not set
-            if (categoryStates[cat] === undefined) {
-                categoryStates[cat] = true;
+            // Default expanded
+            if (this.state.categoryStates[cat] === undefined) {
+                this.state.categoryStates[cat] = true;
             }
-            const isExpanded = categoryStates[cat];
+            const isExpanded = this.state.categoryStates[cat];
 
             const catHeader = document.createElement('div');
             catHeader.className = 'category-header';
@@ -131,20 +109,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span>${cat}</span>
                 <span class="category-toggle-icon" style="transform: rotate(${isExpanded ? '90deg' : '180deg'})">▶</span>
             `;
-
             catHeader.onclick = () => {
-                categoryStates[cat] = !isExpanded;
-                renderNotesList();
+                this.state.categoryStates[cat] = !isExpanded;
+                this.renderNotesList();
             };
-
-            listContainer.appendChild(catHeader);
+            container.appendChild(catHeader);
 
             if (isExpanded) {
                 grouped[cat].forEach(note => {
                     const el = document.createElement('div');
-                    el.className = `note-item ${currentNoteId === note.id ? 'active' : ''}`;
-                    el.style.paddingLeft = '20px'; // Indent
-                    el.onclick = () => loadNote(note.id);
+                    el.className = `note-item ${this.state.currentNoteId === note.id ? 'active' : ''}`;
+                    el.style.paddingLeft = '20px';
+                    el.onclick = () => this.loadNote(note.id);
 
                     const title = document.createElement('div');
                     title.style.fontWeight = '500';
@@ -156,49 +132,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const snippet = document.createElement('div');
                     snippet.className = 'snippet';
-                    // Simple truncation
                     const raw = note.content || '';
                     snippet.textContent = raw.slice(0, 60) + (raw.length > 60 ? '...' : '');
 
                     el.appendChild(title);
                     el.appendChild(date);
                     el.appendChild(snippet);
-                    listContainer.appendChild(el);
+                    container.appendChild(el);
                 });
             }
         });
-    }
+    },
 
-    function loadNote(id) {
-        // If switching notes, save the previous one immediately if dirty
-        if (currentNoteId && isDirty) {
-            saveCurrentNote(true);
+    loadNote: function (id) {
+        if (this.state.currentNoteId && this.state.isDirty) {
+            this.saveCurrentNote(true);
         }
 
-        currentNoteId = id;
-        isDirty = false;
+        this.state.currentNoteId = id;
+        this.state.isDirty = false;
+        this.state.isPreviewMode = false;
 
-        // Reset preview mode on load
-        isPreviewMode = false;
-        if (previewBtn) previewBtn.textContent = 'Preview';
-        contentInput.style.display = 'block';
-        if (previewContainer) previewContainer.style.display = 'none';
+        const d = this.dom;
+        if (d.previewBtn) d.previewBtn.textContent = 'Preview';
+        if (d.contentInput) d.contentInput.style.display = 'block';
+        if (d.previewContainer) d.previewContainer.style.display = 'none';
 
-        const note = notes.find(n => n.id === id);
+        const note = this.state.notes.find(n => n.id === id);
         if (!note) return;
 
-        titleInput.value = note.title;
-        categoryInput.value = note.category || '';
-        contentInput.value = note.content;
+        if (d.titleInput) d.titleInput.value = note.title;
+        if (d.categoryInput) d.categoryInput.value = note.category || '';
+        if (d.contentInput) d.contentInput.value = note.content;
 
-        editorContainer.style.display = 'flex';
-        emptyState.style.display = 'none';
+        if (d.editorContainer) d.editorContainer.style.display = 'flex';
+        if (d.emptyState) d.emptyState.style.display = 'none';
 
-        // Re-render list to show active state
-        renderNotesList();
-    }
+        this.renderNotesList();
+    },
 
-    function createNewNote() {
+    createNewNote: function () {
         fetch('/api/notes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -206,72 +179,118 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then(res => res.json())
             .then(note => {
-                notes.unshift(note);
-                loadNote(note.id);
+                this.state.notes.unshift(note);
+                this.loadNote(note.id);
             })
             .catch(err => alert('Error creating note'));
-    }
+    },
 
-    function saveCurrentNote(silent = false) {
-        if (!currentNoteId) return;
+    saveCurrentNote: function (silent = false) {
+        if (!this.state.currentNoteId) return;
 
+        const d = this.dom;
         const updatedData = {
-            title: titleInput.value,
-            category: categoryInput.value || 'Uncategorized',
-            content: contentInput.value
+            title: d.titleInput.value,
+            category: d.categoryInput.value || 'Uncategorized',
+            content: d.contentInput.value
         };
 
         // Optimistic update
-        const noteIdx = notes.findIndex(n => n.id === currentNoteId);
-        if (noteIdx > -1) {
-            notes[noteIdx] = { ...notes[noteIdx], ...updatedData, updated_at: new Date().toISOString() };
-            renderNotesList(); // Update sidebar title immediately
+        const idx = this.state.notes.findIndex(n => n.id === this.state.currentNoteId);
+        if (idx > -1) {
+            this.state.notes[idx] = { ...this.state.notes[idx], ...updatedData, updated_at: new Date().toISOString() };
+            this.renderNotesList();
         }
 
-        if (!silent) {
-            saveBtn.textContent = 'Saving...';
-            saveBtn.disabled = true;
+        if (!silent && d.saveBtn) {
+            d.saveBtn.textContent = 'Saving...';
+            d.saveBtn.disabled = true;
         }
 
-        fetch(`/api/notes/${currentNoteId}`, {
+        fetch(`/api/notes/${this.state.currentNoteId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedData)
         })
             .then(res => res.json())
             .then(data => {
-                isDirty = false;
-                if (!silent) {
-                    saveBtn.textContent = 'Saved';
+                this.state.isDirty = false;
+                if (!silent && d.saveBtn) {
+                    d.saveBtn.textContent = 'Saved';
                     setTimeout(() => {
-                        saveBtn.textContent = 'Save Note';
-                        saveBtn.disabled = false;
+                        d.saveBtn.textContent = 'Save Note';
+                        d.saveBtn.disabled = false;
                     }, 1000);
                 }
             })
             .catch(err => {
                 console.error(err);
-                if (!silent) saveBtn.textContent = 'Error';
+                if (!silent && d.saveBtn) d.saveBtn.textContent = 'Error';
             });
-    }
+    },
 
-    function deleteCurrentNote() {
-        if (!currentNoteId) return;
+    deleteCurrentNote: function () {
+        if (!this.state.currentNoteId) return;
         if (!confirm('Are you sure you want to delete this note?')) return;
 
-        fetch(`/api/notes/${currentNoteId}`, {
+        fetch(`/api/notes/${this.state.currentNoteId}`, {
             method: 'DELETE'
         })
             .then(res => res.json())
             .then(() => {
-                notes = notes.filter(n => n.id !== currentNoteId);
-                currentNoteId = null;
-                isDirty = false;
-                editorContainer.style.display = 'none';
-                emptyState.style.display = 'flex';
-                renderNotesList();
+                this.state.notes = this.state.notes.filter(n => n.id !== this.state.currentNoteId);
+                this.state.currentNoteId = null;
+                this.state.isDirty = false;
+
+                if (this.dom.editorContainer) this.dom.editorContainer.style.display = 'none';
+                if (this.dom.emptyState) this.dom.emptyState.style.display = 'flex';
+
+                this.renderNotesList();
             })
             .catch(err => alert('Error deleting note'));
-    }
+    },
 
+    togglePreview: function () {
+        this.state.isPreviewMode = !this.state.isPreviewMode;
+        const d = this.dom;
+
+        if (this.state.isPreviewMode) {
+            const rawContent = d.contentInput.value;
+            d.previewContainer.innerHTML = marked.parse(rawContent);
+            if (window.hljs) hljs.highlightAll();
+            d.contentInput.style.display = 'none';
+            d.previewContainer.style.display = 'block';
+            d.previewBtn.textContent = 'Edit';
+        } else {
+            d.contentInput.style.display = 'block';
+            d.previewContainer.style.display = 'none';
+            d.previewBtn.textContent = 'Preview';
+            d.contentInput.focus();
+        }
+    },
+
+    handleAutoSaveInput: function () {
+        this.state.isDirty = true;
+        clearTimeout(this.state.timeoutId);
+        this.state.timeoutId = setTimeout(() => {
+            if (this.state.currentNoteId) this.saveCurrentNote(true);
+        }, 2000);
+    },
+
+    startAutoSaveInterval: function () {
+        setInterval(() => {
+            if (this.state.currentNoteId && this.state.isDirty) {
+                console.log('Interval auto-save triggered');
+                this.saveCurrentNote(true);
+            }
+        }, 30000);
+    }
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    // Only init if we are on the notes page (check for container)
+    if (document.getElementById('notes-list')) {
+        Nebulus.Notes.init();
+    }
 });
