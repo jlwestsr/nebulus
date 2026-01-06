@@ -81,12 +81,26 @@ class Message(Base):
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True, index=True)
+    cl_id = Column(String, unique=True, nullable=True)  # Chainlit Message UUID
     chat_id = Column(String, ForeignKey("chats.id"))
     author = Column(String)  # User or Assistant
     content = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     chat = relationship("Chat", back_populates="messages")
+    feedback = relationship("Feedback", back_populates="message", uselist=False)
+
+
+class Feedback(Base):
+    __tablename__ = "feedback"
+
+    id = Column(Integer, primary_key=True, index=True)
+    message_id = Column(Integer, ForeignKey("messages.id"))
+    score = Column(Integer)  # 1 for up, -1 for down (or 0)
+    comment = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    message = relationship("Message", back_populates="feedback")
 
 
 def init_db():
@@ -114,19 +128,24 @@ def migrate_db():
                     "ALTER TABLE users ADD COLUMN current_model VARCHAR DEFAULT 'Llama 3.1'"
                 )
             )
-            # Migration for notes category
-            try:
-                conn.execute(
-                    text(
-                        "ALTER TABLE notes ADD COLUMN category VARCHAR DEFAULT 'Uncategorized'"
-                    )
-                )
-                print("Migration: Added category column to notes.")
-            except Exception:
-                pass
-
-            print("Migration: Added current_model column.")
             print("Migration: Added current_model column.")
         except Exception:
-            # Column likely exists
+            pass
+
+        try:
+            conn.execute(
+                text(
+                    "ALTER TABLE notes ADD COLUMN category VARCHAR DEFAULT 'Uncategorized'"
+                )
+            )
+            print("Migration: Added category column to notes.")
+        except Exception:
+            pass
+
+        try:
+            conn.execute(text("ALTER TABLE messages ADD COLUMN cl_id VARCHAR"))
+            print("Migration: Added cl_id column to messages.")
+        except Exception as e:
+            # cl_id likely exists or other error
+            print(f"Migration cl_id check: {e}")
             pass

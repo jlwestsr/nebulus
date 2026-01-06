@@ -1,9 +1,8 @@
 import os
 import chainlit as cl
 from openai import AsyncOpenAI
-from database import Chat, Message, SessionLocal, User
-
-# from sqlalchemy import desc
+from database import Chat, Message, SessionLocal, User, Feedback
+from sqlalchemy import desc
 
 # Configure Ollama client
 client = AsyncOpenAI(
@@ -28,47 +27,157 @@ MODEL_MAPPING = {
 FRIENDLY_TO_RAW = {v: k for k, v in MODEL_MAPPING.items()}
 
 
-@cl.on_chat_start
-async def start():
-    # Authenticate User via Cookie (Chainlit exposes cookies in user_session.get('request')? No, difficult.
-    # Alternative: Chainlit has user metadata if authenticated via CL Auth.
-    # We used custom middleware auth.
-    # We can try to get the user from the cl.user_session if we populate it in middleware?
-    # Chainlit runs in separate process/lifecycle than FastAPI middleware sometimes for WebSocket.
-    # Actually, with mount_chainlit, they share app but WS handling is tricky.
-    # Workaround: Parsing 'access_token' from cl.user_session.get("http_referer") or similar is unreliable.
-    # Use: cl.user_session.get("user") should be populated if we integrate CL auth, but we built custom auth.
-    # Let's try to get cookies from request if available, or just fetch via HTTP call to /me?
-    # No, that's inefficient.
-    # Chainlit 1.0+ exposes cl.user_session.get("user") object if we use cl.password_auth_callback.
-    # Since we are wrapping CL with our own AuthMiddleware, we might be bypassing CL's user object.
-    # NOTE: For now, we will try to extract token from the Websocket headers if possible or rely on a "guest" fallback until we fix deep integration.
-    # Wait! cl.header_auth_callback?
-    # Let's simply assume we can query by a known user for now or try to parse cookies from `cl.user_session`.
-
-    # Simple fix for sidebar MVP: We want to CREATE a chat ID in the DB so it lists in history.
-    # We will try to resolve the user from the DB using a generic "admin" or the single user if count=1.
-
+# --- DB Helpers (Synchronous) ---
+def initialize_chat_db(chat_id):
     db = SessionLocal()
+    user_id = 1
     try:
-        # MVP: fetch first user or default
         user = db.query(User).first()
         user_id = user.id if user else 1
-    finally:
-        db.close()
 
-    chat_id = cl.user_session.get("id")
-
-    # Persist Chat Start
-    db = SessionLocal()
-    try:
-        new_chat = Chat(id=chat_id, user_id=user_id, title="New Chat")
-        db.add(new_chat)
-        db.commit()
+        # Check if chat exists first to avoid IntegrityError logging
+        existing_chat = db.query(Chat).filter(Chat.id == chat_id).first()
+        if not existing_chat:
+            new_chat = Chat(id=chat_id, user_id=user_id, title="New Chat")
+            db.add(new_chat)
+            db.commit()
     except Exception as e:
         print(f"Error creating chat: {e}")
     finally:
         db.close()
+    return user_id
+
+
+def update_model_setting_db(user_id, new_model):
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.current_model = new_model
+            db.commit()
+    except Exception as e:
+        print(f"Error saving model preference: {e}")
+    finally:
+        db.close()
+
+
+def sync_model_from_db_helper(user_id):
+    current_model = None
+    if not user_id:
+        return None
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user and user.current_model:
+            current_model = user.current_model
+    except Exception as e:
+        print(f"Error syncing model from DB: {e}")
+    finally:
+        db.close()
+    return current_model
+
+
+def get_chat_history_db(chat_id, limit=20):
+    db = SessionLocal()
+    try:
+        messages = (
+            db.query(Message)
+            .filter(Message.chat_id == chat_id)
+            .order_by(desc(Message.created_at))
+            .limit(limit)
+            .all()
+        )
+        # Detach objects or copy data to avoid lazy loading issues after session close
+        # Actually in simple cases, accessing attributes here loads them.
+        # But to be safe, let's just return the list and rely on eager loading of simple columns.
+        return sorted(messages, key=lambda m: m.created_at)
+    finally:
+        db.close()
+
+
+def save_user_message_db(chat_id, content, message_id):
+    db = SessionLocal()
+    try:
+        # Check for duplicate cl_id to prevent IntegrityError
+        # (Though unique constraint handles it, avoiding the try/except overhead is better)
+        if db.query(Message).filter(Message.cl_id == message_id).first():
+            return
+
+        user_msg = Message(
+            chat_id=chat_id,
+            author="user",
+            content=content,
+            cl_id=message_id,
+        )
+        db.add(user_msg)
+
+        chat = db.query(Chat).filter(Chat.id == chat_id).first()
+        if chat and chat.title == "New Chat":
+            chat.title = (content[:30] + "..") if len(content) > 30 else content
+            db.add(chat)
+
+        db.commit()
+    except Exception as e:
+        print(f"Error saving user message: {e}")
+    finally:
+        db.close()
+
+
+def save_ai_message_db(chat_id, content, message_id):
+    db = SessionLocal()
+    try:
+        if db.query(Message).filter(Message.cl_id == message_id).first():
+            return
+
+        ai_msg = Message(
+            chat_id=chat_id,
+            author="assistant",
+            content=content,
+            cl_id=message_id,
+        )
+        db.add(ai_msg)
+        db.commit()
+    except Exception as e:
+        print(f"Error saving AI message: {e}")
+    finally:
+        db.close()
+
+
+def save_feedback_db(message_id, score, comment):
+    db = SessionLocal()
+    try:
+        db_msg = db.query(Message).filter(Message.cl_id == message_id).first()
+        if not db_msg:
+            print(f"Feedback failed: Message {message_id} not found")
+            return
+
+        existing = db.query(Feedback).filter(Feedback.message_id == db_msg.id).first()
+        if existing:
+            existing.score = score
+            existing.comment = comment
+        else:
+            new_fb = Feedback(
+                message_id=db_msg.id,
+                score=score,
+                comment=comment,
+            )
+            db.add(new_fb)
+        db.commit()
+    except Exception as e:
+        print(f"Error saving feedback: {e}")
+    finally:
+        db.close()
+
+
+# --- Async Handlers ---
+
+
+@cl.on_chat_start
+async def start():
+    chat_id = cl.user_session.get("id")
+
+    # Async DB Call
+    user_id = await cl.make_async(initialize_chat_db)(chat_id)
 
     # Fetch available models from Ollama
     try:
@@ -81,42 +190,20 @@ async def start():
     # Filter and Map to Friendly Names
     friendly_names = []
     for raw_id in raw_model_ids:
-        # Filter out embedding models
         if "embed" in raw_id:
             continue
-
-        # Use simple mapping or fallback to raw ID
         name = MODEL_MAPPING.get(raw_id, raw_id)
         friendly_names.append(name)
-
-        # Ensure reverse mapping exists for fallback cases
         if name not in FRIENDLY_TO_RAW:
             FRIENDLY_TO_RAW[name] = raw_id
 
-    # Convert to friendly name for comparison if stored as raw ID, or just store friendly?
-    # Let's store friendly name in DB for simplicity with UI, or raw ID?
-    # script.js uses friendly names for display. But chat logic maps friendly->raw.
-    # Let's assume DB stores Friendly Name as default was "Llama 3.1"
-
     default_friendly = "Llama 3.1"
-    # Force default on startup (User requested no persistence on reload)
-    initial_model = default_friendly
 
-    settings.update(
-        {
-            "model": initial_model,
-        }
-    )
-
+    settings.update({"model": default_friendly})
     cl.user_session.set("settings", settings)
-    # Store available models in session for validation
     cl.user_session.set("available_models", friendly_names)
-
-    # Store user_id for later
     cl.user_session.set("db_user_id", user_id)
 
-    # Format: Hidden DIV for script.js to read
-    # This requires unsafe_allow_html=true in config.toml
     await cl.Message(
         content=f"Hello from Nebulus! I am connected to your local Ollama instance "
         f"using {settings['model']}"
@@ -125,120 +212,75 @@ async def start():
     ).send()
 
 
-def sync_model_from_db(user_id, settings):
-    if not user_id:
-        return settings
+async def handle_model_command(message: cl.Message, settings: dict):
+    if not message.content.startswith("/model "):
+        return False
 
-    db = SessionLocal()
-    try:
-        user = db.query(User).filter(User.id == user_id).first()
-        if user and user.current_model:
-            settings["model"] = user.current_model
-    except Exception as e:
-        print(f"Error syncing model from DB: {e}")
-    finally:
-        db.close()
-    return settings
+    new_model = message.content.replace("/model ", "").strip()
+    available_models = cl.user_session.get("available_models", [])
+
+    if new_model not in available_models and available_models:
+        message.author = "System"
+        message.content = (
+            f"Error: Model '{new_model}' not found in available models: "
+            f"{available_models}"
+        )
+        await message.update()
+        return True
+
+    settings["model"] = new_model
+    cl.user_session.set("settings", settings)
+
+    user_id = cl.user_session.get("db_user_id")
+    await cl.make_async(update_model_setting_db)(user_id, new_model)
+
+    message.author = "System"
+    message.content = (
+        f"Switched to {new_model}"
+        f"<div id='model-data' data-model='{new_model}' style='display: none;'></div>"
+    )
+    await message.update()
+    return True
 
 
 @cl.on_message
 async def main(message: cl.Message):
     settings = cl.user_session.get("settings")
-    # user_id = cl.user_session.get("db_user_id", 1)  # Keeps finding unused variable if not used.
-    # Use user_id for logic or remove. We used it in the db logic.
-    # Ah, in previous edit, it was used. Let's make sure it is effectively used or remove local var if direct access.
-
     chat_id = cl.user_session.get("id")
     user_id = cl.user_session.get("db_user_id")
 
-    # Refresh Model from DB
-    settings = sync_model_from_db(user_id, settings)
+    # Refresh Model from DB (Async)
+    db_model = await cl.make_async(sync_model_from_db_helper)(user_id)
+    if db_model:
+        settings["model"] = db_model
     cl.user_session.set("settings", settings)
 
-    # Command Interception for Model Switching
+    if await handle_model_command(message, settings):
+        return
 
-    if message.content.startswith("/model "):
-        new_model = message.content.replace("/model ", "").strip()
-        available_models = cl.user_session.get("available_models", [])
-
-        if new_model not in available_models and available_models:
-            # Hijack for error too
-            message.author = "System"
-            message.content = (
-                f"Error: Model '{new_model}' not found in available models: "
-                f"{available_models}"
-            )
-            await message.update()
-            return
-
-        settings["model"] = new_model
-        cl.user_session.set("settings", settings)
-
-        # Persist to DB
-        db = SessionLocal()
-        try:
-            # Re-fetch user to attach to session
-            user = (
-                db.query(User)
-                .filter(User.id == cl.user_session.get("db_user_id"))
-                .first()
-            )
-            if user:
-                user.current_model = new_model
-                db.commit()
-        except Exception as e:
-            print(f"Error saving model preference: {e}")
-        finally:
-            db.close()
-
-        # Hijack the user's command message and convert it to the system confirmation
-        # This avoids race conditions with message.remove()
-        message.author = "System"
-        message.content = (
-            f"Switched to {new_model}"
-            f"<div id='model-data' data-model='{new_model}' style='display: none;'></div>"
-        )
-        await message.update()
-        return  # Stop processing
-
-    # Persist User Message
-    db = SessionLocal()
-    try:
-        user_msg = Message(chat_id=chat_id, author="user", content=message.content)
-        db.add(user_msg)
-
-        # Auto-update title if it's the first message and title is "New Chat"
-        chat = db.query(Chat).filter(Chat.id == chat_id).first()
-        if chat and chat.title == "New Chat":
-            # Simple title generation: First 30 chars
-            chat.title = (
-                (message.content[:30] + "..")
-                if len(message.content) > 30
-                else message.content
-            )
-            db.add(chat)
-
-        db.commit()
-    except Exception as e:
-        print(f"Error saving user message: {e}")
-    finally:
-        db.close()
+    # Persist User Message (Async)
+    await cl.make_async(save_user_message_db)(chat_id, message.content, message.id)
 
     msg = cl.Message(content="")
     await msg.send()
 
-    # Map Friendly Name back to Raw ID for backend
     completion_settings = settings.copy()
     friendly_name = settings["model"]
     completion_settings["model"] = FRIENDLY_TO_RAW.get(friendly_name, friendly_name)
 
-    full_response = ""
+    # Build Context (Async)
+    history_messages = await cl.make_async(get_chat_history_db)(chat_id)
+    context_messages = [
+        {"role": "system", "content": "You are a helpful AI assistant."}
+    ]
 
+    for hist_msg in history_messages:
+        role = "user" if hist_msg.author == "user" else "assistant"
+        context_messages.append({"role": role, "content": hist_msg.content})
+
+    full_response = ""
     stream = await client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": "You are a helpful AI assistant."},
-            {"role": "user", "content": message.content},
-        ],
+        messages=context_messages,
         stream=True,
         **completion_settings,
     )
@@ -250,13 +292,12 @@ async def main(message: cl.Message):
 
     await msg.update()
 
-    # Persist AI Message
-    db = SessionLocal()
-    try:
-        ai_msg = Message(chat_id=chat_id, author="assistant", content=full_response)
-        db.add(ai_msg)
-        db.commit()
-    except Exception as e:
-        print(f"Error saving AI message: {e}")
-    finally:
-        db.close()
+    # Persist AI Message (Async)
+    await cl.make_async(save_ai_message_db)(chat_id, full_response, msg.id)
+
+
+@cl.on_feedback
+async def on_feedback(feedback):
+    await cl.make_async(save_feedback_db)(
+        feedback.message_id, feedback.score, feedback.comment
+    )
