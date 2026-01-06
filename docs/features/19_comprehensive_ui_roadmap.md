@@ -9,10 +9,10 @@ This document serves as the master roadmap and meta-feature for transforming the
 List specific, testable requirements:
 - [ ] **Track Sub-Features**:
     - [x] **Sidebar Navigation**: Complete `20_sidebar_navigation.md` (feat/sidebar-nav) -> [Archived](archive/20_sidebar_navigation.md).
-    - [x] **Global Search**: Complete `24_global_search.md` (feat/global-search).
-    - [x] **Notes System**: Complete `25_notes_system.md` (feat/notes-system).
+    - [x] **Global Search**: Complete `24_global_search.md` (feat/global-search) -> [Archived](archive/24_global_search.md).
+    - [x] **Notes System**: Complete `25_notes_system.md` (feat/notes-system) -> [Archived](archive/25_notes_system.md).
     - [x] **Global Theme Toggle**: Complete `28_global_theme_toggle.md` (feat/theme-toggle) -> [Archived](archive/28_global_theme_toggle.md).
-    - [ ] **Workspace Management**: Complete `21_workspace_management.md` (feat/workspace-ui).
+    - [x] **Workspace Management**: Complete `21_workspace_management.md` (feat/workspace-ui) -> [Archived](archive/21_workspace_management.md).
     - [ ] **Input & Dashboard**: Complete `22_enhanced_input_and_dashboard.md` (feat/input-dashboard).
     - [ ] **Response Controls**: Complete `23_response_controls.md` (feat/response-controls).
     - [ ] **Visual Artifacts**: Complete `26_visual_artifacts.md` (feat/visual-artifacts).
