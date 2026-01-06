@@ -26,9 +26,9 @@ function injectSidebar() {
     function renderSidebar(history, user) {
         // Group history by folders (logic to be improved later, flat for now or "Recent")
         let recentChatsHTML = history.map(chat => `
-            <a class="nav-item sub-item" href="/?chat_id=${chat.id}">
+            <div class="nav-item sub-item" onclick="loadChatHistory('${chat.id}')">
                 <span class="nav-label">${chat.title}</span>
-            </a>
+            </div>
         `).join('');
 
         const sidebarHTML = `
@@ -86,6 +86,33 @@ function injectSidebar() {
         setupSidebarEvents();
     }
 
+    // Soft Navigation Handler
+    window.loadChatHistory = function (chatId) {
+        console.log("Loading chat history:", chatId);
+
+        // 1. Update URL without reload
+        const newUrl = `/?chat_id=${chatId}`;
+        history.pushState({ chat_id: chatId }, "", newUrl);
+
+        // 2. Hide Dashboard if present
+        const dashboard = document.getElementById('nebulus-dashboard');
+        if (dashboard) {
+            dashboard.style.display = 'none';
+        }
+
+        // 3. Clear UI: Disabled as React handles state primarily.
+        // We rely on appending for now.
+        // Ideally, we would emit a 'clear_history' event if Chainlit supported it.
+
+        // 3. Send Command to Backend
+        // We use the existing setInput to trigger a send
+        if (window.setInput) {
+            window.setInput(`/load_history ${chatId}`);
+        } else {
+            console.error("setInput not found, cannot trigger load");
+        }
+    };
+
     function getInitials(name) {
         return name.match(/(\b\S)?/g).join("").match(/(^\S|\S$)?/g).join("").toUpperCase();
     }
@@ -115,9 +142,19 @@ function injectSidebar() {
         }
     }
 
-    //    injectDashboard();
+    // Initial Routing Logic
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialChatId = urlParams.get('chat_id');
 
-    //    injectDashboard();
+    if (initialChatId) {
+        // Deep Link: Load History immediately
+        console.log("Deep link detected:", initialChatId);
+        // Small delay to ensure WebSocket is ready (though backend handles queueing usually)
+        setTimeout(() => loadChatHistory(initialChatId), 500);
+    } else {
+        // New Chat: Show Dashboard
+        injectDashboard();
+    }
 
     let cachedModels = [];
 

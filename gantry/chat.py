@@ -175,6 +175,8 @@ def save_feedback_db(message_id, score, comment):
 @cl.on_chat_start
 async def start():
     chat_id = cl.user_session.get("id")
+    # ... (rest of start is standard) ...
+    # Use standard start logic, no requested_chat_id logic needed since we use Soft Nav now.
 
     # Async DB Call
     user_id = await cl.make_async(initialize_chat_db)(chat_id)
@@ -245,6 +247,48 @@ async def handle_model_command(message: cl.Message, settings: dict):
 
 @cl.on_message
 async def main(message: cl.Message):
+    # --- Soft Navigation Handler ---
+    if message.content.startswith("/load_history "):
+        # Extract ID
+        new_chat_id = message.content.replace("/load_history ", "").strip()
+        print(f"DEBUG: Soft Navigation to chat_id={new_chat_id}", flush=True)
+
+        # Remove the command message from UI to keep it clean
+        await message.remove()
+
+        # Update Session
+        cl.user_session.set("id", new_chat_id)
+
+        # Load History
+        history = await cl.make_async(get_chat_history_db)(new_chat_id)
+        if history:
+            # We must manually emit the "new_message" event to bypass Chainlit's
+            # tight coupling with the *initial* session ID context.
+            from chainlit.context import context
+
+            for msg in history:
+                # Chainlit 1.3+ structure approximation
+                # We remove 'threadId' to prevent frontend filtering mismatch
+                msg_dict = {
+                    "id": msg.cl_id,
+                    "createdAt": msg.created_at.isoformat() if msg.created_at else None,
+                    "content": msg.content,
+                    "author": msg.author,
+                    "output": msg.content,
+                    "type": (
+                        "user_message" if msg.author == "User" else "assistant_message"
+                    ),
+                }
+
+                # We emit directly to the websocket found in context.session
+                if context.session and context.session.emit:
+                    await context.emitter.emit("new_message", msg_dict)
+        else:
+            pass  # No history to load
+
+        return
+    # -------------------------------
+
     settings = cl.user_session.get("settings")
     chat_id = cl.user_session.get("id")
     user_id = cl.user_session.get("db_user_id")
