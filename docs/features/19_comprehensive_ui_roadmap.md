@@ -7,9 +7,9 @@ This document serves as the master roadmap and meta-feature for transforming the
 
 ## 2. Requirements
 List specific, testable requirements:
-- [ ] **Track Sub-Features**:
-    - [x] **Sidebar Navigation**: Complete `20_sidebar_navigation.md` (feat/sidebar-nav) -> [Archived](archive/20_sidebar_navigation.md).
-    - [x] **Global Search**: Complete `24_global_search.md` (feat/global-search) -> [Archived](archive/24_global_search.md).
+    - [x] **Scheduled Tasks**: Complete `11_scheduled_tasks.md` (feat/scheduler) -> [Archived](archive/11_scheduled_tasks.md).
+    - [x] **Scheduler Dashboard**: Complete `12_scheduler_dashboard.md` (feat/scheduler-ui) -> [Archived](archive/12_scheduler_dashboard.md).
+    - [x] **Nebulus Manager**: Complete `13_nebulus_manager.md` (feat/nebulus-manager) -> [Archived](archive/13_nebulus_manager.md).
     - [x] **Notes System**: Complete `25_notes_system.md` (feat/notes-system) -> [Archived](archive/25_notes_system.md).
     - [x] **Global Theme Toggle**: Complete `28_global_theme_toggle.md` (feat/theme-toggle) -> [Archived](archive/28_global_theme_toggle.md).
     - [x] **Workspace Management**: Complete `21_workspace_management.md` (feat/workspace-ui) -> [Archived](archive/21_workspace_management.md).

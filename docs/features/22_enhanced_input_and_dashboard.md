@@ -12,10 +12,9 @@ List specific, testable requirements:
     - [ ] Render uploaded images in chat.
 - [ ] **Voice Support**:
     - [ ] Microphone input (Speech-to-Text) for prompting.
-- [ ] **Dashboard Experience**:
-    - [ ] **Personalized Greeting**: "Good Morning, [User]" or similar.
-    - [ ] **Suggested Prompts**: 3-4 clickable starter prompts (e.g., "Help me debug...", "Explain quantum computing").
-    - [ ] **Branding**: Display Nebulus logo and tagline when chat is empty.
+    - [x] **Personalized Greeting**: "Good Morning, [User]" or similar.
+    - [x] **Suggested Prompts**: 3-4 clickable starter prompts (e.g., "Help me debug...", "Explain quantum computing").
+    - [x] **Branding**: Display Nebulus logo and tagline when chat is empty (Implemented and Rolled Back).
 
 ## 3. Technical Implementation
 - **Modules**: `gantry/ui/chat_input.py`, `gantry/ui/dashboard.py`
