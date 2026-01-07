@@ -101,6 +101,22 @@ async def delete_chat(chat_id: str, user=Depends(get_current_user), db=Depends(g
     return {"status": "success"}
 
 
+@router.put("/chats/{chat_id}/rename")
+async def rename_chat(
+    chat_id: str,
+    title: str = Body(..., embed=True),
+    user=Depends(get_current_user),
+    db=Depends(get_db),
+):
+    chat = db.query(Chat).filter(Chat.id == chat_id, Chat.user_id == user.id).first()
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+
+    chat.title = title
+    db.commit()
+    return {"status": "success", "title": title}
+
+
 @router.get("/search")
 async def search_messages(q: str, user=Depends(get_current_user), db=Depends(get_db)):
     if not q or len(q.strip()) < 2:

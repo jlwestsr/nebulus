@@ -29,6 +29,7 @@ fi
 
 # Run Pytest
 echo -e "\n${GREEN}Running Pytest...${NC}"
+export PYTHONPATH=$PYTHONPATH:gantry
 if pytest -p no:cacheprovider; then
     echo -e "${GREEN}All tests passed.${NC}"
 else

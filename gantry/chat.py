@@ -207,10 +207,7 @@ async def start():
     cl.user_session.set("db_user_id", user_id)
 
     await cl.Message(
-        content=f"Hello from Nebulus! I am connected to your local Ollama instance "
-        f"using {settings['model']}"
-        f"<div id='model-data' data-model='{settings['model']}' "
-        f"style='display: none;'></div>"
+        content=f"<div id='model-data' data-model='{settings['model']}' style='display: none;'></div>"
     ).send()
 
 

@@ -51,20 +51,13 @@ async def get_models():
 @app.get("/notes", response_class=HTMLResponse)
 async def notes_page():
     return """
-    <html>
+    <!DOCTYPE html>
+    <html class="dark">
     <head>
         <title>Nebulus - Notes</title>
         <link rel="stylesheet" href="/public/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-        <script>
-            (function() {
-                const storedTheme = localStorage.getItem('vite-ui-theme');
-                const isDark = storedTheme === 'dark';
-                if (isDark) {
-                    document.documentElement.classList.add('dark');
-                }
-            })();
-        </script>
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     </head>
@@ -76,20 +69,22 @@ async def notes_page():
                 <div style="padding: 10px; text-align: center; color: var(--text-secondary);">Loading notes...</div>
             </div>
             <div class="notes-editor" id="notes-editor" style="display: none;">
-                <div class="toolbar">
+                <div class="toolbar" style="display: flex; gap: 10px; margin-bottom:10px;">
                     <button id="save-btn" class="btn btn-primary">Save Note</button>
-                    <button id="preview-btn" class="btn btn-secondary" style="margin-left: 10px;">Preview</button>
+                    <button id="preview-btn" class="btn btn-secondary">Preview</button>
                     <div style="flex:1"></div>
-                    <button id="delete-btn" class="btn btn-danger">Delete</button>
+                    <button id="delete-btn" class="btn btn-danger" style="background:transparent; color:#ef4444; border:1px solid #ef4444;">Delete</button>
                 </div>
-                <input type="text" id="note-category" class="note-category" placeholder="Category (e.g. Work, Personal)" style="margin-bottom: 5px; width: 100%; padding: 8px; background: transparent; border: none; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9em;">
+                <input type="text" id="note-category" class="note-category" placeholder="Category (e.g. Work, Personal)" style="margin-bottom: 5px; width: 100%; padding: 8px; background: transparent; border: none; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.9em; outline:none;">
                 <input type="text" id="note-title" class="note-title" placeholder="Untitled Note">
                 <textarea id="note-content" class="note-content" placeholder="Start typing..."></textarea>
                 <div id="note-preview" class="note-preview" style="display: none;"></div>
             </div>
-            <div class="notes-editor" id="empty-state" style="align-items: center; justify-content: center; color: var(--text-secondary);">
-                <p>Select a note or create a new one.</p>
-                <button id="new-note-btn" class="btn btn-primary" style="margin-top: 10px;">+ New Note</button>
+            <div class="notes-editor" id="empty-state" style="align-items: center; justify-content: center; color: var(--text-secondary); display:flex;">
+                <div style="text-align:center;">
+                    <p style="margin-bottom:15px;">Select a note or create a new one.</p>
+                    <button id="new-note-btn" class="btn btn-primary">+ New Note</button>
+                </div>
             </div>
         </div>
 
@@ -103,20 +98,13 @@ async def notes_page():
 @app.get("/workspace", response_class=HTMLResponse)
 async def workspace_page():
     return """
-    <html>
+    <!DOCTYPE html>
+    <html class="dark">
     <head>
         <title>Nebulus - Workspace</title>
         <link rel="stylesheet" href="/public/style.css">
         <link rel="stylesheet" href="/public/workspace.css">
-        <script>
-            (function() {
-                const storedTheme = localStorage.getItem('vite-ui-theme');
-                const isDark = storedTheme === 'dark';
-                if (isDark) {
-                    document.documentElement.classList.add('dark');
-                }
-            })();
-        </script>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     </head>
     <body>
         <!-- Sidebar injected by script.js -->

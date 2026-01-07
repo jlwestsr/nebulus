@@ -42,6 +42,7 @@ services:
     restart: unless-stopped
     volumes:
       - gantry_data:/app/data
+      - ./gantry:/app
     depends_on:
       - ollama
       - chromadb
@@ -73,6 +74,7 @@ services:
     restart: unless-stopped
     volumes:
       - .:/workspace # Mount current directory to /workspace for file tools
+      - ./mcp_server:/app
     ports:
       - "8002:8000"
     networks:

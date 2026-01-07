@@ -17,6 +17,16 @@ List specific, testable requirements:
     - [ ] **Response Controls**: Complete `23_response_controls.md` (feat/response-controls).
     - [ ] **Visual Artifacts**: Complete `26_visual_artifacts.md` (feat/visual-artifacts).
     - [ ] **Code Execution**: Complete `27_code_execution.md` (feat/code-execution).
+    - [ ] **Web Search**: Complete `29_web_search.md` (feat/web-search).
+    - [ ] **Image Generation**: Complete `30_image_generation.md` (feat/image-generation).
+    - [ ] **Voice & Video**: Complete `31_voice_interactivity.md` (feat/voice-video).
+    - [ ] **PWA Support**: Complete `32_pwa_support.md` (feat/pwa-support).
+    - [ ] **User Mgmt & RBAC**: Complete `33_user_management_rbac.md` (feat/user-management).
+    - [ ] **Plugins System**: Complete `34_plugins_system.md` (feat/plugins-system).
+    - [ ] **Document Library**: Complete `35_document_library.md` (feat/document-library).
+    - [ ] **Parallel Chat**: Complete `36_parallel_chat.md` (feat/parallel-chat).
+    - [ ] **Token Usage**: Complete `37_token_usage_tracking.md` (feat/token-tracking).
+    - [ ] **Model Builder**: Complete `38_model_builder_ui.md` (feat/model-builder).
 
 ## 3. Technical Implementation
 - **Modules**: This is a coordination task. Individual modules are listed in respective feature documents.

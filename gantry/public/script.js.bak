@@ -11,12 +11,6 @@ const Nebulus = {
     },
 
     init: function () {
-        // Prevent running on login page
-        if (window.location.pathname === '/login') return;
-
-        // Add active class for CSS scoping
-        document.body.classList.add('nebulus-active');
-
         // Initialize all modules
         this.Theme.init();
         this.Sidebar.init();
@@ -29,21 +23,16 @@ const Nebulus = {
     },
 
     setupObservers: function () {
-        let timeout;
         const observer = new MutationObserver(() => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                // Re-inject critical UI if lost (e.g. React hydration)
-                this.Sidebar.inject();
-                this.Models.injectDropdown();
-                this.Dashboard.checkAndInject();
+            // Re-inject critical UI if lost (e.g. React hydration)
+            this.Sidebar.inject();
+            this.Models.injectDropdown();
+            this.Dashboard.checkAndInject();
 
-                // Check for Model Switch data
-                this.Models.checkForSwitch();
-            }, 100);
+            // Check for Model Switch data
+            this.Models.checkForSwitch();
         });
-        // Remove subtree: true to prevent deep recursion
-        observer.observe(document.body, { childList: true, subtree: false });
+        observer.observe(document.body, { childList: true, subtree: true });
     },
 
     /* =========================================
@@ -53,112 +42,79 @@ const Nebulus = {
         getSidebar: (recentChatsHTML, user) => `
             <div id="nebulus-sidebar">
                 <div class="sidebar-header">
-                    <img src="/public/sidebar_logo.png" alt="Logo" class="sidebar-logo-img">
-                    <div class="logo-text">NEBULUS</div>
+                    <div class="logo-text" style="font-size: 1.2rem; margin-left: 10px;">Nebulus</div>
                     <div class="toggle-btn" id="sidebar-toggle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        ${Nebulus.Icons.chevronLeft}
                     </div>
                 </div>
 
-                <div class="new-chat-container">
-                     <div class="new-chat-btn" onclick="window.location.href='/'">
-                        <span class="icon-plus">+</span>
-                        <span>New chat</span>
-                    </div>
+                <div class="new-chat-btn" onclick="window.location.href='/'">
+                    <div class="nav-icon">+</div>
+                    <span>New Chat</span>
                 </div>
 
-                <div class="sidebar-scroll-area">
-                    <div class="sidebar-section">
-                        <div class="sidebar-section-title">My Stuff</div>
-                        <div class="my-stuff-grid">
-                            <div class="stuff-item" title="Nebulus">
-                                 <div class="stuff-icon gradient-1">N</div>
-                            </div>
-                             <div class="stuff-item" title="Gantry">
-                                 <div class="stuff-icon gradient-2">G</div>
-                            </div>
-                             <div class="stuff-item" title="Knowledge">
-                                 <div class="stuff-icon gradient-3">K</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-section">
-                        <div class="sidebar-section-title">Gems</div>
-                         <div class="nav-item">
-                            <div class="nav-icon">${Nebulus.Icons.fileText}</div>
-                            <span class="nav-label">The AI Engineer</span>
-                        </div>
-                         <div class="nav-item">
-                            <div class="nav-icon">${Nebulus.Icons.grid}</div>
-                            <span class="nav-label">Self-Paced Lab</span>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-section">
-                        <div class="sidebar-section-title">Chats</div>
-                         <div class="nav-item" onclick="Nebulus.Search.open(event)">
-                            <div class="nav-icon">${Nebulus.Icons.search}</div>
-                            <span class="nav-label">Search chats</span>
-                        </div>
-                        <div class="recent-chats-list">
-                            ${recentChatsHTML || '<div style="padding: 10px; color: #555; font-size: 0.7rem;" class="nav-label">No recent chats</div>'}
-                        </div>
-                    </div>
+                <div class="nav-item" onclick="Nebulus.Search.open(event)">
+                    <div class="nav-icon">🔍</div>
+                    <span class="nav-label">Search</span>
                 </div>
 
-                <div class="sidebar-footer">
-                     <div class="nav-item" id="nebulus-theme-toggle">
-                        <div class="nav-icon">${Nebulus.Icons.sun}</div>
-                        <span class="nav-label">Settings</span>
-                    </div>
+                 <a class="nav-item" href="/notes">
+                    <div class="nav-icon">📝</div>
+                    <span class="nav-label">Notes</span>
+                </a>
 
-                     <div class="user-profile">
-                        <div class="user-avatar">${Nebulus.Utils.getInitials(user.full_name || user.username)}</div>
-                        <span class="nav-label">${user.full_name || user.username}</span>
-                    </div>
+                <a class="nav-item" href="/workspace">
+                    <div class="nav-icon">❖</div>
+                    <span class="nav-label">Workspace</span>
+                </a>
+
+                <div class="divider"></div>
+
+                <div style="padding: 10px; color: #7d8590; font-size: 0.8rem;" class="nav-label">
+                    Recent Chats
+                </div>
+                <div class="scroll-area">
+                    ${recentChatsHTML || '<div style="padding: 10px; color: #555; font-size: 0.8rem;" class="nav-label">No recent chats</div>'}
+                </div>
+
+                 <div class="user-profile">
+                    <div class="user-avatar">${Nebulus.Utils.getInitials(user.full_name || user.username)}</div>
+                    <span class="nav-label">${user.full_name || user.username}</span>
                 </div>
             </div>
         `,
 
-        getDashboard: (modelName, username = "User") => `
+        getDashboard: (modelName) => `
             <div id="nebulus-dashboard">
                 <div class="dashboard-content">
-                     <div class="dashboard-greeting">
-                         <span id="dashboard-greeting-text" class="gradient-text">Hi ${username}</span><br>
-                         <span>Where should we start?</span>
+                    <div class="dashboard-logo-container">
+                        <div class="dashboard-logo">OI</div>
+                        <div class="current-model-display">${modelName || 'Loading...'}</div>
                     </div>
 
-                     <div class="input-pill-container">
-                        <div class="input-pill-label">Ask Nebulus</div>
-                        <div class="input-pill">
-                             <div class="icon-btn">${Nebulus.Icons.plus}</div>
-                             <input type="text" id="dashboard-input" placeholder="Type something..." autocomplete="off">
-                             <div class="right-actions">
-                                  <div class="icon-btn">${Nebulus.Icons.fileText}</div>
-                                  <div class="icon-btn" id="dashboard-submit">${Nebulus.Icons.send}</div>
-                             </div>
+                    <div class="dashboard-greeting">How can I help you today?</div>
+
+                     <div class="dashboard-input-wrapper" style="display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 1000;">
+                         <div class="dashboard-input-container">
+                            <input type="text" id="dashboard-input" placeholder="Message Nebulus..." autocomplete="off">
+                            <div class="input-actions">
+                                <button class="input-action-btn" id="dashboard-submit">${Nebulus.Icons.send}</button>
+                            </div>
                         </div>
                     </div>
 
                     <div class="suggestions-grid">
-                        <div class="suggestion-pill" onclick="Nebulus.Chat.setInput('Create image')">
-                            <span class="emoji">🎨</span> Create image
+                        <div class="suggestion-card" onclick="Nebulus.Chat.setInput('Show me a code snippet of a website sticky header')">
+                            <div class="suggestion-title">Show me a code snippet</div>
+                            <div class="suggestion-desc">of a website sticky header</div>
                         </div>
-                        <div class="suggestion-pill" onclick="Nebulus.Chat.setInput('Create video')">
-                            <span class="emoji">🎥</span> Create video
+                        <div class="suggestion-card" onclick="Nebulus.Chat.setInput('Tell me a fun fact about the Roman Empire')">
+                            <div class="suggestion-title">Tell me a fun fact</div>
+                            <div class="suggestion-desc">about the Roman Empire</div>
                         </div>
-                        <div class="suggestion-pill" onclick="Nebulus.Chat.setInput('Write anything')">
-                            <span class="emoji">✍️</span> Write anything
-                        </div>
-                        <div class="suggestion-pill" onclick="Nebulus.Chat.setInput('Help me learn')">
-                            <span class="emoji">🎓</span> Help me learn
-                        </div>
-                         <div class="suggestion-pill" onclick="Nebulus.Chat.setInput('Boost my day')">
-                            <span class="emoji">🚀</span> Boost my day
-                        </div>
-                         <div class="suggestion-pill" onclick="Nebulus.Chat.setInput('Stay organized')">
-                            <span class="emoji">📅</span> Stay organized
+                        <div class="suggestion-card" onclick="Nebulus.Chat.setInput('Help me study vocabulary for a college entrance exam')">
+                            <div class="suggestion-title">Help me study</div>
+                            <div class="suggestion-desc">vocabulary for a college entrance exam</div>
                         </div>
                     </div>
                 </div>
@@ -187,9 +143,7 @@ const Nebulus = {
         sun: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
         search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7d8590" stroke-width="2" style="margin-right: 10px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`,
         plus: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
-        send: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`,
-        fileText: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
-        grid: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>`
+        send: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`
     },
 
     /* =========================================
@@ -209,16 +163,6 @@ const Nebulus = {
                 fetch('/api/history').then(res => res.json()),
                 fetch('/me').then(res => res.json())
             ]).then(([history, user]) => {
-                // Personalization Logic
-                const firstName = (user.full_name || user.username || "User").split(' ')[0];
-                Nebulus.state.firstName = firstName;
-
-                // Update Dashboard Greeting if present
-                const greetingEl = document.getElementById('dashboard-greeting-text');
-                if (greetingEl) {
-                    greetingEl.textContent = `Hi ${firstName}`;
-                }
-
                 this.render(history, user);
             }).catch(err => {
                 console.error("Failed to load sidebar data", err);
@@ -233,7 +177,6 @@ const Nebulus = {
             const recentChatsHTML = history.map(chat => `
                 <div class="nav-item sub-item" onclick="Nebulus.Chat.loadHistory('${chat.id}')">
                     <span class="nav-label">${chat.title}</span>
-                    <div class="chat-options-btn" onclick="Nebulus.Sidebar.showContextMenu(event, '${chat.id}')">⋮</div>
                 </div>
             `).join('');
 
@@ -244,116 +187,11 @@ const Nebulus = {
             this.setupEvents();
         },
 
-        showContextMenu: function (event, chatId) {
-            event.stopPropagation();
-            this.closeContextMenu();
-
-            const menu = document.createElement('div');
-            menu.className = 'context-menu';
-            menu.id = 'active-context-menu';
-
-            const options = [
-                { label: 'Share', icon: '➦', action: 'share' },
-                { label: 'Rename', icon: '✎', action: 'rename' },
-                { label: 'Delete', icon: '🗑', action: 'delete' }
-            ];
-
-            options.forEach(opt => {
-                const item = document.createElement('div');
-                item.className = 'context-menu-item';
-                item.innerHTML = `<span class="menu-icon">${opt.icon}</span><span>${opt.label}</span>`;
-                item.onclick = (e) => {
-                    e.stopPropagation();
-                    this.handleMenuAction(opt.action, chatId);
-                    this.closeContextMenu();
-                };
-                menu.appendChild(item);
-            });
-
-            document.body.appendChild(menu);
-
-            // Positioning
-            const rect = event.target.getBoundingClientRect();
-            menu.style.top = `${rect.bottom + 5}px`;
-            menu.style.left = `${rect.left}px`;
-        },
-
-        closeContextMenu: function () {
-            const existing = document.getElementById('active-context-menu');
-            if (existing) existing.remove();
-        },
-
-        refresh: function () {
-            const sidebar = document.getElementById('nebulus-sidebar');
-            if (sidebar) sidebar.remove();
-            this.inject();
-        },
-
-        handleMenuAction: function (action, chatId) {
-            if (action === 'share') {
-                const url = window.location.origin + '/?chat_id=' + chatId;
-                navigator.clipboard.writeText(url).then(() => {
-                    Nebulus.Utils.showToast('Link copied to clipboard');
-                }).catch(err => {
-                    console.error('Failed to copy: ', err);
-                    Nebulus.Utils.showToast('Failed to copy link');
-                });
-            } else if (action === 'rename') {
-                // Fetch current name first? Easier to just leave blank or generic
-                // Or better: pass current name via data attribute if feasible.
-                // For now, empty prompt is standard.
-                Nebulus.Modal.prompt("Rename Chat", "Enter a new name for this chat:", "", (newName) => {
-                    if (newName && newName.trim()) {
-                        fetch(`/api/chats/${chatId}/rename`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ title: newName.trim() })
-                        })
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.status === 'success') {
-                                    this.refresh();
-                                    Nebulus.Utils.showToast('Chat renamed');
-                                } else {
-                                    Nebulus.Utils.showToast('Failed to rename chat');
-                                }
-                            })
-                            .catch(e => Nebulus.Utils.showToast('Error renaming chat'));
-                    }
-                });
-            } else if (action === 'delete') {
-                Nebulus.Modal.confirm("Delete Chat", "Are you sure you want to delete this chat? This action cannot be undone.", () => {
-                    fetch(`/api/chats/${chatId}`, {
-                        method: 'DELETE'
-                    })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.status === 'success') {
-                                this.refresh();
-                                Nebulus.Utils.showToast('Chat deleted');
-                                // If current chat, redirect to home
-                                const urlParams = new URLSearchParams(window.location.search);
-                                if (urlParams.get('chat_id') === chatId) {
-                                    window.location.href = '/';
-                                }
-                            } else {
-                                Nebulus.Utils.showToast('Failed to delete chat');
-                            }
-                        })
-                        .catch(e => Nebulus.Utils.showToast('Error deleting chat'));
-                });
-            }
-        },
-
-
         setupEvents: function () {
             const toggleBtn = document.getElementById('sidebar-toggle');
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', () => this.toggle());
             }
-
-            // Close context menu on global click
-            document.addEventListener('click', () => this.closeContextMenu());
         },
 
         toggle: function () {
@@ -389,6 +227,7 @@ const Nebulus = {
                 // We rely on the fact that if dashboard is present, we must be in 'new chat' mode unless URL says otherwise.
                 if (!this.hasAutoLoaded) {
                     // Small delay to ensure ws connection
+                    console.log("Deep link detected:", initialChatId);
                     this.hasAutoLoaded = true;
                     setTimeout(() => Nebulus.Chat.loadHistory(initialChatId), 500);
                 }
@@ -400,6 +239,8 @@ const Nebulus = {
 
         inject: function () {
             if (document.getElementById('nebulus-dashboard')) return;
+
+            console.log("Nebulus Dashboard Injected v3");
 
             // Try to find current model from selector or state
             let currentModel = "Llama 3.1";
@@ -445,6 +286,8 @@ const Nebulus = {
 
     Chat: {
         loadHistory: function (chatId) {
+            console.log("Loading chat history:", chatId);
+
             // 1. Update URL
             const newUrl = `/?chat_id=${chatId}`;
             history.pushState({ chat_id: chatId }, "", newUrl);
@@ -684,6 +527,7 @@ const Nebulus = {
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                         const isDark = document.documentElement.classList.contains('dark');
+                        console.log('Theme changed:', isDark ? 'Dark' : 'Light');
                     }
                 });
             });
@@ -749,107 +593,6 @@ const Nebulus = {
             setTimeout(() => {
                 toast.className = toast.className.replace('show', '');
             }, 3000);
-        }
-    },
-
-    Modal: {
-        confirm: function (title, message, onConfirm) {
-            this.create({
-                title,
-                message,
-                buttons: [
-                    { label: 'Cancel', class: 'btn-modal-secondary', onClick: () => this.close() },
-                    { label: 'Delete', class: 'btn-modal-primary', onClick: () => { this.close(); onConfirm(); } }
-                ]
-            });
-        },
-
-        prompt: function (title, message, initialValue, onConfirm) {
-            this.create({
-                title,
-                message,
-                input: { value: initialValue, placeholder: 'Enter value...' },
-                buttons: [
-                    { label: 'Cancel', class: 'btn-modal-secondary', onClick: () => this.close() },
-                    { label: 'Save', class: 'btn-modal-primary', onClick: (val) => { this.close(); onConfirm(val); } }
-                ]
-            });
-        },
-
-        create: function (config) {
-            this.close(); // Close any existing
-
-            const backdrop = document.createElement('div');
-            backdrop.className = 'nebulus-modal-backdrop';
-            backdrop.id = 'nebulus-active-modal';
-
-            const modal = document.createElement('div');
-            modal.className = 'nebulus-modal';
-
-            // Title
-            if (config.title) {
-                const title = document.createElement('div');
-                title.className = 'modal-title';
-                title.textContent = config.title;
-                modal.appendChild(title);
-            }
-
-            // Message
-            if (config.message) {
-                const msg = document.createElement('div');
-                msg.className = 'modal-message';
-                msg.textContent = config.message;
-                modal.appendChild(msg);
-            }
-
-            // Input
-            let inputEl = null;
-            if (config.input) {
-                inputEl = document.createElement('input');
-                inputEl.type = 'text';
-                inputEl.className = 'modal-input';
-                inputEl.value = config.input.value || '';
-                inputEl.placeholder = config.input.placeholder || '';
-                modal.appendChild(inputEl);
-                setTimeout(() => inputEl.focus(), 100);
-            }
-
-            // Actions
-            const actions = document.createElement('div');
-            actions.className = 'modal-actions';
-
-            config.buttons.forEach(btn => {
-                const button = document.createElement('button');
-                button.className = btn.class || 'btn-modal-secondary';
-                button.textContent = btn.label;
-                button.onclick = () => btn.onClick(inputEl ? inputEl.value : null);
-                actions.appendChild(button);
-            });
-
-            modal.appendChild(actions);
-            backdrop.appendChild(modal);
-            document.body.appendChild(backdrop);
-
-            // Animate in
-            requestAnimationFrame(() => backdrop.classList.add('visible'));
-
-            // Enter key support for input
-            if (inputEl) {
-                inputEl.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        const saveBtn = config.buttons.find(b => b.label === 'Save');
-                        if (saveBtn) saveBtn.onClick(inputEl.value);
-                    }
-                });
-            }
-        },
-
-        close: function () {
-            const el = document.getElementById('nebulus-active-modal');
-            if (el) {
-                el.classList.remove('visible');
-                setTimeout(() => el.remove(), 200);
-            }
         }
     }
 };

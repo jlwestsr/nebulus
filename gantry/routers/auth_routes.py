@@ -11,6 +11,10 @@ from auth import (
     verify_token,
 )
 
+import logging
+
+logger = logging.getLogger("uvicorn")
+
 router = APIRouter()
 
 
@@ -52,63 +56,125 @@ async def read_users_me(user=Depends(get_current_user)):
 
 
 @router.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
+def login_page(request: Request):
     """Serve the login form."""
     return """
-    <html>
+    <!DOCTYPE html>
+    <html class="dark">
     <head>
         <title>Nebulus - Login</title>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="/public/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+        <style>
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--bg-primary);
+                height: 100vh;
+            }
+            .auth-card {
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                padding: 40px;
+                width: 400px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                text-align: center;
+            }
+            .auth-title {
+                font-size: 2rem;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 30px;
+            }
+            .auth-form {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            .input-group {
+                text-align: left;
+            }
+            .input-group label {
+                display: block;
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+            .auth-input {
+                width: 100%;
+                padding: 12px;
+                background: var(--bg-primary);
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                color: var(--text-primary);
+                font-size: 1rem;
+                outline: none;
+                transition: border-color 0.2s;
+                box-sizing: border-box;
+            }
+            .auth-input:focus {
+                border-color: var(--accent-color);
+            }
+            .btn-auth {
+                background: var(--accent-color);
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 6px;
+                font-size: 1rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: opacity 0.2s;
+                margin-top: 10px;
+            }
+            .btn-auth:hover {
+                opacity: 0.9;
+            }
+            .auth-link {
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 0.9rem;
+                transition: color 0.2s;
+                display: inline-block;
+            }
+            .auth-link:hover {
+                color: var(--accent-color);
+            }
+        </style>
     </head>
-    <body class="bg-gray-900 text-white flex items-center justify-center h-screen">
-        <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-96">
-            <h2 class="text-2xl font-bold mb-6 text-center text-blue-400">Nebulus Login</h2>
-            <form action="/login" method="post" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" name="username" required
-                           class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-500
-                                  focus:outline-none">
+    <body>
+        <div class="auth-card">
+            <h2 class="auth-title">Nebulus</h2>
+            <form action="/login" method="post" class="auth-form">
+                <div class="input-group">
+                    <label>Email / Username</label>
+                    <input type="text" name="username" class="auth-input" required autofocus>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" name="password" required
-                           class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-500
-                                  focus:outline-none">
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" name="password" class="auth-input" required>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
-                    Sign In
-                </button>
+                <button type="submit" class="btn-auth">Sign In</button>
+                <div style="margin-top: 20px;">
+                    <a href="/register" class="auth-link">Need an account? Register here</a>
+                </div>
             </form>
         </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            const inputs = form.querySelectorAll('input');
-
-            inputs.forEach(input => {
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        form.submit();
-                    }
-                });
-            });
-        });
-    </script>
     </body>
     </html>
     """
 
 
 @router.post("/login")
-async def login(
-    response: Response, username: str = Form(...), password: str = Form(...)
-):
+def login(response: Response, username: str = Form(...), password: str = Form(...)):
     """Handle login submission and set cookie."""
+
     db = SessionLocal()
     try:
         user = get_user(db, username)
+
         if not user or not verify_password(password, user.hashed_password):
             return HTMLResponse("Invalid credentials", status_code=401)
 
@@ -123,7 +189,7 @@ async def login(
 
 
 @router.get("/logout")
-async def logout(response: Response):
+def logout(response: Response):
     """Clear session cookie and redirect to login."""
     response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie("access_token")
@@ -131,93 +197,142 @@ async def logout(response: Response):
 
 
 @router.get("/register", response_class=HTMLResponse)
-async def register_page(request: Request):
-    """Serve the registration form only if no admin exists."""
-    db = SessionLocal()
-    try:
-        if get_user_count(db) > 0:
-            return RedirectResponse(url="/login")
-    finally:
-        db.close()
-
+def register_page(request: Request):
+    """Serve the registration form."""
     return """
-    <html>
+    <!DOCTYPE html>
+    <html class="dark">
     <head>
-        <title>Nebulus - Admin Registration</title>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <title>Nebulus - Register</title>
+        <link rel="stylesheet" href="/public/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+        <style>
+             body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--bg-primary);
+                height: 100vh;
+            }
+            .auth-card {
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                padding: 40px;
+                width: 400px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                text-align: center;
+            }
+            .auth-title {
+                font-size: 2rem;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 10px;
+            }
+            .auth-subtitle {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                margin-bottom: 30px;
+            }
+            .auth-form {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            .input-group {
+                text-align: left;
+            }
+            .input-group label {
+                display: block;
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+            .auth-input {
+                width: 100%;
+                padding: 12px;
+                background: var(--bg-primary);
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+                color: var(--text-primary);
+                font-size: 1rem;
+                outline: none;
+                transition: border-color 0.2s;
+                box-sizing: border-box;
+            }
+            .auth-input:focus {
+                border-color: var(--accent-color);
+            }
+            .btn-auth {
+                background: var(--accent-color);
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 6px;
+                font-size: 1rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: opacity 0.2s;
+                margin-top: 10px;
+            }
+            .btn-auth:hover {
+                opacity: 0.9;
+            }
+        </style>
     </head>
-    <body class="bg-gray-900 text-white flex items-center justify-center h-screen">
-        <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-96">
-            <h2 class="text-2xl font-bold mb-2 text-center text-blue-400">Get started with Nebulus</h2>
-            <p class="text-sm text-gray-400 text-center mb-6">Nebulus does not make any external connections, and your data stays securely on your locally hosted server.</p>
-            <form action="/register" method="post" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Full Name</label>
-                    <input type="text" name="full_name" required
-                           class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-500
-                                  focus:outline-none">
+    <body class="bg-primary text-primary">
+        <div class="auth-card">
+            <h2 class="auth-title">Welcome</h2>
+            <p class="auth-subtitle">Create your account to get started.</p>
+            <form action="/register" method="post" class="auth-form">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" name="full_name" class="auth-input" required>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" name="email" required
-                           class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-500
-                                  focus:outline-none">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" name="email" class="auth-input" required>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" name="password" required
-                           class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-500
-                                  focus:outline-none">
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" name="password" class="auth-input" required>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Confirm Password</label>
-                    <input type="password" name="confirm_password" required
-                           class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-500
-                                  focus:outline-none">
+                <div class="input-group">
+                    <label>Confirm Password</label>
+                    <input type="password" name="confirm_password" class="auth-input" required>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
-                    Create Admin
-                </button>
+                <button type="submit" class="btn-auth">Create Account</button>
             </form>
         </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            const inputs = form.querySelectorAll('input');
-
-            inputs.forEach(input => {
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        form.submit();
-                    }
-                });
-            });
-        });
-    </script>
     </body>
     </html>
     """
 
 
 @router.post("/register")
-async def register_user(request: Request):
+def register_user(
+    response: Response,
+    full_name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...),
+):
     """Handle registration form submission."""
-    form = await request.form()
-    full_name = form.get("full_name")
-    email = form.get("email")
-    password = form.get("password")
-    confirm = form.get("confirm_password")
+    # form = await request.form()  <-- removed
+    # full_name = form.get("full_name") <-- removed
+    # ...
 
-    if password != confirm:
+    if password != confirm_password:
         return HTMLResponse("Passwords do not match", status_code=400)
 
     db = SessionLocal()
     try:
-        if get_user_count(db) > 0:
-            return HTMLResponse("Admin already exists", status_code=403)
+        if get_user_count(db) == 0:
+            role = "admin"
+        else:
+            role = "user"
 
-        user = create_user(db, full_name, email, password, role="admin")
+        user = create_user(db, full_name, email, password, role=role)
 
         # Auto-login
         access_token = create_access_token(data={"sub": user.username})
