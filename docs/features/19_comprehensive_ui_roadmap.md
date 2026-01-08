@@ -16,7 +16,7 @@ List specific, testable requirements:
     - [x] **Input & Dashboard**: Complete `22_enhanced_input_and_dashboard.md` (feat/enhanced-input) -> [Archived](archive/22_enhanced_input_and_dashboard.md).
     - [ ] **Response Controls**: Complete `23_response_controls.md` (feat/response-controls).
     - [x] **Visual Artifacts**: Complete `26_visual_artifacts.md` (feat/visual-artifacts) -> [Archived](archive/26_visual_artifacts.md).
-    - [ ] **Code Execution**: Complete `27_code_execution.md` (feat/code-execution).
+    - [x] **Code Execution**: Complete `27_code_execution.md` (feat/code-execution) -> [Archived](archive/27_code_execution.md).
     - [ ] **Web Search**: Complete `29_web_search.md` (feat/web-search).
     - [ ] **Image Generation**: Complete `30_image_generation.md` (feat/image-generation).
     - [ ] **Voice & Video**: Complete `31_voice_interactivity.md` (feat/voice-video).
