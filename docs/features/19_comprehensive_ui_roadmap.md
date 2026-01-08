@@ -15,7 +15,7 @@ List specific, testable requirements:
     - [x] **Workspace Management**: Complete `21_workspace_management.md` (feat/workspace-ui) -> [Archived](archive/21_workspace_management.md).
     - [ ] **Input & Dashboard**: Complete `22_enhanced_input_and_dashboard.md` (feat/input-dashboard).
     - [ ] **Response Controls**: Complete `23_response_controls.md` (feat/response-controls).
-    - [ ] **Visual Artifacts**: Complete `26_visual_artifacts.md` (feat/visual-artifacts).
+    - [x] **Visual Artifacts**: Complete `26_visual_artifacts.md` (feat/visual-artifacts) -> [Archived](archive/26_visual_artifacts.md).
     - [ ] **Code Execution**: Complete `27_code_execution.md` (feat/code-execution).
     - [ ] **Web Search**: Complete `29_web_search.md` (feat/web-search).
     - [ ] **Image Generation**: Complete `30_image_generation.md` (feat/image-generation).

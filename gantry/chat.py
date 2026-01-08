@@ -1,4 +1,5 @@
 import os
+import base64
 import chainlit as cl
 from openai import AsyncOpenAI
 from database import Chat, Message, SessionLocal, User, Feedback
@@ -169,6 +170,53 @@ def save_feedback_db(message_id, score, comment):
         db.close()
 
 
+def construct_multimodal_payload(content, images):
+    """
+    Constructs a payload compatible with OpenAI API (and Ollama) for multimodal inputs.
+    If no images are present, returns the content string as is.
+    """
+    if not images:
+        return content
+
+    payload = [{"type": "text", "text": content}]
+
+    for img in images:
+        # Check if img is a Chainlit Element or a mock object
+        path = getattr(img, "path", None)
+        mime = getattr(img, "mime", "image/png")
+
+        if path:
+            with open(path, "rb") as f:
+                image_data = f.read()
+                b64_data = base64.b64encode(image_data).decode("utf-8")
+
+            payload.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{mime};base64,{b64_data}"},
+                }
+            )
+
+    return payload
+
+
+def process_thinking_tags(text: str) -> str:
+    """
+    Replaces <think> and </think> tags with a collapsible HTML details block.
+    Handles partial tags for streaming scenarios (simple approach).
+    """
+    if "<think>" in text:
+        text = text.replace(
+            "<think>",
+            "<details open class='thinking-block'><summary>Thinking Process</summary><div class='thinking-content'>",
+        )
+
+    if "</think>" in text:
+        text = text.replace("</think>", "</div></details>")
+
+    return text
+
+
 # --- Async Handlers ---
 
 
@@ -200,6 +248,11 @@ async def start():
             FRIENDLY_TO_RAW[name] = raw_id
 
     default_friendly = "Llama 3.1"
+
+    # Try to load user's preferred model
+    db_model = await cl.make_async(sync_model_from_db_helper)(user_id)
+    if db_model:
+        default_friendly = db_model
 
     settings.update({"model": default_friendly})
     cl.user_session.set("settings", settings)
@@ -248,7 +301,6 @@ async def main(message: cl.Message):
     if message.content.startswith("/load_history "):
         # Extract ID
         new_chat_id = message.content.replace("/load_history ", "").strip()
-        print(f"DEBUG: Soft Navigation to chat_id={new_chat_id}", flush=True)
 
         # Remove the command message from UI to keep it clean
         await message.remove()
@@ -302,9 +354,6 @@ async def main(message: cl.Message):
     # Persist User Message (Async)
     await cl.make_async(save_user_message_db)(chat_id, message.content, message.id)
 
-    msg = cl.Message(content="")
-    await msg.send()
-
     completion_settings = settings.copy()
     friendly_name = settings["model"]
     completion_settings["model"] = FRIENDLY_TO_RAW.get(friendly_name, friendly_name)
@@ -319,6 +368,39 @@ async def main(message: cl.Message):
         role = "user" if hist_msg.author == "user" else "assistant"
         context_messages.append({"role": role, "content": hist_msg.content})
 
+    # --- Multi-Modal Handling ---
+    images = (
+        [file for file in message.elements if "image" in file.mime]
+        if message.elements
+        else []
+    )
+
+    # Auto-switch to Vision model if images are present
+    if images and completion_settings.get("model") != "llama3.2-vision:latest":
+        completion_settings["model"] = "llama3.2-vision:latest"
+
+        # Update user session to persist the switch
+        settings["model"] = "Llama 3.2 Vision"
+        cl.user_session.set("settings", settings)
+
+        # Persist to DB so it survives refresh
+        await cl.make_async(update_model_setting_db)(user_id, "Llama 3.2 Vision")
+
+        # Notify user of switch and trigger UI update via hidden div
+        await cl.Message(
+            author="System",
+            content="Switched to Llama 3.2 Vision for image analysis.<div id='model-data' data-model='Llama 3.2 Vision' style='display: none;'></div>",
+        ).send()
+
+    # Construct the final content payload for the current message
+    current_message_content = construct_multimodal_payload(message.content, images)
+
+    # Add current message to context
+    context_messages.append({"role": "user", "content": current_message_content})
+
+    msg = cl.Message(content="")
+    await msg.send()
+
     full_response = ""
     stream = await client.chat.completions.create(
         messages=context_messages,
@@ -331,6 +413,13 @@ async def main(message: cl.Message):
             await msg.stream_token(token)
             full_response += token
 
+            # Real-time update for thinking tags if they appear
+            if "<think>" in token or "</think>" in token:
+                msg.content = process_thinking_tags(full_response)
+                await msg.update()
+
+    # Final pass to ensure everything is formatted correctly
+    msg.content = process_thinking_tags(full_response)
     await msg.update()
 
     # Persist AI Message (Async)

@@ -1237,3 +1237,79 @@ div[class*="MuiPaper-root"] {
     height: 100vh;
     width: 100%;
 }
+
+/* Feature: Visual Artifacts (Thinking Blocks) */
+details.thinking-block {
+    margin: 10px 0 20px 0;
+    padding: 10px 15px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    width: fit-content;
+    max-width: 100%;
+}
+
+details.thinking-block[open] {
+    width: 100%;
+}
+
+details.thinking-block summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-secondary);
+    list-style: none; /* Hide default triangle */
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    user-select: none;
+}
+
+details.thinking-block summary::-webkit-details-marker {
+    display: none;
+}
+
+details.thinking-block summary::before {
+    content: "💭";
+    margin-right: 8px;
+    font-size: 1.1rem;
+    transition: transform 0.2s;
+}
+
+details.thinking-block[open] summary::before {
+    transform: scale(1.1);
+}
+
+details.thinking-block .thinking-content {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Enhanced Code Blocks */
+div.highlight {
+    background: var(--bg-hover) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+    margin: 15px 0 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Chainlit override for code headers */
+.code-header {
+    background: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-radius: 8px 8px 0 0 !important;
+    color: var(--text-secondary) !important;
+}

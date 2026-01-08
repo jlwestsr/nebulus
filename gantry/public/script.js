@@ -135,7 +135,7 @@ const Nebulus = {
                              <div class="icon-btn">${Nebulus.Icons.plus}</div>
                              <input type="text" id="dashboard-input" placeholder="Type something..." autocomplete="off">
                              <div class="right-actions">
-                                  <div class="icon-btn">${Nebulus.Icons.fileText}</div>
+                                  <div class="icon-btn" title="Attach file">${Nebulus.Icons.paperclip}</div>
                                   <div class="icon-btn" id="dashboard-submit">${Nebulus.Icons.send}</div>
                              </div>
                         </div>
@@ -189,6 +189,8 @@ const Nebulus = {
         plus: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
         send: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`,
         fileText: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
+        paperclip: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>`,
+        image: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
         grid: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>`
     },
 
@@ -408,7 +410,8 @@ const Nebulus = {
 
             const dashboardContainer = document.createElement('div');
             dashboardContainer.innerHTML = Nebulus.Templates.getDashboard(currentModel);
-            document.body.appendChild(dashboardContainer.firstElementChild);
+            const dashboardEl = dashboardContainer.firstElementChild;
+            document.body.appendChild(dashboardEl);
 
             // Add Input Listener
             const input = document.getElementById('dashboard-input');
@@ -421,6 +424,7 @@ const Nebulus = {
                     Nebulus.Dashboard.hide();
                 }
             };
+
 
             if (input) {
                 input.focus();
@@ -435,6 +439,35 @@ const Nebulus = {
             if (submitBtn) {
                 submitBtn.addEventListener('click', handleSubmit);
             }
+
+            // Wire up Attachment Buttons (Plus and FileText)
+            const plusBtn = dashboardEl.querySelector('.input-pill .icon-btn:first-child');
+            const fileBtn = dashboardEl.querySelector('.right-actions .icon-btn:first-child');
+
+            const triggerNativeUpload = () => {
+                const nativeFileInput = document.querySelector('input[type="file"]');
+                if (nativeFileInput) {
+                    // Remove any existing listener to prevent duplicates (though typically valid for this lifecycle)
+                    // Better: just add a listener that checks if dashboard is visible.
+                    nativeFileInput.addEventListener('change', () => {
+                        if (nativeFileInput.files && nativeFileInput.files.length > 0) {
+                            Nebulus.Dashboard.hide();
+                            // Also focus the main chat input
+                            setTimeout(() => {
+                                const chatInput = document.getElementById('chat-input');
+                                if (chatInput) chatInput.focus();
+                            }, 300);
+                        }
+                    }, { once: true }); // Use once to avoid stacking if clicked multiple times without reload
+
+                    nativeFileInput.click();
+                } else {
+                    Nebulus.Utils.showToast("Upload not available");
+                }
+            };
+
+            if (plusBtn) plusBtn.addEventListener('click', triggerNativeUpload);
+            if (fileBtn) fileBtn.addEventListener('click', triggerNativeUpload);
         },
 
         hide: function () {
