@@ -13,7 +13,7 @@ List specific, testable requirements:
     - [x] **Notes System**: Complete `25_notes_system.md` (feat/notes-system) -> [Archived](archive/25_notes_system.md).
     - [x] **Global Theme Toggle**: Complete `28_global_theme_toggle.md` (feat/theme-toggle) -> [Archived](archive/28_global_theme_toggle.md).
     - [x] **Workspace Management**: Complete `21_workspace_management.md` (feat/workspace-ui) -> [Archived](archive/21_workspace_management.md).
-    - [ ] **Input & Dashboard**: Complete `22_enhanced_input_and_dashboard.md` (feat/input-dashboard).
+    - [x] **Input & Dashboard**: Complete `22_enhanced_input_and_dashboard.md` (feat/enhanced-input) -> [Archived](archive/22_enhanced_input_and_dashboard.md).
     - [ ] **Response Controls**: Complete `23_response_controls.md` (feat/response-controls).
     - [x] **Visual Artifacts**: Complete `26_visual_artifacts.md` (feat/visual-artifacts) -> [Archived](archive/26_visual_artifacts.md).
     - [ ] **Code Execution**: Complete `27_code_execution.md` (feat/code-execution).
