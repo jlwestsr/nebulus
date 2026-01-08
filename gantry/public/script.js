@@ -233,7 +233,7 @@ const Nebulus = {
             if (document.getElementById('nebulus-sidebar')) return;
 
             const recentChatsHTML = history.map(chat => `
-                <div class="nav-item sub-item" onclick="Nebulus.Chat.loadHistory('${chat.id}')">
+                <div class="nav-item sub-item" onclick="window.location.href='/?chat_id=${chat.id}'">
                     <span class="nav-label">${chat.title}</span>
                     <div class="chat-options-btn" onclick="Nebulus.Sidebar.showContextMenu(event, '${chat.id}')">⋮</div>
                 </div>
@@ -478,7 +478,7 @@ const Nebulus = {
 
     Chat: {
         loadHistory: function (chatId) {
-            // 1. Update URL
+            // 1. Update URL (Safe to do even if already there)
             const newUrl = `/?chat_id=${chatId}`;
             history.pushState({ chat_id: chatId }, "", newUrl);
 
