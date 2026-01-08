@@ -401,6 +401,10 @@ const Nebulus = {
         },
 
         inject: function () {
+            // Defensive Check: Never inject dashboard if we are in a chat view
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('chat_id')) return;
+
             if (document.getElementById('nebulus-dashboard')) return;
 
             // Try to find current model from selector or state
