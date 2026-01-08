@@ -1338,7 +1338,6 @@ div.highlight {
 .loading-shimmer,
 div.fixed.size-full.top-0:has(svg.lucide-loader),
 #new-chat-button,
-#model-selector-container:not(.nebulus-override),
 #theme-toggle,
 button:has(svg.lucide-sun),
 button:has(svg.lucide-moon) {
