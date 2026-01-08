@@ -7,16 +7,16 @@ Implement a secure backend capability to execute code provided by the LLM or use
 
 ## 2. Requirements
 List specific, testable requirements:
-- [ ] **Execution Interface**:
-    - [ ] "Run Code" button on qualified code blocks (e.g., Python).
-    - [ ] Visual indicator of "Running...".
-- [ ] **Backend Execution**:
-    - [ ] Secure sandboxing (Docker container or restricted environment).
-    - [ ] Timeout enforcement (prevent infinite loops).
-    - [ ] Capture of `stdout` and `stderr`.
-- [ ] **Output Rendering**:
-    - [ ] Display output immediately below the code block.
-    - [ ] Handle errors gracefully (red text/alert).
+- [x] **Execution Interface**:
+    - [x] "Run Code" button on qualified code blocks (e.g., Python).
+    - [x] Visual indicator of "Running...".
+- [x] **Backend Execution**:
+    - [x] Secure sandboxing (Docker container or restricted environment).
+    - [x] Timeout enforcement (prevent infinite loops).
+    - [x] Capture of `stdout` and `stderr`.
+- [x] **Output Rendering**:
+    - [x] Display output immediately below the code block.
+    - [x] Handle errors gracefully (red text/alert).
 
 ## 3. Technical Implementation
 - **Modules**: `gantry/exec/sandbox.py`, `gantry/api/exec.py`
@@ -25,18 +25,18 @@ List specific, testable requirements:
 
 ## 4. Verification Plan
 **Automated Tests**:
-- [ ] Script: `pytest tests/exec/test_sandbox.py`
-- [ ] Logic Verified: Code successfully runs and returns output, Infinite loop times out, File system access restricted.
+- [x] Script: `pytest tests/exec/test_sandbox.py`
+- [x] Logic Verified: Code successfully runs and returns output, Infinite loop times out, File system access restricted.
 
 **Manual Verification**:
-- [ ] Step 1: Generate Python script `print("Hello World")`.
-- [ ] Step 2: Click "Run". Verify "Hello World" appears.
-- [ ] Step 3: Try malicious code (e.g., `os.system('rm -rf /')`). Verify blocked or contained.
+- [x] Step 1: Generate Python script `print("Hello World")`.
+- [x] Step 2: Click "Run". Verify "Hello World" appears.
+- [x] Step 3: Try malicious code (e.g., `os.system('rm -rf /')`). Verify blocked or contained.
 
 ## 5. Workflow Checklist
 Follow the AI Behavior strict workflow:
-- [ ] **Branch**: Created `feat/code-execution` branch?
-- [ ] **Work**: Implemented changes?
-- [ ] **Test**: All tests pass (`pytest`)?
-- [ ] **Doc**: Updated `README.md` and `walkthrough.md`?
-- [ ] **Data**: `git add .`, `git commit`, `git push`?
+- [x] **Branch**: Created `feat/code-execution` branch?
+- [x] **Work**: Implemented changes?
+- [x] **Test**: All tests pass (`pytest`)?
+- [x] **Doc**: Updated `README.md` and `walkthrough.md`?
+- [x] **Data**: `git add .`, `git commit`, `git push`?

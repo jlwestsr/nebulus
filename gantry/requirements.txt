@@ -4,3 +4,4 @@ sqlalchemy>=2.0.0
 passlib[argon2]>=1.7.4
 python-multipart>=0.0.6
 python-jose[cryptography]>=3.3.0
+docker

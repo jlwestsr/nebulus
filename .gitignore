@@ -37,3 +37,5 @@ models/
 
 # Backups
 backups/
+gantry/.files/
+test_output_c.txt

@@ -1,9 +1,12 @@
 import os
 import base64
 import chainlit as cl
+import uuid
 from openai import AsyncOpenAI
 from database import Chat, Message, SessionLocal, User, Feedback
 from sqlalchemy import desc
+from exec.sandbox import run_code_in_sandbox
+import re
 
 # Configure Ollama client
 client = AsyncOpenAI(
@@ -99,10 +102,22 @@ def get_chat_history_db(chat_id, limit=20):
 def save_user_message_db(chat_id, content, message_id):
     db = SessionLocal()
     try:
-        # Check for duplicate cl_id to prevent IntegrityError
-        # (Though unique constraint handles it, avoiding the try/except overhead is better)
-        if db.query(Message).filter(Message.cl_id == message_id).first():
-            return
+        # Check for existing message (Upsert for Edit)
+        existing_msg = db.query(Message).filter(Message.cl_id == message_id).first()
+        if existing_msg:
+            # If content changed, it's an EDIT
+            if existing_msg.content != content:
+                # print(f"DEBUG: Editing message {message_id}, truncating future.")
+                existing_msg.content = content
+
+                # Truncate history AFTER this message
+                db.commit()
+
+                # Call helper (opens new session)
+                truncate_chat_after_db(chat_id, message_id, include_target=False)
+                return
+            else:
+                return  # No change, simple duplicate?
 
         user_msg = Message(
             chat_id=chat_id,
@@ -168,6 +183,38 @@ def save_feedback_db(message_id, score, comment):
         print(f"Error saving feedback: {e}")
     finally:
         db.close()
+
+
+def truncate_chat_after_db(chat_id, message_id, include_target=True):
+    """
+    Deletes messages in a chat after a specific point.
+    include_target=True: Deletes target + future (Regenerate).
+    include_target=False: Deletes future only (Edit).
+    """
+    db = SessionLocal()
+    try:
+        # Get target message
+        target = db.query(Message).filter(Message.cl_id == message_id).first()
+        if not target:
+            return
+
+        # Delete messages after the target
+        query = db.query(Message).filter(Message.chat_id == chat_id)
+
+        if include_target:
+            query = query.filter(Message.created_at >= target.created_at)
+        else:
+            query = query.filter(Message.created_at > target.created_at)
+
+        query.delete()
+
+        db.commit()
+    except Exception as e:
+        print(f"Error truncating history: {e}")
+    finally:
+        db.close()
+
+    return
 
 
 def construct_multimodal_payload(content, images):
@@ -295,52 +342,107 @@ async def handle_model_command(message: cl.Message, settings: dict):
     return True
 
 
+async def handle_soft_navigation(message: cl.Message) -> bool:
+    if not message.content.startswith("/load_history "):
+        return False
+
+    # Extract ID
+    new_chat_id = message.content.replace("/load_history ", "").strip()
+
+    # Remove the command message from UI to keep it clean
+    await message.remove()
+
+    # Update Session
+    cl.user_session.set("id", new_chat_id)
+
+    # Load History
+    history = await cl.make_async(get_chat_history_db)(new_chat_id)
+    if history:
+        # We must manually emit the "new_message" event to bypass Chainlit's
+        # tight coupling with the *initial* session ID context.
+        from chainlit.context import context
+
+        for msg in history:
+            # Chainlit 1.3+ structure approximation
+            # We remove 'threadId' to prevent frontend filtering mismatch
+            msg_dict = {
+                "id": msg.cl_id,
+                "createdAt": msg.created_at.isoformat() if msg.created_at else None,
+                "content": msg.content,
+                "author": msg.author,
+                "output": msg.content,
+                "type": (
+                    "user_message" if msg.author == "User" else "assistant_message"
+                ),
+            }
+
+            # Attach 'Regenerate' action to the *last* message if it is an assistant message
+            if msg == history[-1] and msg.author != "User":
+                msg_dict["actions"] = [
+                    {
+                        "id": str(uuid.uuid4()),
+                        "name": "regenerate",
+                        "value": "regenerate",
+                        "label": "Regenerate",
+                        "collapsed": True,
+                        "payload": {"value": "regenerate"},
+                    }
+                ]
+
+            # We emit directly to the websocket found in context.session
+            if context.session and context.session.emit:
+                await context.emitter.emit("new_message", msg_dict)
+    else:
+        pass  # No history to load
+
+    return True
+
+
 @cl.on_message
 async def main(message: cl.Message):
     # --- Soft Navigation Handler ---
-    if message.content.startswith("/load_history "):
-        # Extract ID
-        new_chat_id = message.content.replace("/load_history ", "").strip()
-
-        # Remove the command message from UI to keep it clean
-        await message.remove()
-
-        # Update Session
-        cl.user_session.set("id", new_chat_id)
-
-        # Load History
-        history = await cl.make_async(get_chat_history_db)(new_chat_id)
-        if history:
-            # We must manually emit the "new_message" event to bypass Chainlit's
-            # tight coupling with the *initial* session ID context.
-            from chainlit.context import context
-
-            for msg in history:
-                # Chainlit 1.3+ structure approximation
-                # We remove 'threadId' to prevent frontend filtering mismatch
-                msg_dict = {
-                    "id": msg.cl_id,
-                    "createdAt": msg.created_at.isoformat() if msg.created_at else None,
-                    "content": msg.content,
-                    "author": msg.author,
-                    "output": msg.content,
-                    "type": (
-                        "user_message" if msg.author == "User" else "assistant_message"
-                    ),
-                }
-
-                # We emit directly to the websocket found in context.session
-                if context.session and context.session.emit:
-                    await context.emitter.emit("new_message", msg_dict)
-        else:
-            pass  # No history to load
-
+    if await handle_soft_navigation(message):
         return
     # -------------------------------
 
     settings = cl.user_session.get("settings")
     chat_id = cl.user_session.get("id")
     user_id = cl.user_session.get("db_user_id")
+
+    # --- Command: /regenerate ---
+    if message.content.strip() == "/regenerate":
+        # Remove command message
+        await message.remove()
+
+        # Get history to find last AI message
+        history = await cl.make_async(get_chat_history_db)(chat_id)
+        if history and history[-1].author != "User":
+            # Last message is AI, so we can regenerate it
+            target_msg = history[-1]
+
+            # 1. Truncate DB (remove this AI message)
+            await cl.make_async(truncate_chat_after_db)(chat_id, target_msg.cl_id)
+
+            # 2. Remove from UI
+            await cl.Message(id=target_msg.cl_id).remove()
+
+            # 3. Feedback
+            await cl.Message(content="🔄 Regenerating...").send()
+
+            # 4. Rebuild Context
+            history = await cl.make_async(get_chat_history_db)(chat_id)
+            if not history:
+                return
+
+            context_messages = [
+                {"role": "system", "content": "You are a helpful AI assistant."}
+            ]
+            for hist_msg in history:
+                role = "user" if hist_msg.author == "user" else "assistant"
+                context_messages.append({"role": role, "content": hist_msg.content})
+
+            await generate_ai_response(chat_id, context_messages, settings, user_id)
+            return
 
     # Refresh Model from DB (Async)
     db_model = await cl.make_async(sync_model_from_db_helper)(user_id)
@@ -398,32 +500,57 @@ async def main(message: cl.Message):
     # Add current message to context
     context_messages.append({"role": "user", "content": current_message_content})
 
-    msg = cl.Message(content="")
+    # Generate Response
+    await generate_ai_response(chat_id, context_messages, settings, user_id)
+
+
+@cl.action_callback("regenerate")
+async def on_regenerate(action: cl.Action):
+    chat_id = cl.user_session.get("id")
+    user_id = cl.user_session.get("db_user_id")
+    message_id = action.forId
+
+    # 1. Truncate DB (remove this AI message)
+    await cl.make_async(truncate_chat_after_db)(chat_id, message_id)
+
+    # 2. Remove from UI
+    await cl.Message(id=message_id).remove()
+
+    # 3. Feedback
+    await cl.Message(content="🔄 Regenerating...").send()
+
+    # 4. Rebuild context from DB (excluding truncated part)
+    history = await cl.make_async(get_chat_history_db)(chat_id)
+    if not history:
+        return
+
+    settings = cl.user_session.get("settings")
+
+    context_messages = [
+        {"role": "system", "content": "You are a helpful AI assistant."}
+    ]
+    for hist_msg in history:
+        role = "user" if hist_msg.author == "user" else "assistant"
+        context_messages.append({"role": role, "content": hist_msg.content})
+
+    await generate_ai_response(chat_id, context_messages, settings, user_id)
+
+
+@cl.action_callback("run_code")
+async def on_run_code(action: cl.Action):
+    code = action.payload.get("code", "")
+    language = action.payload.get("language", "python")
+
+    # Send "Running..." status
+    msg = cl.Message(content=f"🚀 Running {language} code...")
     await msg.send()
 
-    full_response = ""
-    stream = await client.chat.completions.create(
-        messages=context_messages,
-        stream=True,
-        **completion_settings,
-    )
+    # Execute (Sync via make_async)
+    output = await cl.make_async(run_code_in_sandbox)(language, code)
 
-    async for part in stream:
-        if token := part.choices[0].delta.content:
-            await msg.stream_token(token)
-            full_response += token
-
-            # Real-time update for thinking tags if they appear
-            if "<think>" in token or "</think>" in token:
-                msg.content = process_thinking_tags(full_response)
-                await msg.update()
-
-    # Final pass to ensure everything is formatted correctly
-    msg.content = process_thinking_tags(full_response)
+    # Update message with output
+    msg.content = f"```\n{output}\n```"
     await msg.update()
-
-    # Persist AI Message (Async)
-    await cl.make_async(save_ai_message_db)(chat_id, full_response, msg.id)
 
 
 @cl.on_feedback
@@ -431,3 +558,74 @@ async def on_feedback(feedback):
     await cl.make_async(save_feedback_db)(
         feedback.message_id, feedback.score, feedback.comment
     )
+
+
+async def generate_ai_response(chat_id, context_messages, settings, user_id):
+    """
+    Helper to call LLM, stream response, and attach actions.
+    Used by main, on_regenerate, and /regenerate command.
+    """
+    completion_settings = settings.copy()
+    friendly_name = settings["model"]
+    completion_settings["model"] = FRIENDLY_TO_RAW.get(friendly_name, friendly_name)
+
+    msg = cl.Message(content="")
+    await msg.send()
+
+    full_response = ""
+    try:
+        stream = await client.chat.completions.create(
+            messages=context_messages,
+            stream=True,
+            **completion_settings,
+        )
+
+        async for part in stream:
+            token = part.choices[0].delta.content or ""
+            if token:
+                await msg.stream_token(token)
+                full_response += token
+
+                # Real-time update for thinking tags if they appear
+                if "<think>" in token or "</think>" in token:
+                    msg.content = process_thinking_tags(full_response)
+                    await msg.update()
+    except Exception as e:
+        print(f"Error exploring model: {e}")
+        error_msg = f"Error generating response: {e}"
+        msg.content = error_msg
+        await msg.update()
+        full_response = error_msg
+
+    # Final pass to ensure formatting
+    msg.content = process_thinking_tags(full_response)
+
+    # Attach action directly to message update
+    # This is more reliable than action.send() for the initial response
+    action = cl.Action(
+        name="regenerate",
+        value="regenerate",
+        label="Regenerate",
+        payload={"value": "regenerate"},
+    )
+    msg.actions = [action]
+    await msg.update()
+
+    # Detect code blocks and attach Run action
+    code_blocks = re.findall(r"```(python|python3)\n(.*?)```", full_response, re.DOTALL)
+    if code_blocks:
+        # Take the last block for now or multiple? Let's just do one action for the last block to keep UI clean
+        # or separate actions if we can.
+        # Simple for now: If *any* python code, attach "Run Code" for the *last* block found.
+        lang, code = code_blocks[-1]
+        run_action = cl.Action(
+            name="run_code",
+            value="run_code",
+            label="Run Code",
+            payload={"language": lang, "code": code},
+        )
+        msg.actions.append(run_action)
+        await msg.update()
+
+    # Persist AI Message (Async)
+    await cl.make_async(save_ai_message_db)(chat_id, full_response, msg.id)
