@@ -14,7 +14,7 @@ List specific, testable requirements:
     - [x] **Global Theme Toggle**: Complete `28_global_theme_toggle.md` (feat/theme-toggle) -> [Archived](archive/28_global_theme_toggle.md).
     - [x] **Workspace Management**: Complete `21_workspace_management.md` (feat/workspace-ui) -> [Archived](archive/21_workspace_management.md).
     - [x] **Input & Dashboard**: Complete `22_enhanced_input_and_dashboard.md` (feat/enhanced-input) -> [Archived](archive/22_enhanced_input_and_dashboard.md).
-    - [ ] **Response Controls**: Complete `23_response_controls.md` (feat/response-controls).
+    - [x] **Response Controls**: Complete `23_response_controls.md` (feat/response-controls) -> [Archived](archive/23_response_controls.md).
     - [x] **Visual Artifacts**: Complete `26_visual_artifacts.md` (feat/visual-artifacts) -> [Archived](archive/26_visual_artifacts.md).
     - [x] **Code Execution**: Complete `27_code_execution.md` (feat/code-execution) -> [Archived](archive/27_code_execution.md).
     - [ ] **Web Search**: Complete `29_web_search.md` (feat/web-search).
