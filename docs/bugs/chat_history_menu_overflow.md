@@ -1,6 +1,6 @@
 # Bug: Chat History Menu Overflow
 
-**Status**: Planned
+**Status**: Fixed
 **Date**: 2026-01-08
 **Context**: Chat sidebar history items
 

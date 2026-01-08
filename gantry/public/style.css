@@ -148,7 +148,11 @@ body.sidebar-collapsed .sidebar-logo-img {
     opacity: 1;
     transition: opacity 0.2s;
     font-size: 0.9rem;
-    /* Added explicit size, slightly smaller */
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 body.sidebar-collapsed .nav-label {
@@ -948,6 +952,7 @@ textarea.note-content {
 
 /* Chat Options Button (Kabob) */
 .chat-options-btn {
+    flex-shrink: 0;
     opacity: 0;
     color: var(--text-secondary);
     padding: 4px;
@@ -1258,7 +1263,8 @@ details.thinking-block summary {
     cursor: pointer;
     font-weight: 500;
     color: var(--text-secondary);
-    list-style: none; /* Hide default triangle */
+    list-style: none;
+    /* Hide default triangle */
     display: flex;
     align-items: center;
     font-size: 0.9rem;
@@ -1293,8 +1299,15 @@ details.thinking-block .thinking-content {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Enhanced Code Blocks */
