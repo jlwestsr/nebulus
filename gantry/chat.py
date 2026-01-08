@@ -7,6 +7,7 @@ from database import Chat, Message, SessionLocal, User, Feedback
 from sqlalchemy import desc
 from exec.sandbox import run_code_in_sandbox
 import re
+from pypdf import PdfReader
 
 # Configure Ollama client
 client = AsyncOpenAI(
@@ -247,6 +248,21 @@ def construct_multimodal_payload(content, images):
     return payload
 
 
+def extract_text_from_pdf(path):
+    """Extracts all text from a PDF file."""
+    try:
+        reader = PdfReader(path)
+        text = ""
+        for page in reader.pages:
+            content = page.extract_text()
+            if content:
+                text += content + "\n"
+        return text.strip()
+    except Exception as e:
+        print(f"Error extracting PDF text: {e}")
+        return f"[Error extracting text from PDF: {e}]"
+
+
 def process_thinking_tags(text: str) -> str:
     """
     Replaces <think> and </think> tags with a collapsible HTML details block.
@@ -400,69 +416,7 @@ async def handle_soft_navigation(message: cl.Message) -> bool:
     return True
 
 
-@cl.on_message
-async def main(message: cl.Message):
-    # --- Soft Navigation Handler ---
-    if await handle_soft_navigation(message):
-        return
-    # -------------------------------
-
-    settings = cl.user_session.get("settings")
-    chat_id = cl.user_session.get("id")
-    user_id = cl.user_session.get("db_user_id")
-
-    # --- Command: /regenerate ---
-    if message.content.strip() == "/regenerate":
-        # Remove command message
-        await message.remove()
-
-        # Get history to find last AI message
-        history = await cl.make_async(get_chat_history_db)(chat_id)
-        if history and history[-1].author != "User":
-            # Last message is AI, so we can regenerate it
-            target_msg = history[-1]
-
-            # 1. Truncate DB (remove this AI message)
-            await cl.make_async(truncate_chat_after_db)(chat_id, target_msg.cl_id)
-
-            # 2. Remove from UI
-            await cl.Message(id=target_msg.cl_id).remove()
-
-            # 3. Feedback
-            await cl.Message(content="🔄 Regenerating...").send()
-
-            # 4. Rebuild Context
-            history = await cl.make_async(get_chat_history_db)(chat_id)
-            if not history:
-                return
-
-            context_messages = [
-                {"role": "system", "content": "You are a helpful AI assistant."}
-            ]
-            for hist_msg in history:
-                role = "user" if hist_msg.author == "user" else "assistant"
-                context_messages.append({"role": role, "content": hist_msg.content})
-
-            await generate_ai_response(chat_id, context_messages, settings, user_id)
-            return
-
-    # Refresh Model from DB (Async)
-    db_model = await cl.make_async(sync_model_from_db_helper)(user_id)
-    if db_model:
-        settings["model"] = db_model
-    cl.user_session.set("settings", settings)
-
-    if await handle_model_command(message, settings):
-        return
-
-    # Persist User Message (Async)
-    await cl.make_async(save_user_message_db)(chat_id, message.content, message.id)
-
-    completion_settings = settings.copy()
-    friendly_name = settings["model"]
-    completion_settings["model"] = FRIENDLY_TO_RAW.get(friendly_name, friendly_name)
-
-    # Build Context (Async)
+async def build_chat_context(chat_id: str):
     history_messages = await cl.make_async(get_chat_history_db)(chat_id)
     context_messages = [
         {"role": "system", "content": "You are a helpful AI assistant."}
@@ -472,12 +426,26 @@ async def main(message: cl.Message):
         role = "user" if hist_msg.author == "user" else "assistant"
         context_messages.append({"role": role, "content": hist_msg.content})
 
-    # --- Multi-Modal Handling ---
-    images = (
-        [file for file in message.elements if "image" in file.mime]
-        if message.elements
-        else []
-    )
+    return context_messages
+
+
+async def handle_attachments_and_vision(
+    message: cl.Message, settings: dict, completion_settings: dict, user_id: int
+):
+    # --- Attachment Handling (Images & PDFs) ---
+    images = []
+    text_attachments = ""
+
+    if message.elements:
+        for file in message.elements:
+            if "image" in file.mime:
+                images.append(file)
+            elif "pdf" in file.mime:
+                pdf_text = extract_text_from_pdf(file.path)
+                text_attachments += f"\n\n--- Attachment: {file.name} ---\n{pdf_text}\n"
+
+    # Combine original content with extracted text from documents
+    combined_content = message.content + text_attachments
 
     # Auto-switch to Vision model if images are present
     if images and completion_settings.get("model") != "llama3.2-vision:latest":
@@ -496,8 +464,74 @@ async def main(message: cl.Message):
             content="Switched to Llama 3.2 Vision for image analysis.<div id='model-data' data-model='Llama 3.2 Vision' style='display: none;'></div>",
         ).send()
 
+    return combined_content, images
+
+
+async def handle_regenerate(
+    message: cl.Message, chat_id: str, settings: dict, user_id: int
+):
+    if message.content.strip() != "/regenerate":
+        return False
+
+    # Remove command message
+    await message.remove()
+
+    # Get history to find last AI message
+    history = await cl.make_async(get_chat_history_db)(chat_id)
+    if history and history[-1].author != "User":
+        target_msg = history[-1]
+        await cl.make_async(truncate_chat_after_db)(chat_id, target_msg.cl_id)
+        await cl.Message(id=target_msg.cl_id).remove()
+        await cl.Message(content="🔄 Regenerating...").send()
+
+        # Rebuild context
+        context_messages = await build_chat_context(chat_id)
+        await generate_ai_response(chat_id, context_messages, settings, user_id)
+        return True
+    return False
+
+
+@cl.on_message
+async def main(message: cl.Message):
+    # --- Soft Navigation Handler ---
+    if await handle_soft_navigation(message):
+        return
+    # -------------------------------
+
+    settings = cl.user_session.get("settings")
+    chat_id = cl.user_session.get("id")
+    user_id = cl.user_session.get("db_user_id")
+
+    # --- Command: /regenerate ---
+    if await handle_regenerate(message, chat_id, settings, user_id):
+        return
+
+    # Refresh Model from DB (Async)
+    db_model = await cl.make_async(sync_model_from_db_helper)(user_id)
+    if db_model:
+        settings["model"] = db_model
+    cl.user_session.set("settings", settings)
+
+    if await handle_model_command(message, settings):
+        return
+
+    # Persist User Message (Async)
+    await cl.make_async(save_user_message_db)(chat_id, message.content, message.id)
+
+    completion_settings = settings.copy()
+    friendly_name = settings["model"]
+    completion_settings["model"] = FRIENDLY_TO_RAW.get(friendly_name, friendly_name)
+
+    # Build Context (Async)
+    context_messages = await build_chat_context(chat_id)
+
+    # --- Attachment Handling (Images & PDFs) ---
+    combined_content, images = await handle_attachments_and_vision(
+        message, settings, completion_settings, user_id
+    )
+
     # Construct the final content payload for the current message
-    current_message_content = construct_multimodal_payload(message.content, images)
+    current_message_content = construct_multimodal_payload(combined_content, images)
 
     # Add current message to context
     context_messages.append({"role": "user", "content": current_message_content})
