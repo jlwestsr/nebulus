@@ -415,6 +415,7 @@ const Nebulus = {
             const dashboardContainer = document.createElement('div');
             dashboardContainer.innerHTML = Nebulus.Templates.getDashboard(currentModel);
             const dashboardEl = dashboardContainer.firstElementChild;
+            dashboardEl.style.display = 'flex'; // Explicitly show it
             document.body.appendChild(dashboardEl);
 
             // Add Input Listener

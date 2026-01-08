@@ -310,7 +310,8 @@ body.sidebar-collapsed .nav-label {
     left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
     height: 100vh;
-    display: flex;
+    display: none;
+    /* Hidden by default */
     align-items: center;
     justify-content: center;
     background-color: var(--bg-primary);
