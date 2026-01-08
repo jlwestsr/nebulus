@@ -372,7 +372,9 @@ async def handle_soft_navigation(message: cl.Message) -> bool:
                 "author": msg.author,
                 "output": msg.content,
                 "type": (
-                    "user_message" if msg.author == "User" else "assistant_message"
+                    "user_message"
+                    if msg.author.lower() == "user"
+                    else "assistant_message"
                 ),
             }
 
