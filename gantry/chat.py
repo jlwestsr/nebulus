@@ -654,6 +654,7 @@ async def generate_ai_response(chat_id, context_messages, settings, user_id):
         name="regenerate",
         value="regenerate",
         label="Regenerate",
+        icon="refresh-cw",
         payload={"value": "regenerate"},
     )
     msg.actions = [action]
@@ -670,6 +671,7 @@ async def generate_ai_response(chat_id, context_messages, settings, user_id):
             name="run_code",
             value="run_code",
             label="Run Code",
+            icon="play",
             payload={"language": lang, "code": code},
         )
         msg.actions.append(run_action)

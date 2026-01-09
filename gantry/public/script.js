@@ -45,11 +45,13 @@ const Nebulus = {
                     this.Dashboard.checkAndInject();
                     // Check for Model Switch data
                     this.Models.checkForSwitch();
+                    // Restore missing copy buttons
+                    this.Actions.ensureCopyButtons();
                 }
             }, 100);
         });
         // Remove subtree: true to prevent deep recursion
-        observer.observe(document.body, { childList: true, subtree: false });
+        observer.observe(document.body, { childList: true, subtree: true });
     },
 
     /* =========================================
@@ -188,7 +190,9 @@ const Nebulus = {
         fileText: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
         paperclip: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>`,
         image: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
-        grid: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>`
+        grid: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>`,
+        copy: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>`,
+        check: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><polyline points="20 6 9 17 4 12"></polyline></svg>`
     },
 
     /* =========================================
@@ -370,6 +374,65 @@ const Nebulus = {
             if (Nebulus.state.sidebarCollapsed) {
                 document.body.classList.add('sidebar-collapsed');
             }
+        }
+    },
+
+    Actions: {
+        ensureCopyButtons: function () {
+            // Updated footer selector based on subagent findings
+            // Updated footer selector based on subagent findings + alternative Chainlit class
+            const footers = document.querySelectorAll('.items-center.flex-wrap, .cl-message-footer');
+
+            footers.forEach(footer => {
+                // Must have a Regenerate button to be an assistant message we care about
+                const buttons = Array.from(footer.querySelectorAll('button'));
+                const hasRegen = buttons.some(b => b.innerText.includes('Regenerate'));
+                const alreadyHasCopy = footer.querySelector('.lucide-copy') || footer.querySelector('.custom-copy-btn');
+
+                if (hasRegen && !alreadyHasCopy) {
+                    this.injectCopyButton(footer);
+                }
+            });
+        },
+
+        injectCopyButton: function (container) {
+            const btn = document.createElement('button');
+            btn.className = 'custom-copy-btn';
+            btn.style.padding = '4px';
+            btn.style.marginRight = '8px';
+            btn.style.borderRadius = '4px';
+            btn.style.display = 'flex';
+            btn.style.alignItems = 'center';
+            btn.style.justifyContent = 'center';
+            btn.style.cursor = 'pointer';
+            btn.style.border = 'none';
+            btn.style.background = 'transparent';
+            btn.style.color = 'var(--text-secondary)';
+            btn.innerHTML = Nebulus.Icons.copy;
+            btn.title = "Copy message";
+
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const msgEl = container.closest('.flex.flex-col');
+                if (msgEl) {
+                    const contentEl = msgEl.querySelector('.message-content');
+                    if (contentEl) {
+                        let text = contentEl.innerText;
+                        // Strip token usage footer if present
+                        const tokenIdx = text.lastIndexOf('\n\n---\nTokens:');
+                        if (tokenIdx !== -1) {
+                            text = text.substring(0, tokenIdx).trim();
+                        }
+
+                        navigator.clipboard.writeText(text).then(() => {
+                            btn.innerHTML = Nebulus.Icons.check;
+                            setTimeout(() => btn.innerHTML = Nebulus.Icons.copy, 2000);
+                        });
+                    }
+                }
+            };
+
+            container.prepend(btn);
         }
     },
 
