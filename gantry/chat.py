@@ -3,7 +3,7 @@ import base64
 import chainlit as cl
 import uuid
 from openai import AsyncOpenAI
-from database import Chat, Message, SessionLocal, User, Feedback
+from database import Chat, Message, db_session, User, Feedback
 from sqlalchemy import desc
 from exec.sandbox import run_code_in_sandbox
 from metrics.usage import log_usage
@@ -35,9 +35,8 @@ FRIENDLY_TO_RAW = {v: k for k, v in MODEL_MAPPING.items()}
 
 # --- DB Helpers (Synchronous) ---
 def initialize_chat_db(chat_id):
-    db = SessionLocal()
     user_id = 1
-    try:
+    with db_session() as db:
         user = db.query(User).first()
         user_id = user.id if user else 1
 
@@ -46,46 +45,28 @@ def initialize_chat_db(chat_id):
         if not existing_chat:
             new_chat = Chat(id=chat_id, user_id=user_id, title="New Chat")
             db.add(new_chat)
-            db.commit()
-    except Exception as e:
-        print(f"Error creating chat: {e}")
-    finally:
-        db.close()
     return user_id
 
 
 def update_model_setting_db(user_id, new_model):
-    db = SessionLocal()
-    try:
+    with db_session() as db:
         user = db.query(User).filter(User.id == user_id).first()
         if user:
             user.current_model = new_model
-            db.commit()
-    except Exception as e:
-        print(f"Error saving model preference: {e}")
-    finally:
-        db.close()
 
 
 def sync_model_from_db_helper(user_id):
-    current_model = None
     if not user_id:
         return None
-    db = SessionLocal()
-    try:
+    with db_session() as db:
         user = db.query(User).filter(User.id == user_id).first()
         if user and user.current_model:
-            current_model = user.current_model
-    except Exception as e:
-        print(f"Error syncing model from DB: {e}")
-    finally:
-        db.close()
-    return current_model
+            return user.current_model
+    return None
 
 
 def get_chat_history_db(chat_id, limit=20):
-    db = SessionLocal()
-    try:
+    with db_session() as db:
         messages = (
             db.query(Message)
             .filter(Message.chat_id == chat_id)
@@ -93,33 +74,27 @@ def get_chat_history_db(chat_id, limit=20):
             .limit(limit)
             .all()
         )
-        # Detach objects or copy data to avoid lazy loading issues after session close
-        # Actually in simple cases, accessing attributes here loads them.
-        # But to be safe, let's just return the list and rely on eager loading of simple columns.
         return sorted(messages, key=lambda m: m.created_at)
-    finally:
-        db.close()
 
 
 def save_user_message_db(chat_id, content, message_id):
-    db = SessionLocal()
-    try:
+    with db_session() as db:
         # Check for existing message (Upsert for Edit)
         existing_msg = db.query(Message).filter(Message.cl_id == message_id).first()
         if existing_msg:
             # If content changed, it's an EDIT
             if existing_msg.content != content:
-                # print(f"DEBUG: Editing message {message_id}, truncating future.")
                 existing_msg.content = content
-
-                # Truncate history AFTER this message
-                db.commit()
-
-                # Call helper (opens new session)
-                truncate_chat_after_db(chat_id, message_id, include_target=False)
-                return
-            else:
-                return  # No change, simple duplicate?
+                # Truncate history AFTER this message (Call helper directly if session permits or just inline if needed)
+                # But truncate_chat_after_db opens its own session.
+                # To avoid nested sessions, let's just do it here or refactor.
+                # Actually, truncate_chat_after_db is safe to call inside another session IF we refactor it to accept a db instance.
+                # For now, let's just do the logic here.
+                target = existing_msg
+                db.query(Message).filter(Message.chat_id == chat_id).filter(
+                    Message.created_at > target.created_at
+                ).delete()
+            return
 
         user_msg = Message(
             chat_id=chat_id,
@@ -134,16 +109,9 @@ def save_user_message_db(chat_id, content, message_id):
             chat.title = (content[:30] + "..") if len(content) > 30 else content
             db.add(chat)
 
-        db.commit()
-    except Exception as e:
-        print(f"Error saving user message: {e}")
-    finally:
-        db.close()
-
 
 def save_ai_message_db(chat_id, content, message_id):
-    db = SessionLocal()
-    try:
+    with db_session() as db:
         if db.query(Message).filter(Message.cl_id == message_id).first():
             return
 
@@ -154,19 +122,12 @@ def save_ai_message_db(chat_id, content, message_id):
             cl_id=message_id,
         )
         db.add(ai_msg)
-        db.commit()
-    except Exception as e:
-        print(f"Error saving AI message: {e}")
-    finally:
-        db.close()
 
 
 def save_feedback_db(message_id, score, comment):
-    db = SessionLocal()
-    try:
+    with db_session() as db:
         db_msg = db.query(Message).filter(Message.cl_id == message_id).first()
         if not db_msg:
-            print(f"Feedback failed: Message {message_id} not found")
             return
 
         existing = db.query(Feedback).filter(Feedback.message_id == db_msg.id).first()
@@ -180,11 +141,6 @@ def save_feedback_db(message_id, score, comment):
                 comment=comment,
             )
             db.add(new_fb)
-        db.commit()
-    except Exception as e:
-        print(f"Error saving feedback: {e}")
-    finally:
-        db.close()
 
 
 def truncate_chat_after_db(chat_id, message_id, include_target=True):
@@ -193,8 +149,7 @@ def truncate_chat_after_db(chat_id, message_id, include_target=True):
     include_target=True: Deletes target + future (Regenerate).
     include_target=False: Deletes future only (Edit).
     """
-    db = SessionLocal()
-    try:
+    with db_session() as db:
         # Get target message
         target = db.query(Message).filter(Message.cl_id == message_id).first()
         if not target:
@@ -209,12 +164,6 @@ def truncate_chat_after_db(chat_id, message_id, include_target=True):
             query = query.filter(Message.created_at > target.created_at)
 
         query.delete()
-
-        db.commit()
-    except Exception as e:
-        print(f"Error truncating history: {e}")
-    finally:
-        db.close()
 
     return
 
@@ -682,8 +631,7 @@ async def generate_ai_response(chat_id, context_messages, settings, user_id):
 
     # Log usage after message is persisted
     if full_usage:
-        db = SessionLocal()
-        try:
+        with db_session() as db:
             ai_msg = db.query(Message).filter(Message.cl_id == msg.id).first()
             if ai_msg:
                 log_usage(
@@ -695,5 +643,3 @@ async def generate_ai_response(chat_id, context_messages, settings, user_id):
                     full_usage.prompt_tokens,
                     full_usage.completion_tokens,
                 )
-        finally:
-            db.close()

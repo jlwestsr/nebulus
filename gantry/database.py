@@ -1,4 +1,5 @@
 import os
+from contextlib import contextmanager
 from sqlalchemy import (
     create_engine,
     Column,
@@ -128,6 +129,19 @@ def init_db():
         db_file = DB_PATH.replace("sqlite:///", "")
         os.makedirs(os.path.dirname(os.path.abspath(db_file)), exist_ok=True)
     Base.metadata.create_all(bind=engine)
+
+
+@contextmanager
+def db_session():
+    db = SessionLocal()
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 def get_db():

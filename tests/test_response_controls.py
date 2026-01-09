@@ -9,11 +9,12 @@ from gantry.chat import truncate_chat_after_db
 from unittest.mock import MagicMock, patch
 
 
-@patch("gantry.chat.SessionLocal")
-def test_truncate_chat_after_db(mock_session_cls):
+@patch("gantry.chat.db_session")
+def test_truncate_chat_after_db(mock_db_session):
     """Test that truncation deletes messages after the target."""
     mock_db = MagicMock()
-    mock_session_cls.return_value = mock_db
+    # Mocking the context manager: with db_session() as db:
+    mock_db_session.return_value.__enter__.return_value = mock_db
 
     # Setup mock messages
     target_msg = MagicMock()
@@ -32,21 +33,18 @@ def test_truncate_chat_after_db(mock_session_cls):
     # Verify delete was called
     # The second query chain is: db.query(Message).filter().delete()
     assert mock_db.query.call_count >= 2
-    # Verify commit
-    mock_db.commit.assert_called_once()
-    mock_db.close.assert_called_once()
 
 
-@patch("gantry.chat.SessionLocal")
-def test_truncate_chat_not_found(mock_session_cls):
+@patch("gantry.chat.db_session")
+def test_truncate_chat_not_found(mock_db_session):
     """Test graceful exit if message not found."""
     mock_db = MagicMock()
-    mock_session_cls.return_value = mock_db
+    mock_db_session.return_value.__enter__.return_value = mock_db
 
     mock_db.query.return_value.filter.return_value.first.return_value = None
 
     truncate_chat_after_db("chat_1", "missing_id")
 
-    # Should not commit
-    mock_db.commit.assert_not_called()
-    mock_db.close.assert_called_once()
+    # Should not call query.delete
+    # The first call is to find the message, if None, should stop.
+    assert mock_db.query.return_value.filter.return_value.delete.call_count == 0
