@@ -55,7 +55,7 @@ def get_workspace_page():
     <head>
         <title>Nebulus - Workspace</title>
         <link rel="stylesheet" href="/public/style.css?v={UI_CSS_VERSION}">
-        <link rel="stylesheet" href="/public/workspace.css">
+        <link rel="stylesheet" href="/public/workspace.css?v={UI_CSS_VERSION}">
         <style>{MODEL_BUILDER_CSS}</style>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     </head>
