@@ -108,7 +108,7 @@ const Nebulus = {
                 </div>
 
                 <div class="sidebar-footer">
-                     <div class="nav-item" id="nebulus-theme-toggle">
+                     <div class="nav-item" id="sidebar-theme-toggle" onclick="Nebulus.Theme.toggle()">
                         <div class="nav-icon">${Nebulus.Icons.sun}</div>
                         <span class="nav-label">Settings</span>
                     </div>
@@ -729,10 +729,10 @@ const Nebulus = {
         },
 
         injectToggle: function () {
-            if (document.getElementById('nebulus-theme-toggle')) return;
+            if (document.getElementById('floating-theme-toggle')) return;
 
             const toggleBtn = document.createElement('div');
-            toggleBtn.id = 'nebulus-theme-toggle';
+            toggleBtn.id = 'floating-theme-toggle';
             toggleBtn.className = 'theme-toggle-btn';
 
             const storedTheme = localStorage.getItem('vite-ui-theme');
@@ -747,16 +747,31 @@ const Nebulus = {
             toggleBtn.innerHTML = isDark ? Nebulus.Icons.sun : Nebulus.Icons.moon;
             toggleBtn.title = "Toggle Theme";
 
-            toggleBtn.onclick = () => {
-                const currentIsDark = document.documentElement.classList.contains('dark');
-                const newIsDark = !currentIsDark;
-                document.documentElement.classList.toggle('dark', newIsDark);
-                toggleBtn.innerHTML = newIsDark ? Nebulus.Icons.sun : Nebulus.Icons.moon;
-                localStorage.setItem('vite-ui-theme', newIsDark ? 'dark' : 'light');
-                window.dispatchEvent(new Event('storage'));
-            };
+            toggleBtn.onclick = () => this.toggle();
 
             document.body.appendChild(toggleBtn);
+        },
+
+        toggle: function () {
+            const currentIsDark = document.documentElement.classList.contains('dark');
+            const newIsDark = !currentIsDark;
+            document.documentElement.classList.toggle('dark', newIsDark);
+
+            // Update icons on all toggle buttons
+            const toggles = [
+                document.getElementById('floating-theme-toggle'),
+                document.getElementById('sidebar-theme-toggle')
+            ];
+
+            toggles.forEach(btn => {
+                if (btn) {
+                    const iconContainer = btn.querySelector('.nav-icon') || btn;
+                    iconContainer.innerHTML = newIsDark ? Nebulus.Icons.sun : Nebulus.Icons.moon;
+                }
+            });
+
+            localStorage.setItem('vite-ui-theme', newIsDark ? 'dark' : 'light');
+            window.dispatchEvent(new Event('storage'));
         }
     },
 

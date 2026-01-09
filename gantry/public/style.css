@@ -633,7 +633,7 @@ body.sidebar-collapsed #nebulus-dashboard {
 }
 
 /* Theme Toggle Button */
-#nebulus-theme-toggle {
+#floating-theme-toggle {
     position: fixed;
     top: 15px;
     right: 20px;
