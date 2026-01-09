@@ -91,6 +91,25 @@ class Message(Base):
     feedback = relationship("Feedback", back_populates="message", uselist=False)
 
 
+class UsageLog(Base):
+    __tablename__ = "usage_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    chat_id = Column(String, ForeignKey("chats.id"))
+    message_id = Column(Integer, ForeignKey("messages.id"))
+    model = Column(String)
+    prompt_tokens = Column(Integer, default=0)
+    completion_tokens = Column(Integer, default=0)
+    total_tokens = Column(Integer, default=0)
+    cost = Column(Integer, default=0)  # Cost in micro-units
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+    chat = relationship("Chat")
+    message = relationship("Message")
+
+
 class Feedback(Base):
     __tablename__ = "feedback"
 
@@ -120,7 +139,10 @@ def get_db():
 
 
 def migrate_db():
-    """Simple migration to add missing columns"""
+    """Simple migration to add missing columns or tables"""
+    # Base.metadata.create_all handles table creation if they don't exist
+    Base.metadata.create_all(bind=engine)
+
     with engine.connect() as conn:
         try:
             conn.execute(

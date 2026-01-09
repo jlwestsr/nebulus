@@ -1,6 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from chainlit.utils import mount_chainlit
-from database import init_db, migrate_db
+from database import init_db, migrate_db, UsageLog, get_db
 from starlette.middleware import Middleware
 from middleware import AuthMiddleware
 from routers import auth_routes, chat_routes, notes_routes, workspace_routes
@@ -10,6 +10,8 @@ import os
 from openai import AsyncOpenAI
 from ops.ollama import create_model, generate_modelfile
 from ui.model_builder import MODEL_BUILDER_HTML, MODEL_BUILDER_CSS
+from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 app = FastAPI(middleware=[Middleware(AuthMiddleware)])
 
@@ -68,6 +70,53 @@ async def api_create_model(data: dict):
         return JSONResponse(content=result)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@app.get("/api/metrics/usage")
+async def get_usage_metrics(db: Session = Depends(get_db)):
+    """
+    Returns aggregated token usage metrics.
+    """
+    # Total tokens per model
+    stats = (
+        db.query(
+            UsageLog.model,
+            func.sum(UsageLog.prompt_tokens).label("prompt"),
+            func.sum(UsageLog.completion_tokens).label("completion"),
+            func.sum(UsageLog.total_tokens).label("total"),
+            func.sum(UsageLog.cost).label("cost"),
+        )
+        .group_by(UsageLog.model)
+        .all()
+    )
+
+    result = []
+    for s in stats:
+        result.append(
+            {
+                "model": s.model,
+                "prompt_tokens": int(s.prompt or 0),
+                "completion_tokens": int(s.completion or 0),
+                "total_tokens": int(s.total or 0),
+                "cost_micro": int(s.cost or 0),
+            }
+        )
+
+    # Recent history
+    recent = db.query(UsageLog).order_by(UsageLog.created_at.desc()).limit(10).all()
+
+    recent_list = []
+    for r in recent:
+        recent_list.append(
+            {
+                "id": r.id,
+                "model": r.model,
+                "total_tokens": r.total_tokens,
+                "timestamp": r.created_at.isoformat(),
+            }
+        )
+
+    return {"summary": result, "recent": recent_list}
 
 
 @app.get("/notes", response_class=HTMLResponse)

@@ -6,6 +6,7 @@ from openai import AsyncOpenAI
 from database import Chat, Message, SessionLocal, User, Feedback
 from sqlalchemy import desc
 from exec.sandbox import run_code_in_sandbox
+from metrics.usage import log_usage
 import re
 from pypdf import PdfReader
 
@@ -613,19 +614,48 @@ async def generate_ai_response(chat_id, context_messages, settings, user_id):
         stream = await client.chat.completions.create(
             messages=context_messages,
             stream=True,
+            stream_options={"include_usage": True},
             **completion_settings,
         )
 
         async for part in stream:
-            token = part.choices[0].delta.content or ""
+            # Handle usage data if present
+            if hasattr(part, "usage") and part.usage:
+                prompt_tokens = part.usage.prompt_tokens
+                completion_tokens = part.usage.completion_tokens
+                total_tokens = part.usage.total_tokens
+
+                # Log to DB
+                db = SessionLocal()
+                try:
+                    # We need the AI message's numeric ID
+                    ai_msg = db.query(Message).filter(Message.cl_id == msg.id).first()
+                    if ai_msg:
+                        log_usage(
+                            db,
+                            user_id,
+                            chat_id,
+                            ai_msg.id,
+                            completion_settings["model"],
+                            prompt_tokens,
+                            completion_tokens,
+                        )
+                finally:
+                    db.close()
+
+                # Add to footer
+                full_response += f"\n\n---\n*Tokens: {total_tokens}*"
+                msg.content = process_thinking_tags(full_response)
+                await msg.update()
+
+            token = (
+                part.choices[0].delta.content
+                if (hasattr(part, "choices") and len(part.choices) > 0)
+                else ""
+            )
             if token:
                 await msg.stream_token(token)
                 full_response += token
-
-                # Real-time update for thinking tags if they appear
-                if "<think>" in token or "</think>" in token:
-                    msg.content = process_thinking_tags(full_response)
-                    await msg.update()
     except Exception as e:
         print(f"Error exploring model: {e}")
         error_msg = f"Error generating response: {e}"
