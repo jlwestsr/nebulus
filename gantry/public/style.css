@@ -42,6 +42,12 @@ body.nebulus-active {
     padding-left: var(--sidebar-width) !important;
 }
 
+/* Main Chat Container Spacing Fix */
+/* Target the main presentation container that holds the chat content */
+body.nebulus-active div[role="presentation"].flex-col.relative {
+    padding-top: 80px !important;
+}
+
 body.sidebar-collapsed {
     padding-left: var(--sidebar-collapsed-width) !important;
 }

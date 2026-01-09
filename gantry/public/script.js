@@ -47,6 +47,9 @@ const Nebulus = {
                     this.Models.checkForSwitch();
                     // Restore missing copy buttons
                     this.Actions.ensureCopyButtons();
+                    // Fix layering overlap
+                    const chatCont = document.querySelector('div[role="presentation"].flex-col.relative');
+                    if (chatCont) chatCont.style.paddingTop = '80px';
                 }
             }, 100);
         });

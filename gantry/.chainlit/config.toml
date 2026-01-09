@@ -109,14 +109,14 @@ cot = "full"
 
 # Specify a CSS file that can be used to customize the user interface.
 # The CSS file can be served from the public directory or via an external link.
-custom_css = "/public/style.css?v=28"
+custom_css = "/public/style.css?v=30"
 
 # Specify additional attributes for a custom CSS file
 # custom_css_attributes = "media=\"print\""
 
 # Specify a JavaScript file that can be used to customize the user interface.
 # The JavaScript file can be served from the public directory.
-custom_js = "/public/script.js?v=36"
+custom_js = "/public/script.js?v=37"
 
 # The style of alert boxes. Can be "classic" or "modern".
 alert_style = "classic"
