@@ -7,12 +7,14 @@
     padding: 20px;
     max-width: 800px;
     margin: 0 auto;
-    /* To balance the 260px sidebar for "window centering",
-       we can shift the container slightly if needed, but
-       margin: 0 auto in the remaining 100% - 260px area
-       centers it in the content pane.
-       If the user wants true window center, we'd need to
-       compensate for the sidebar width. */
+    /* Centering logic: relative to window, accounting for 260px sidebar */
+    position: relative;
+    left: -130px;
+}
+
+header {
+    position: relative;
+    left: -130px;
 }
 
 .subtitle {
