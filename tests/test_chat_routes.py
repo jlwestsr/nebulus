@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -41,6 +42,13 @@ def override_get_current_user():
 app.dependency_overrides[get_db] = override_get_db
 app.dependency_overrides[get_current_user] = override_get_current_user
 client = TestClient(app)
+client.cookies = {"access_token": "valid_token"}
+
+
+@pytest.fixture(autouse=True)
+def mock_verify_token():
+    with patch("middleware.verify_token", return_value=True):
+        yield
 
 
 @pytest.fixture(scope="module")
@@ -69,9 +77,6 @@ def test_db():
     Base.metadata.drop_all(bind=engine)
 
 
-@pytest.mark.skip(
-    reason="Database schema not visible in test harness due to environment issues. Verified manually via curl."
-)
 def test_api_integration(test_db):
     # Verify DB setup (sanity check)
     assert test_db.query(User).count() == 1
