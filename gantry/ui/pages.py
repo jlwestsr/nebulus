@@ -68,7 +68,7 @@ def get_workspace_page():
                 <p class="subtitle">Manage Models, Tools, and Knowledge</p>
             </header>
 
-            <div class="workspace-grid">
+            <div class="workspace-stacked">
                 <!-- Models Section -->
                 <div class="card" id="models-card">
                     <div class="card-header">

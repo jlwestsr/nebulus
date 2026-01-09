@@ -1,11 +1,11 @@
 /* Workspace specific styles */
 
-.workspace-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+.workspace-stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
@@ -27,6 +27,11 @@ header h1 {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .card-header {
@@ -49,7 +54,8 @@ header h1 {
     padding: 15px;
     flex: 1;
     overflow-y: auto;
-    max-height: 400px;
+    min-height: 200px;
+    max-height: 600px;
 }
 
 .input-group {
