@@ -84,7 +84,6 @@ const Nebulus = {
                     </div>
 
                     <div class="sidebar-section">
-                        <div class="sidebar-section-title">Workspaces</div>
                          <div class="nav-item" onclick="window.location.href='/workspace'">
                             <div class="nav-icon">${Nebulus.Icons.grid}</div>
                             <span class="nav-label">Manage Workspaces</span>
