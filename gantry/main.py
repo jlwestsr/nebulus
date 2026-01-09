@@ -110,7 +110,7 @@ async def notes_page():
             </div>
         </div>
 
-        <script src="/public/script.js"></script>
+        <script src="/public/script.js?v=32"></script>
         <script src="/public/notes.js"></script>
     </body>
     </html>
@@ -124,7 +124,7 @@ async def workspace_page():
     <html class="dark">
     <head>
         <title>Nebulus - Workspace</title>
-        <link rel="stylesheet" href="/public/style.css">
+        <link rel="stylesheet" href="/public/style.css?v=28">
         <link rel="stylesheet" href="/public/workspace.css">
         <style>{MODEL_BUILDER_CSS}</style>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -188,7 +188,7 @@ async def workspace_page():
             {MODEL_BUILDER_HTML}
         </div>
 
-        <script src="/public/script.js"></script>
+        <script src="/public/script.js?v=32"></script>
         <script src="/public/workspace.js"></script>
     </body>
     </html>

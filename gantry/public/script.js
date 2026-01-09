@@ -84,14 +84,10 @@ const Nebulus = {
                     </div>
 
                     <div class="sidebar-section">
-                        <div class="sidebar-section-title">Gems</div>
-                         <div class="nav-item">
-                            <div class="nav-icon">${Nebulus.Icons.fileText}</div>
-                            <span class="nav-label">The AI Engineer</span>
-                        </div>
-                         <div class="nav-item">
+                        <div class="sidebar-section-title">Workspaces</div>
+                         <div class="nav-item" onclick="window.location.href='/workspace'">
                             <div class="nav-icon">${Nebulus.Icons.grid}</div>
-                            <span class="nav-label">Self-Paced Lab</span>
+                            <span class="nav-label">Manage Workspaces</span>
                         </div>
                     </div>
 
