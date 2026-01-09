@@ -551,7 +551,7 @@ async def on_regenerate(action: cl.Action):
     await cl.make_async(truncate_chat_after_db)(chat_id, message_id)
 
     # 2. Remove from UI
-    await cl.Message(id=message_id).remove()
+    await cl.Message(content="", id=message_id).remove()
 
     # 3. Feedback
     await cl.Message(content="🔄 Regenerating...").send()
@@ -618,30 +618,12 @@ async def generate_ai_response(chat_id, context_messages, settings, user_id):
             **completion_settings,
         )
 
+        full_usage = None
         async for part in stream:
             # Handle usage data if present
             if hasattr(part, "usage") and part.usage:
-                prompt_tokens = part.usage.prompt_tokens
-                completion_tokens = part.usage.completion_tokens
+                full_usage = part.usage
                 total_tokens = part.usage.total_tokens
-
-                # Log to DB
-                db = SessionLocal()
-                try:
-                    # We need the AI message's numeric ID
-                    ai_msg = db.query(Message).filter(Message.cl_id == msg.id).first()
-                    if ai_msg:
-                        log_usage(
-                            db,
-                            user_id,
-                            chat_id,
-                            ai_msg.id,
-                            completion_settings["model"],
-                            prompt_tokens,
-                            completion_tokens,
-                        )
-                finally:
-                    db.close()
 
                 # Add to footer
                 full_response += f"\n\n---\n*Tokens: {total_tokens}*"
@@ -695,3 +677,21 @@ async def generate_ai_response(chat_id, context_messages, settings, user_id):
 
     # Persist AI Message (Async)
     await cl.make_async(save_ai_message_db)(chat_id, full_response, msg.id)
+
+    # Log usage after message is persisted
+    if full_usage:
+        db = SessionLocal()
+        try:
+            ai_msg = db.query(Message).filter(Message.cl_id == msg.id).first()
+            if ai_msg:
+                log_usage(
+                    db,
+                    user_id,
+                    chat_id,
+                    ai_msg.id,
+                    completion_settings["model"],
+                    full_usage.prompt_tokens,
+                    full_usage.completion_tokens,
+                )
+        finally:
+            db.close()
