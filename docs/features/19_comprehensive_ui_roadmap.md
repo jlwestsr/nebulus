@@ -25,7 +25,7 @@ List specific, testable requirements:
     - [ ] **Plugins System**: Complete `34_plugins_system.md` (feat/plugins-system).
     - [ ] **Document Library**: Complete `35_document_library.md` (feat/document-library).
     - [ ] **Parallel Chat**: Complete `36_parallel_chat.md` (feat/parallel-chat).
-    - [ ] **Token Usage**: Complete `37_token_usage_tracking.md` (feat/token-tracking).
+    - [x] **Token Usage**: Complete `37_token_usage_tracking.md` (feat/token-tracking) -> [Archived](archive/37_token_usage_tracking.md).
     - [x] **Model Builder**: Complete `38_model_builder_ui.md` (feat/model-builder) -> [Archived](archive/38_model_builder_ui.md).
 
 ## 3. Technical Implementation
