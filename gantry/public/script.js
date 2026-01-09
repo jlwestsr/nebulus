@@ -108,10 +108,6 @@ const Nebulus = {
                 </div>
 
                 <div class="sidebar-footer">
-                     <div class="nav-item" id="sidebar-theme-toggle" onclick="Nebulus.Theme.toggle()">
-                        <div class="nav-icon">${Nebulus.Icons.sun}</div>
-                        <span class="nav-label">Settings</span>
-                    </div>
 
                      <div class="user-profile">
                         <div class="user-avatar">${Nebulus.Utils.getInitials(user.full_name || user.username)}</div>
@@ -757,18 +753,11 @@ const Nebulus = {
             const newIsDark = !currentIsDark;
             document.documentElement.classList.toggle('dark', newIsDark);
 
-            // Update icons on all toggle buttons
-            const toggles = [
-                document.getElementById('floating-theme-toggle'),
-                document.getElementById('sidebar-theme-toggle')
-            ];
-
-            toggles.forEach(btn => {
-                if (btn) {
-                    const iconContainer = btn.querySelector('.nav-icon') || btn;
-                    iconContainer.innerHTML = newIsDark ? Nebulus.Icons.sun : Nebulus.Icons.moon;
-                }
-            });
+            // Update floating toggle icon
+            const btn = document.getElementById('floating-theme-toggle');
+            if (btn) {
+                btn.innerHTML = newIsDark ? Nebulus.Icons.sun : Nebulus.Icons.moon;
+            }
 
             localStorage.setItem('vite-ui-theme', newIsDark ? 'dark' : 'light');
             window.dispatchEvent(new Event('storage'));
