@@ -8,6 +8,8 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import os
 from openai import AsyncOpenAI
+from ops.ollama import create_model, generate_modelfile
+from ui.model_builder import MODEL_BUILDER_HTML, MODEL_BUILDER_CSS
 
 app = FastAPI(middleware=[Middleware(AuthMiddleware)])
 
@@ -46,6 +48,26 @@ async def get_models():
         return JSONResponse(
             content={"models": ["Llama 3.1"], "error": str(e)}, status_code=500
         )
+
+
+@app.post("/api/models/create")
+async def api_create_model(data: dict):
+    try:
+        name = data.get("name")
+        base = data.get("base")
+        system = data.get("system", "")
+        params = data.get("parameters", {})
+
+        if not name or not base:
+            return JSONResponse(
+                content={"error": "Name and Base Model are required"}, status_code=400
+            )
+
+        modelfile = generate_modelfile(base, system, params)
+        result = await create_model(name, modelfile, base=base)
+        return JSONResponse(content=result)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @app.get("/notes", response_class=HTMLResponse)
@@ -97,13 +119,14 @@ async def notes_page():
 
 @app.get("/workspace", response_class=HTMLResponse)
 async def workspace_page():
-    return """
+    return f"""
     <!DOCTYPE html>
     <html class="dark">
     <head>
         <title>Nebulus - Workspace</title>
         <link rel="stylesheet" href="/public/style.css">
         <link rel="stylesheet" href="/public/workspace.css">
+        <style>{MODEL_BUILDER_CSS}</style>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     </head>
     <body>
@@ -123,9 +146,10 @@ async def workspace_page():
                         <button id="refresh-models-btn" class="icon-btn" title="Refresh">↻</button>
                     </div>
                     <div class="card-body">
-                         <div class="input-group">
+                        <div class="input-group">
                             <input type="text" id="pull-model-input" placeholder="Pull model (e.g. llama3:8b)" />
                             <button id="pull-model-btn" class="btn btn-sm btn-primary">Pull</button>
+                            <button id="open-builder-btn" class="btn btn-sm btn-secondary" style="margin-left:5px;">Build</button>
                         </div>
                         <div id="model-list" class="list-group">
                             <!-- Injected JS -->
@@ -160,6 +184,8 @@ async def workspace_page():
                     </div>
                 </div>
             </div>
+
+            {MODEL_BUILDER_HTML}
         </div>
 
         <script src="/public/script.js"></script>

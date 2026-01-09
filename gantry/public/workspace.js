@@ -16,9 +16,16 @@ Nebulus.Workspace = {
     bindEvents: function () {
         const refreshBtn = document.getElementById('refresh-models-btn');
         const pullBtn = document.getElementById('pull-model-btn');
+        const openBuilderBtn = document.getElementById('open-builder-btn');
+        const closeBuilderBtn = document.getElementById('close-builder-btn');
+        const builderForm = document.getElementById('model-builder-form');
 
         if (refreshBtn) refreshBtn.addEventListener('click', () => this.Models.load());
         if (pullBtn) pullBtn.addEventListener('click', () => this.Models.pull());
+
+        if (openBuilderBtn) openBuilderBtn.addEventListener('click', () => this.Builder.open());
+        if (closeBuilderBtn) closeBuilderBtn.addEventListener('click', () => this.Builder.close());
+        if (builderForm) builderForm.addEventListener('submit', (e) => this.Builder.submit(e));
     },
 
     Models: {
@@ -143,6 +150,88 @@ Nebulus.Workspace = {
                 }
             } catch (e) {
                 list.innerHTML = `<div style="color:var(--danger)">Error loading tools: ${e.message}</div>`;
+            }
+        }
+    },
+
+    Builder: {
+        open: function () {
+            const modal = document.getElementById('model-builder-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                this.populateBaseModels();
+            }
+        },
+
+        close: function () {
+            const modal = document.getElementById('model-builder-modal');
+            if (modal) modal.style.display = 'none';
+        },
+
+        populateBaseModels: async function () {
+            const select = document.getElementById('builder-base');
+            if (!select) return;
+
+            try {
+                // Use the existing models endpoint (raw list)
+                const response = await fetch('/models');
+                const data = await response.json();
+
+                if (data.raw) {
+                    select.innerHTML = data.raw.map(m => `<option value="${m}">${m}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="">Error loading models</option>';
+                }
+            } catch (e) {
+                select.innerHTML = '<option value="">Error loading models</option>';
+            }
+        },
+
+        submit: async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('create-model-btn');
+            const status = document.getElementById('builder-status');
+
+            const formData = {
+                name: document.getElementById('builder-name').value,
+                base: document.getElementById('builder-base').value,
+                system: document.getElementById('builder-system').value,
+                parameters: {
+                    temperature: parseFloat(document.getElementById('builder-temp').value)
+                }
+            };
+
+            btn.disabled = true;
+            btn.innerText = 'Creating...';
+            status.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/models/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                const result = await response.json();
+
+                status.style.display = 'block';
+                if (response.ok) {
+                    status.className = 'status-msg success';
+                    status.innerText = 'Model created successfully!';
+                    setTimeout(() => {
+                        this.close();
+                        Nebulus.Workspace.Models.load();
+                    }, 1500);
+                } else {
+                    status.className = 'status-msg error';
+                    status.innerText = 'Error: ' + (result.error || 'Unknown error');
+                }
+            } catch (err) {
+                status.style.display = 'block';
+                status.className = 'status-msg error';
+                status.innerText = 'Error: ' + err.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Create Model';
             }
         }
     },
