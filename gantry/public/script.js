@@ -21,8 +21,12 @@ const Nebulus = {
         this.Theme.init();
         this.Sidebar.init();
         this.Search.init();
-        this.Models.init();
-        this.Dashboard.checkAndInject();
+
+        // Chat-specific modules
+        if (this.Utils.isChatPage()) {
+            this.Models.init();
+            this.Dashboard.checkAndInject();
+        }
 
         // Global Event Observers
         this.setupObservers();
@@ -35,11 +39,13 @@ const Nebulus = {
             timeout = setTimeout(() => {
                 // Re-inject critical UI if lost (e.g. React hydration)
                 this.Sidebar.inject();
-                this.Models.injectDropdown();
-                this.Dashboard.checkAndInject();
 
-                // Check for Model Switch data
-                this.Models.checkForSwitch();
+                if (this.Utils.isChatPage()) {
+                    this.Models.injectDropdown();
+                    this.Dashboard.checkAndInject();
+                    // Check for Model Switch data
+                    this.Models.checkForSwitch();
+                }
             }, 100);
         });
         // Remove subtree: true to prevent deep recursion
@@ -760,6 +766,11 @@ const Nebulus = {
     },
 
     Utils: {
+        isChatPage: function () {
+            // Returns true only for the root chat page
+            return window.location.pathname === '/';
+        },
+
         escapeHtml: function (text) {
             if (!text) return "";
             return text

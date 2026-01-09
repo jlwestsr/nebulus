@@ -110,7 +110,7 @@ async def notes_page():
             </div>
         </div>
 
-        <script src="/public/script.js?v=33"></script>
+        <script src="/public/script.js?v=34"></script>
         <script src="/public/notes.js"></script>
     </body>
     </html>
@@ -188,7 +188,7 @@ async def workspace_page():
             {MODEL_BUILDER_HTML}
         </div>
 
-        <script src="/public/script.js?v=33"></script>
+        <script src="/public/script.js?v=34"></script>
         <script src="/public/workspace.js"></script>
     </body>
     </html>
