@@ -79,6 +79,23 @@ def cli() -> None:
 @cli.command()
 def up() -> None:
     """Start all services."""
+    # Ensure no conflicting standalone open-webui is running
+    try:
+        subprocess.run(
+            ["docker", "stop", "open-webui"],
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+        subprocess.run(
+            ["docker", "rm", "open-webui"],
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+    except Exception:
+        pass
+
     console.print("[bold green]Starting Nebulus services...[/bold green]")
     run_interactive(["docker", "compose", "up", "-d"])
 
@@ -108,6 +125,25 @@ def down() -> None:
     """Stop all services."""
     console.print("[bold yellow]Stopping Nebulus services...[/bold yellow]")
     run_interactive(["docker", "compose", "down"])
+
+    # Ensure standalone open-webui is also stopped
+    try:
+        subprocess.run(
+            ["docker", "stop", "open-webui"],
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+        # Attempt removal to avoid name conflicts on next 'up'
+        subprocess.run(
+            ["docker", "rm", "open-webui"],
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+    except Exception:
+        pass
+
     console.print("[bold yellow]Done.[/bold yellow]")
 
 

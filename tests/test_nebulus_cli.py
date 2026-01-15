@@ -14,12 +14,29 @@ def runner():
     return CliRunner()
 
 
+@patch("nebulus.subprocess.run")
 @patch("nebulus.run_interactive")
-def test_up(mock_run, runner):
+def test_up(mock_interactive, mock_run, runner):
     """Verifies that 'up' calls the correct docker command and shows URLs."""
     result = runner.invoke(cli, ["up"])
     assert result.exit_code == 0
-    mock_run.assert_called_with(["docker", "compose", "up", "-d"])
+    mock_interactive.assert_called_with(["docker", "compose", "up", "-d"])
+
+    # Verify cleanup calls
+    stop_call = MagicMock()
+    stop_call.args = ["docker", "stop", "open-webui"]
+    mock_run.assert_any_call(
+        ["docker", "stop", "open-webui"],
+        capture_output=True,
+        check=False,
+        timeout=10,
+    )
+    mock_run.assert_any_call(
+        ["docker", "rm", "open-webui"],
+        capture_output=True,
+        check=False,
+        timeout=10,
+    )
 
     # Verify Dashboard URLs are shown
     assert "http://localhost:8000" in result.output  # Gantry (New Port)
@@ -32,12 +49,27 @@ def test_up(mock_run, runner):
     assert "http://localhost:11435" in result.output  # Ollama
 
 
+@patch("nebulus.subprocess.run")
 @patch("nebulus.run_interactive")
-def test_down(mock_run, runner):
+def test_down(mock_interactive, mock_run, runner):
     """Verifies that 'down' calls the correct docker command."""
     result = runner.invoke(cli, ["down"])
     assert result.exit_code == 0
-    mock_run.assert_called_with(["docker", "compose", "down"])
+    mock_interactive.assert_called_with(["docker", "compose", "down"])
+
+    # Verify cleanup calls
+    mock_run.assert_any_call(
+        ["docker", "stop", "open-webui"],
+        capture_output=True,
+        check=False,
+        timeout=10,
+    )
+    mock_run.assert_any_call(
+        ["docker", "rm", "open-webui"],
+        capture_output=True,
+        check=False,
+        timeout=10,
+    )
 
 
 @patch("nebulus.httpx.get")
