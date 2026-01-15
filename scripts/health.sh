@@ -32,8 +32,8 @@ else
 fi
 
 # 3. MCP Server
-echo -n "MCP Server (8000): "
-if curl -s -f "http://localhost:8000/health" > /dev/null; then
+echo -n "MCP Server (8002): "
+if curl -s -f "http://localhost:8002/health" > /dev/null; then
     echo -e "${GREEN}OK${NC}"
 else
     echo -e "${RED}FAIL${NC}"
@@ -41,8 +41,17 @@ else
 fi
 
 # 4. Gantry (Chainlit)
-echo -n "Gantry (8002): "
-if curl -s -f -I "http://localhost:8002" > /dev/null; then
+echo -n "Gantry (8000): "
+if curl -s -f -I "http://localhost:8000" > /dev/null; then
+    echo -e "${GREEN}OK${NC}"
+else
+    echo -e "${RED}FAIL${NC}"
+    exit 1
+fi
+
+# 5. Open WebUI
+echo -n "Open WebUI (3000): "
+if curl -s -f "http://localhost:3000/health" > /dev/null; then
     echo -e "${GREEN}OK${NC}"
 else
     echo -e "${RED}FAIL${NC}"

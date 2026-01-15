@@ -39,11 +39,14 @@
         pull: always
       register: docker_output
 
-    - name: Wait for Ollama to be ready
+    - name: Wait for services to be ready
       ansible.builtin.wait_for:
-        port: 11435
+        port: "{{ item }}"
         delay: 5
         timeout: 60
+      loop:
+        - 11435
+        - 3000
 
     - name: Pull Ollama models
       community.docker.docker_container_exec:

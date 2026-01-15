@@ -23,6 +23,7 @@ def test_up(mock_run, runner):
 
     # Verify Dashboard URLs are shown
     assert "http://localhost:8000" in result.output  # Gantry (New Port)
+    assert "http://localhost:3000" in result.output  # Open WebUI
     assert "http://localhost:8888" in result.output  # Dozzle
     assert (
         "http://localhost:8002/static/index.html" in result.output
@@ -50,6 +51,7 @@ def test_status_online(mock_get, runner):
     assert result.exit_code == 0
     assert "ONLINE" in result.output
     assert "Nebulus Gantry" in result.output
+    assert "Open WebUI" in result.output
     assert "Ollama" in result.output
 
 

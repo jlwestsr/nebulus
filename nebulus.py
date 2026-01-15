@@ -89,6 +89,7 @@ def up() -> None:
 
     services = [
         ("Nebulus Gantry", "http://localhost:8000"),
+        ("Open WebUI", "http://localhost:3000"),
         ("Dozzle (Logs)", "http://localhost:8888"),
         ("MCP Server Dashboard", "http://localhost:8002/static/index.html"),
         ("ChromaDB", "http://localhost:8001/docs"),
@@ -144,6 +145,7 @@ def status() -> None:
         ("ChromaDB", "http://localhost:8001/api/v2/heartbeat", "8001"),
         ("MCP Server", "http://localhost:8002/health", "8002"),
         ("Nebulus Gantry", "http://localhost:8000", "8000"),
+        ("Open WebUI", "http://localhost:3000/health", "3000"),
     ]
 
     with console.status("[bold green]Checking health..."):

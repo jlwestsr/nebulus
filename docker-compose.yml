@@ -87,6 +87,21 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - EMAIL_FROM=${EMAIL_FROM}
 
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    volumes:
+      - webui_data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    networks:
+      - ai-network
+    depends_on:
+      - ollama
+
 networks:
   ai-network:
     driver: bridge
@@ -95,3 +110,4 @@ volumes:
   ollama_data:
   chroma_data:
   gantry_data:
+  webui_data:
