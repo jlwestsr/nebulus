@@ -50,6 +50,19 @@ const Nebulus = {
                     // Fix layering overlap
                     const chatCont = document.querySelector('div[role="presentation"].flex-col.relative');
                     if (chatCont) chatCont.style.paddingTop = '80px';
+
+                    // Check for Bulk Delete Success Message
+                    // We look for the specific success text in the latest message
+                    const messages = document.querySelectorAll('.message-content');
+                    if (messages.length > 0) {
+                        const lastMsg = messages[messages.length - 1];
+                        if (lastMsg.innerText.includes('✅ Cleared') && lastMsg.innerText.includes('chats from history')) {
+                            // Avoid infinite refresh loop?
+                            // We should check if we already refreshed for this specific instance?
+                            // Or just refresh sidebar idempotently.
+                            this.Sidebar.refresh();
+                        }
+                    }
                 }
             }, 100);
         });
