@@ -169,32 +169,37 @@ def truncate_chat_after_db(chat_id, message_id, include_target=True):
     return
 
 
-def delete_all_chats_for_user_db(user_id):
+def delete_all_chats_for_user_db(user_id, db=None):
     """
     Deletes all chats for a specific user.
     Cascading delete should handle messages if configured, but we can be explicit.
     """
-    with db_session() as db:
-        # Get all chat IDs for user
-        chats = db.query(Chat).filter(Chat.user_id == user_id).all()
-        chat_ids = [c.id for c in chats]
+    if db:
+        return _delete_chats_logic(user_id, db)
 
-        if not chat_ids:
-            return 0
+    with db_session() as session:
+        return _delete_chats_logic(user_id, session)
 
-        # Delete Messages (if cascade isn't fully reliable or for safety)
-        db.query(Message).filter(Message.chat_id.in_(chat_ids)).delete(
-            synchronize_session=False
-        )
 
-        # Delete Chats
-        deleted_count = (
-            db.query(Chat)
-            .filter(Chat.user_id == user_id)
-            .delete(synchronize_session=False)
-        )
+def _delete_chats_logic(user_id, db):
+    # Get all chat IDs for user
+    chats = db.query(Chat).filter(Chat.user_id == user_id).all()
+    chat_ids = [c.id for c in chats]
 
-        return deleted_count
+    if not chat_ids:
+        return 0
+
+    # Delete Messages (if cascade isn't fully reliable or for safety)
+    db.query(Message).filter(Message.chat_id.in_(chat_ids)).delete(
+        synchronize_session=False
+    )
+
+    # Delete Chats
+    deleted_count = (
+        db.query(Chat).filter(Chat.user_id == user_id).delete(synchronize_session=False)
+    )
+
+    return deleted_count
 
 
 def construct_multimodal_payload(content, images):
@@ -480,7 +485,7 @@ async def handle_clear_all_command(message: cl.Message, user_id: int):
     # UI Feedback
     await message.remove()
     await cl.Message(
-        content=f"✅ Cleared {count} chats from history. Please refresh the page to see changes."
+        content=f"✅ Cleared {count} chats from history. Please refresh the page to see changes.<div id='bulk-delete-success-marker' style='display: none;'></div>"
     ).send()
 
     # Log action

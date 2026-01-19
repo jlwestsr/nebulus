@@ -60,6 +60,9 @@ Nebulus includes a unified command-line tool:
 nebulus --help
 ```
 
+**Chat Commands:**
+- `/clear_all` - Bulk delete all chat history.
+
 **Common Commands:**
 ```bash
 nebulus up          # Start all services

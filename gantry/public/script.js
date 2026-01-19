@@ -24,6 +24,7 @@ const Nebulus = {
 
         // Chat-specific modules
         if (this.Utils.isChatPage()) {
+            this.Chat.init();
             this.Models.init();
             this.Dashboard.checkAndInject();
         }
@@ -53,18 +54,15 @@ const Nebulus = {
 
                     // Check for Bulk Delete Success Message
                     // We look for the specific success text in the latest message
-                    const messages = document.querySelectorAll('.message-content');
-                    if (messages.length > 0) {
-                        const lastMsg = messages[messages.length - 1];
-                        if (lastMsg.innerText.includes('✅ Cleared') && lastMsg.innerText.includes('chats from history')) {
-                            // Avoid infinite refresh loop?
-                            // We should check if we already refreshed for this specific instance?
-                            // Or just refresh sidebar idempotently.
-                            this.Sidebar.refresh();
-                        }
+                    // Check for Bulk Delete Success Message via ID
+                    const bulkDeleteMarker = document.getElementById('bulk-delete-success-marker');
+                    if (bulkDeleteMarker && !bulkDeleteMarker.hasAttribute('data-processed')) {
+                        console.log("[Nebulus] Bulk delete detected, refreshing sidebar...");
+                        this.Sidebar.refresh();
+                        bulkDeleteMarker.setAttribute('data-processed', 'true');
                     }
                 }
-            }, 100);
+            }, 500); // Increased timeout to 500ms to allow render
         });
         // Remove subtree: true to prevent deep recursion
         observer.observe(document.body, { childList: true, subtree: true });
@@ -120,7 +118,7 @@ const Nebulus = {
                             <div class="nav-icon">${Nebulus.Icons.search}</div>
                             <span class="nav-label">Search chats</span>
                         </div>
-                        <div class="recent-chats-list">
+                        <div id="recent-chats-list" class="recent-chats-list">
                             ${recentChatsHTML || '<div style="padding: 10px; color: #555; font-size: 0.7rem;" class="nav-label">No recent chats</div>'}
                         </div>
                     </div>
@@ -303,9 +301,28 @@ const Nebulus = {
         },
 
         refresh: function () {
-            const sidebar = document.getElementById('nebulus-sidebar');
-            if (sidebar) sidebar.remove();
-            this.inject();
+            // Fetch updated data first
+            fetch('/api/history')
+                .then(res => res.json())
+                .then(history => {
+                    const listContainer = document.getElementById('recent-chats-list');
+                    if (listContainer) {
+                        const recentChatsHTML = history.map(chat => `
+                            <div class="nav-item sub-item" onclick="window.location.href='/?chat_id=${chat.id}'">
+                                <span class="nav-label">${chat.title}</span>
+                                <div class="chat-options-btn" onclick="Nebulus.Sidebar.showContextMenu(event, '${chat.id}')">⋮</div>
+                            </div>
+                        `).join('');
+
+                        listContainer.innerHTML = recentChatsHTML || '<div style="padding: 10px; color: #555; font-size: 0.7rem;" class="nav-label">No recent chats</div>';
+                    } else {
+                        // Fallback to full re-injection if list not found for some reason
+                        const sidebar = document.getElementById('nebulus-sidebar');
+                        if (sidebar) sidebar.remove();
+                        this.inject();
+                    }
+                })
+                .catch(err => console.error("Failed to refresh sidebar", err));
         },
 
         handleMenuAction: function (action, chatId) {
@@ -558,6 +575,98 @@ const Nebulus = {
     },
 
     Chat: {
+        init: function () {
+            this.setupCommandInterception();
+        },
+
+        setupCommandInterception: function () {
+            // Document-level delegation for robust handling
+            const handler = (e) => {
+                // 1. Identify the input element
+                let input = document.getElementById('chat-input') || document.getElementById('dashboard-input');
+                // Fallback: Try finding by active element if it's a textarea
+                if (!input && document.activeElement && (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT')) {
+                    input = document.activeElement;
+                }
+
+                if (!input) return;
+
+                const val = input.value.trim();
+                if (val !== '/clear_all') return;
+
+                // 2. Check Triggers
+                let isTrigger = false;
+
+                // Case A: Enter Key
+                if (e.type === 'keydown' && e.key === 'Enter' && !e.shiftKey) {
+                    isTrigger = true;
+                }
+
+                // Case B: Click on Submit Button
+                if (e.type === 'click') {
+                    // Start from target and loop up to find button
+                    let el = e.target;
+                    while (el && el !== document.body) {
+                        // Check for common submission indicators
+                        if (el.id === 'chat-submit' || el.id === 'dashboard-submit' || el.type === 'submit' || el.getAttribute('role') === 'button') {
+                            // Ensure it's inside the chat/input area (approximate)
+                            isTrigger = true;
+                            break;
+                        }
+                        el = el.parentElement;
+                    }
+                }
+                if (isTrigger) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+
+                    console.log("[Nebulus] Intercepted /clear_all");
+
+                    Nebulus.Modal.confirm(
+                        "Delete All Chats",
+                        "Are you sure you want to delete all chat history? This action cannot be undone.",
+                        () => this.handleClearAll()
+                    );
+                }
+            };
+
+            // Capture phase is essential to beat React/Chainlit listeners
+            document.addEventListener('keydown', handler, true);
+            document.addEventListener('click', handler, true);
+        },
+
+        handleClearAll: function () {
+            // Optimistic UI update or wait for success? Wait for success to be safe.
+            fetch('/api/chats', { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Clear Input
+                        const input = document.getElementById('chat-input');
+                        if (input) input.value = '';
+
+                        // Clear Sidebar
+                        const list = document.getElementById('recent-chats-list');
+                        if (list) list.innerHTML = '<div style="padding: 10px; color: #555; font-size: 0.7rem;" class="nav-label">No recent chats</div>';
+
+                        Nebulus.Utils.showToast("All chats deleted");
+
+                        // Redirect to home if current page is a chat?
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.get('chat_id')) {
+                            window.location.href = '/';
+                        }
+                    } else {
+                        Nebulus.Utils.showToast("Failed to delete chats");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Nebulus.Utils.showToast("Error deleting chats");
+                });
+        },
+
         loadHistory: function (chatId) {
             // 1. Update URL (Safe to do even if already there)
             const newUrl = `/?chat_id=${chatId}`;
@@ -947,6 +1056,7 @@ const Nebulus = {
 
             config.buttons.forEach(btn => {
                 const button = document.createElement('button');
+                button.type = 'button'; // Critical: Prevent form submission interception
                 button.className = btn.class || 'btn-modal-secondary';
                 button.textContent = btn.label;
                 button.onclick = () => btn.onClick(inputEl ? inputEl.value : null);
