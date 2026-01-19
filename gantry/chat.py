@@ -67,6 +67,7 @@ def sync_model_from_db_helper(user_id):
 
 def get_chat_history_db(chat_id, limit=20):
     with db_session() as db:
+        db.expire_on_commit = False
         messages = (
             db.query(Message)
             .filter(Message.chat_id == chat_id)
@@ -166,6 +167,34 @@ def truncate_chat_after_db(chat_id, message_id, include_target=True):
         query.delete()
 
     return
+
+
+def delete_all_chats_for_user_db(user_id):
+    """
+    Deletes all chats for a specific user.
+    Cascading delete should handle messages if configured, but we can be explicit.
+    """
+    with db_session() as db:
+        # Get all chat IDs for user
+        chats = db.query(Chat).filter(Chat.user_id == user_id).all()
+        chat_ids = [c.id for c in chats]
+
+        if not chat_ids:
+            return 0
+
+        # Delete Messages (if cascade isn't fully reliable or for safety)
+        db.query(Message).filter(Message.chat_id.in_(chat_ids)).delete(
+            synchronize_session=False
+        )
+
+        # Delete Chats
+        deleted_count = (
+            db.query(Chat)
+            .filter(Chat.user_id == user_id)
+            .delete(synchronize_session=False)
+        )
+
+        return deleted_count
 
 
 def construct_multimodal_payload(content, images):
@@ -441,6 +470,24 @@ async def handle_regenerate(
     return False
 
 
+async def handle_clear_all_command(message: cl.Message, user_id: int):
+    if message.content.strip() != "/clear_all":
+        return False
+
+    # Execute DB deletion
+    count = await cl.make_async(delete_all_chats_for_user_db)(user_id)
+
+    # UI Feedback
+    await message.remove()
+    await cl.Message(
+        content=f"✅ Cleared {count} chats from history. Please refresh the page to see changes."
+    ).send()
+
+    # Log action
+    print(f"User {user_id} cleared {count} chats.")
+    return True
+
+
 @cl.on_message
 async def main(message: cl.Message):
     # --- Soft Navigation Handler ---
@@ -451,6 +498,10 @@ async def main(message: cl.Message):
     settings = cl.user_session.get("settings")
     chat_id = cl.user_session.get("id")
     user_id = cl.user_session.get("db_user_id")
+
+    # --- Command: /clear_all ---
+    if await handle_clear_all_command(message, user_id):
+        return
 
     # --- Command: /regenerate ---
     if await handle_regenerate(message, chat_id, settings, user_id):
