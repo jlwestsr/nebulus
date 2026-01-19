@@ -185,6 +185,8 @@
   },
   "active": "54450bb7bfe56c6d",
   "lastOpenFiles": [
+    "gantry/README.md",
+    "gantry/docker-compose.yml",
     "docs/features/archive/40_bulk_delete_chats.md",
     "tests/test_bulk_delete_api.py"
   ]
