@@ -105,7 +105,6 @@ def up() -> None:
     table.add_column("URL", style="magenta")
 
     services = [
-        ("Nebulus Gantry", "http://localhost:8000"),
         ("Open WebUI", "http://localhost:3000"),
         ("Dozzle (Logs)", "http://localhost:8888"),
         ("MCP Server Dashboard", "http://localhost:8002/static/index.html"),
@@ -180,7 +179,6 @@ def status() -> None:
         ("Ollama", "http://localhost:11435/api/tags", "11435"),
         ("ChromaDB", "http://localhost:8001/api/v2/heartbeat", "8001"),
         ("MCP Server", "http://localhost:8002/health", "8002"),
-        ("Nebulus Gantry", "http://localhost:8000", "8000"),
         ("Open WebUI", "http://localhost:3000/health", "3000"),
     ]
 
@@ -240,10 +238,8 @@ def restore() -> None:
 
     # Prompt user for volume name
     # Can try to guess based on backup name or just ask
-    suggested_volume = "nebulus_gantry_data"  # Default suggestion
-    if "ollama" in selected_backup:
-        suggested_volume = "nebulus_ollama_data"
-    elif "chroma" in selected_backup:
+    suggested_volume = "nebulus_ollama_data"  # Default suggestion
+    if "chroma" in selected_backup:
         suggested_volume = "nebulus_chroma_data"
 
     volume = Prompt.ask("Enter target Docker volume name", default=suggested_volume)
