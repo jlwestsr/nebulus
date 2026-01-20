@@ -271,6 +271,11 @@ def shell(service: str) -> None:
     subprocess.run(["docker", "compose", "exec", service, "sh"], check=False)
 
 
+# Ensure we can import from src (repo root is one level up)
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(REPO_ROOT))
+
+
 try:
     from src.core.memory.cli_extension import register_commands
 

@@ -48,11 +48,11 @@ nebulus/
 ├── docker-compose.yml   # Specialized service orchestration
 ├── docs/                # Feature specifications
 ├── models/              # Local LLM weights (git-ignored)
-├── nebulus.py           # CLI Management Tool (`nebulus`)
 ├── scripts/             # Shell & Python utilities
 │   ├── backup.sh        # Backup logic
-│   └── setup.sh         # Bootstrap script
+│   └── bootstrap.sh     # Bootstrap script
 ├── src/                 # Application Source Code (MANDATORY)
+│   ├── cli.py           # CLI Entry Point (linked to ~/.local/bin/nebulus)
 │   ├── core/            # Core Logic (Memory, Utils)
 │   └── mcp_server/      # Custom Tool Server
 │       ├── server.py    # MCP Tool definitions
