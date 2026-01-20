@@ -39,3 +39,4 @@ models/
 backups/
 gantry/.files/
 test_output_c.txt
+reference_gantry/

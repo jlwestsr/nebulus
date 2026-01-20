@@ -20,7 +20,7 @@ A containerized, general-purpose local AI ecosystem with extended tool access an
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Frontend** | [Chainlit](https://chainlit.io/) | Gantry Interface (Chat & UI) |
+| **Frontend** | [Open WebUI](https://openwebui.com/) | Chat Interface & Model Management |
 | **Inference** | [Ollama](https://ollama.com/) | Local LLM runtime with GPU support |
 | **Vector DB** | ChromaDB | Persistent embeddings storage |
 | **Tools** | Custom MCP Server | Extended AI capabilities |
@@ -46,8 +46,10 @@ Please refer to the **[Setup and Installation Guide](https://github.com/jlwestsr
 
 ### Access
 
-- **Nebulus Gantry (UI)**: [http://localhost:8002](http://localhost:8002)
-- **MCP Server**: [http://localhost:8000](http://localhost:8000)
+- **Open WebUI**: [http://localhost:3000](http://localhost:3000)
+- **MCP Server**: [http://localhost:8002](http://localhost:8002)
+- **ChromaDB**: [http://localhost:8001](http://localhost:8001)
+- **Ollama**: [http://localhost:11435](http://localhost:11435)
 - **Dozzle (Logs)**: [http://localhost:8888](http://localhost:8888)
 
 **First-time setup**: The first account created becomes the admin.
@@ -107,6 +109,13 @@ The custom MCP server provides AI agents with extended capabilities:
 - Web dashboard for task management
 
 See **[MCP Server](https://github.com/jlwestsr/nebulus/wiki/MCP-Server)** for complete tool documentation.
+
+### 🧠 Long Term Memory (LTM)
+
+Nebulus uses ChromaDB to provide persistent memory for the AI:
+- **Conversation Storage**: Histories are indexed for semantic retrieval.
+- **User Preferences**: Remembers user-specific settings across sessions.
+- **Contextual Recall**: Automatically retrieves relevant past interactions.
 
 ### 🔄 Automation
 
