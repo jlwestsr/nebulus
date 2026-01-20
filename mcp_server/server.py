@@ -12,12 +12,46 @@ from starlette.requests import Request
 import pypdf
 import docx
 from scheduler import TaskScheduler
+from db import LTMClient
+from pydantic import BaseModel
+
 
 # Initialize FastMCP
 mcp = FastMCP("Black Box Tools")
 
 # Initialize Scheduler
 scheduler = TaskScheduler()
+
+# Initialize LTM Client
+# We initialize lazily or globally depending on preference, but here globally for simplicity
+# Ensure ChromaDB service is running/resolvable
+try:
+    ltm_client = LTMClient(host="chromadb")
+except Exception as e:
+    print(f"Warning: Could not connect to LTM Database: {e}")
+    ltm_client = None
+
+# --- Pydantic Models for LTM ---
+
+
+class ConversationCreate(BaseModel):
+    topic: str
+    user_id: str = "default_user"
+
+
+class ConversationUpdate(BaseModel):
+    topic: str
+
+
+class MessageCreate(BaseModel):
+    content: str
+    sender: str = "user"
+    receiver: str = "ai"
+
+
+class UserPreferenceSet(BaseModel):
+    key: str
+    value: str  # Simplified for now
 
 
 # Tool: Schedule Task
@@ -381,6 +415,121 @@ app.add_route("/api/tasks", get_tasks_api, methods=["GET"])
 app.add_route("/api/tasks", add_task_api, methods=["POST"])
 app.add_route("/api/tasks/{job_id}", delete_task_api, methods=["DELETE"])
 app.add_route("/api/tasks/{job_id}/run", run_task_api, methods=["POST"])
+
+# --- LTM API Endpoints ---
+
+
+# Conversations
+
+
+async def create_conversation_api(request: Request):
+    if not ltm_client:
+        return JSONResponse({"error": "LTM Database not available"}, status_code=503)
+    try:
+        data = await request.json()
+        model = ConversationCreate(**data)
+        result = ltm_client.create_conversation(model.topic, model.user_id)
+        return JSONResponse(result)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
+async def get_conversation_api(request: Request):
+    if not ltm_client:
+        return JSONResponse({"error": "LTM Database not available"}, status_code=503)
+    conv_id = request.path_params["conv_id"]
+    result = ltm_client.get_conversation(conv_id)
+    if not result:
+        return JSONResponse({"error": "Conversation not found"}, status_code=404)
+    return JSONResponse(result)
+
+
+async def update_conversation_api(request: Request):
+    if not ltm_client:
+        return JSONResponse({"error": "LTM Database not available"}, status_code=503)
+    try:
+        conv_id = request.path_params["conv_id"]
+        data = await request.json()
+        model = ConversationUpdate(**data)
+        result = ltm_client.update_conversation(conv_id, topic=model.topic)
+        if not result:
+            return JSONResponse({"error": "Conversation not found"}, status_code=404)
+        return JSONResponse(result)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
+async def delete_conversation_api(request: Request):
+    if not ltm_client:
+        return JSONResponse({"error": "LTM Database not available"}, status_code=503)
+    conv_id = request.path_params["conv_id"]
+    ltm_client.delete_conversation(conv_id)
+    return JSONResponse({"message": "Deleted"})
+
+
+# Messages
+async def add_message_api(request: Request):
+    if not ltm_client:
+        return JSONResponse({"error": "LTM Database not available"}, status_code=503)
+    try:
+        conv_id = request.path_params["conv_id"]
+        data = await request.json()
+        model = MessageCreate(**data)
+        result = ltm_client.add_message(
+            conv_id, model.content, model.sender, model.receiver
+        )
+        return JSONResponse(result)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
+async def get_messages_api(request: Request):
+    if not ltm_client:
+        return JSONResponse({"error": "LTM Database not available"}, status_code=503)
+    conv_id = request.path_params["conv_id"]
+    result = ltm_client.get_messages(conv_id)
+    return JSONResponse(result)
+
+
+# User Preferences
+async def set_user_pref_api(request: Request):
+    if not ltm_client:
+        return JSONResponse({"error": "LTM Database not available"}, status_code=503)
+    try:
+        user_id = request.path_params["user_id"]
+        data = await request.json()
+        model = UserPreferenceSet(**data)
+        result = ltm_client.set_user_preference(user_id, model.key, model.value)
+        return JSONResponse(result)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+
+async def get_user_prefs_api(request: Request):
+    if not ltm_client:
+        return JSONResponse({"error": "LTM Database not available"}, status_code=503)
+    user_id = request.path_params["user_id"]
+    result = ltm_client.get_user_preferences(user_id)
+    if not result:
+        return JSONResponse({"error": "User not found"}, status_code=404)
+    return JSONResponse(result)
+
+
+# Register LTM Routes
+app.add_route("/api/conversations", create_conversation_api, methods=["POST"])
+app.add_route("/api/conversations/{conv_id}", get_conversation_api, methods=["GET"])
+app.add_route("/api/conversations/{conv_id}", update_conversation_api, methods=["PUT"])
+app.add_route(
+    "/api/conversations/{conv_id}", delete_conversation_api, methods=["DELETE"]
+)
+app.add_route(
+    "/api/conversations/{conv_id}/messages", add_message_api, methods=["POST"]
+)
+app.add_route(
+    "/api/conversations/{conv_id}/messages", get_messages_api, methods=["GET"]
+)
+app.add_route("/api/users/{user_id}/preferences", set_user_pref_api, methods=["POST"])
+app.add_route("/api/users/{user_id}/preferences", get_user_prefs_api, methods=["GET"])
 
 
 if __name__ == "__main__":

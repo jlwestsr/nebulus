@@ -8,3 +8,4 @@ sqlalchemy
 httpx
 pypdf
 python-docx
+chromadb
