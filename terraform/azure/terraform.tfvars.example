@@ -1,0 +1,4 @@
+location            = "East US"
+resource_group_name = "nebulus-lab"
+vm_size             = "Standard_D4s_v3"
+admin_username      = "admin"

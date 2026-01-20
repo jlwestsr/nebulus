@@ -25,7 +25,8 @@ A containerized, general-purpose local AI ecosystem with extended tool access an
 | **Vector DB** | ChromaDB | Persistent embeddings storage |
 | **Tools** | Custom MCP Server | Extended AI capabilities |
 | **Monitoring** | [Dozzle](https://dozzle.com) | Real-time log viewer |
-| **Automation** | Ansible | Infrastructure as code |
+| **Automation** | Ansible | Configuration Management |
+| **Infrastructure** | Terraform | Cloud Provisioning (GCP/AWS/Azure) |
 
 ## Default Models (Preinstalled)
 
@@ -77,6 +78,18 @@ nebulus restore     # Restore from backup
 ```
 
 See **[CLI Reference](https://github.com/jlwestsr/nebulus/wiki/CLI-Reference)** for complete documentation.
+
+## Infrastructure
+
+Nebulus supports multi-cloud deployment via **Terraform**. Scaffolding is provided for:
+- **GCP** (Compute Engine)
+- **AWS** (EC2)
+- **Azure** (Virtual Models)
+
+**Usage**:
+1.  Navigate to `terraform/<provider>`.
+2.  Copy `terraform.tfvars.example` to `terraform.tfvars` and edit.
+3.  Run `terraform init && terraform apply`.
 
 ## Features
 
