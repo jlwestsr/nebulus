@@ -30,6 +30,7 @@ models/
 
 # IDE Specific
 *.code-workspace
+.obsidian/
 
 # Aider / LLM tools
 .aider*
