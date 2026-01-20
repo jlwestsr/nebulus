@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from mcp_server.scheduler import TaskScheduler, execute_prompt_and_email
+from src.mcp_server.scheduler import TaskScheduler, execute_prompt_and_email
 
 
 @pytest.fixture
 def mock_scheduler():
-    with patch("mcp_server.scheduler.BackgroundScheduler") as mock_bg:
+    with patch("src.mcp_server.scheduler.BackgroundScheduler") as mock_bg:
         scheduler_instance = mock_bg.return_value
         task_scheduler = TaskScheduler()
         yield task_scheduler, scheduler_instance
@@ -26,8 +26,8 @@ def test_add_task_invalid_cron(mock_scheduler):
     assert "Error: Schedule must be" in result
 
 
-@patch("mcp_server.scheduler.generate_llm_response")
-@patch("mcp_server.scheduler.send_email")
+@patch("src.mcp_server.scheduler.generate_llm_response")
+@patch("src.mcp_server.scheduler.send_email")
 def test_execute_job(mock_email, mock_llm):
     mock_llm.return_value = "Generated Report"
 

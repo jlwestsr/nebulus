@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from mcp_server.server import read_pdf, read_docx
+from src.mcp_server.server import read_pdf, read_docx
 
 
 class TestDocumentParsers(unittest.TestCase):
-    @patch("mcp_server.server._validate_path")
-    @patch("mcp_server.server.pypdf.PdfReader")
+    @patch("src.mcp_server.server._validate_path")
+    @patch("src.mcp_server.server.pypdf.PdfReader")
     def test_read_pdf(self, mock_pdf_reader, mock_validate):
         # Setup
         mock_validate.return_value = "/workspace/resume.pdf"
@@ -27,8 +27,8 @@ class TestDocumentParsers(unittest.TestCase):
         self.assertIn("Page 2 Content", result)
         mock_pdf_reader.assert_called_with("/workspace/resume.pdf")
 
-    @patch("mcp_server.server._validate_path")
-    @patch("mcp_server.server.docx.Document")
+    @patch("src.mcp_server.server._validate_path")
+    @patch("src.mcp_server.server.docx.Document")
     def test_read_docx(self, mock_docx_document, mock_validate):
         # Setup
         mock_validate.return_value = "/workspace/notes.docx"

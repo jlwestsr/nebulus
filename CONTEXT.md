@@ -37,30 +37,27 @@
 
 ## 3. Project Structure
 
-```
 nebulus/
-├── agent/              # Antigravity AI Settings
+├── agent/               # Antigravity AI Settings
 │   ├── rules/           # AI Behavior Rules
 │   └── workflows/       # On-demand Agent Tasks
-├── ansible/              # Infrastructure automation
+├── ansible/             # Infrastructure automation
 │   ├── setup.yml        # Main setup playbook
 │   └── verify.yml       # System verification
 ├── backups/             # Automated volume backups
-├── docker-compose.yml   # specialized service orchestration
+├── docker-compose.yml   # Specialized service orchestration
 ├── docs/                # Feature specifications
-├── mcp_server/          # Custom Tool Server
-│   ├── server.py        # MCP Tool definitions
-│   ├── scheduler.py     # Background task logic
-│   └── static/          # Dashboard UI
 ├── models/              # Local LLM weights (git-ignored)
 ├── nebulus.py           # CLI Management Tool (`nebulus`)
 ├── scripts/             # Shell & Python utilities
-│   ├── backup.sh        # Backup logic with retention
-│   ├── restore.sh       # Restore logic
-│   ├── setup.sh         # Bootstrap script
-│   └── health.sh        # Service health checks
+│   ├── backup.sh        # Backup logic
+│   └── setup.sh         # Bootstrap script
+├── src/                 # Application Source Code (MANDATORY)
+│   ├── core/            # Core Logic (Memory, Utils)
+│   └── mcp_server/      # Custom Tool Server
+│       ├── server.py    # MCP Tool definitions
+│       └── static/      # Dashboard UI
 └── tests/               # Unit and Integration tests
-```
 
 ---
 

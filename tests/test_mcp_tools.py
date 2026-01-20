@@ -7,7 +7,7 @@ import subprocess
 
 # Add mcp_server to path
 sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "../mcp_server"))
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/mcp_server"))
 )
 
 

@@ -51,12 +51,12 @@ services:
       - ai-network
 
   mcp-server:
-    build: ./mcp_server
+    build: ./src/mcp_server
     container_name: mcp-server
     restart: unless-stopped
     volumes:
       - .:/workspace # Mount current directory to /workspace for file tools
-      - ./mcp_server:/app
+      - ./src/mcp_server:/app
     ports:
       - "8002:8000"
     networks:
