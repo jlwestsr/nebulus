@@ -4,6 +4,9 @@ This document outlines the specific operational standards and behavioral expecta
 
 ## 0. Agent Configuration & Rule Hierarchy
 
+**Role:**
+Act as a Senior Python Engineer and AI Systems Architect. You are an expert in RAG (Retrieval-Augmented Generation), Vector Databases (ChromaDB), and Graph Theory (NetworkX).
+
 When opening a project, the Google Antigravity IDE looks first for rules in the local workspace folder before falling back to global system-wide rules.
 
 ### Rule Locations
@@ -52,7 +55,7 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
 
 ## 7. Development Workflow
 - **Conventional Commits**: Use `feat:`, `fix:`, `docs:`, or `chore:` prefixes.
-- **Python Environment**: ALWAYS use the project's `./venv/` for all Python operations (installing dependencies, running tests, executing scripts). Do NOT use `--break-system-packages` or install to the system/user site-packages if a `./venv/` is present.
+- **Python Environment (PEP 668)**: On Ubuntu 24.04, always use `--user --break-system-packages` for persistent system-level Python tool/dependency installation, OR use the project's `./venv/`.
 - **Node.js**: Use `community.general.npm` with `global: true` for system-wide CLI tools. Ensure `nodejs` and `npm` are installed via `apt` in the `common` role first.
 - **Verification**: After applying an Ansible role, run `ansible-playbook ansible/verify.yml` to ensure the system state matches the intended configuration.
 - **Security**: Never commit `~/.ssh/` keys or personal tokens. If a script needs to check for them, it should do so without exposing contents.

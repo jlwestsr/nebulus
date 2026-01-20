@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "agent/rules/ai_behavior.md",
+                "file": "CONTEXT.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ai_behavior"
+              "title": "CONTEXT"
             }
           }
         ]
@@ -185,9 +185,20 @@
   },
   "active": "54450bb7bfe56c6d",
   "lastOpenFiles": [
+    "tests/data",
+    "tests/test_workspace",
+    "src/core/memory/__pycache__/consolidator.cpython-312.pyc",
+    "src/core/memory/__pycache__/cli_extension.cpython-312.pyc",
+    "src/core/memory/__pycache__/vector_store.cpython-312.pyc",
+    "src/core/memory/__pycache__/models.cpython-312.pyc",
+    "src/core/memory/__pycache__/graph_store.cpython-312.pyc",
+    "src/core/memory/__pycache__",
+    "src/__pycache__/__init__.cpython-312.pyc",
+    "src/__pycache__",
+    "src/core/memory/vector_store.py",
+    "docs/features/38_hybrid_ltm.md",
+    "agent/rules/ai_behavior.md",
     "gantry/README.md",
-    "gantry/docker-compose.yml",
-    "docs/features/archive/40_bulk_delete_chats.md",
-    "tests/test_bulk_delete_api.py"
+    "docs/features/archive/40_bulk_delete_chats.md"
   ]
 }

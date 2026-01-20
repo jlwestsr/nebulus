@@ -271,6 +271,13 @@ def shell(service: str) -> None:
     subprocess.run(["docker", "compose", "exec", service, "sh"], check=False)
 
 
+try:
+    from src.core.memory.cli_extension import register_commands
+
+    register_commands(cli)
+except ImportError as e:
+    console.print(f"[yellow]Warning: Could not load memory module: {e}[/yellow]")
+
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         # Show status if no command provided
