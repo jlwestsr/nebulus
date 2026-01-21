@@ -77,6 +77,13 @@ def cli() -> None:
 
 
 @cli.command()
+@click.pass_context
+def help(ctx) -> None:
+    """Show this message and exit."""
+    click.echo(ctx.parent.get_help())
+
+
+@cli.command()
 def up() -> None:
     """Start all services."""
     # Ensure no conflicting standalone open-webui is running
@@ -152,6 +159,22 @@ def restart() -> None:
     console.print("[bold blue]Restarting Nebulus services...[/bold blue]")
     run_interactive(["docker", "compose", "restart"])
     console.print("[bold green]Restart complete.[/bold green]")
+
+
+@cli.command()
+@click.argument("service", required=False)
+def rebuild(service: Optional[str]) -> None:
+    """Rebuild and restart services."""
+    console.print(
+        f"[bold blue]Rebuilding {'service ' + service if service else 'all services'}...[/bold blue]"
+    )
+
+    cmd = ["docker", "compose", "up", "-d", "--build"]
+    if service:
+        cmd.append(service)
+
+    run_interactive(cmd)
+    console.print("[bold green]Rebuild complete.[/bold green]")
 
 
 @cli.command()

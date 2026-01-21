@@ -5,7 +5,7 @@ Unit tests for Nebulus Manager CLI.
 from unittest.mock import patch, MagicMock
 import pytest
 from click.testing import CliRunner
-from nebulus import cli
+from src.cli import cli
 
 
 @pytest.fixture
@@ -14,8 +14,8 @@ def runner():
     return CliRunner()
 
 
-@patch("nebulus.subprocess.run")
-@patch("nebulus.run_interactive")
+@patch("src.cli.subprocess.run")
+@patch("src.cli.run_interactive")
 def test_up(mock_interactive, mock_run, runner):
     """Verifies that 'up' calls the correct docker command and shows URLs."""
     result = runner.invoke(cli, ["up"])
@@ -48,8 +48,8 @@ def test_up(mock_interactive, mock_run, runner):
     assert "http://localhost:11435" in result.output  # Ollama
 
 
-@patch("nebulus.subprocess.run")
-@patch("nebulus.run_interactive")
+@patch("src.cli.subprocess.run")
+@patch("src.cli.run_interactive")
 def test_down(mock_interactive, mock_run, runner):
     """Verifies that 'down' calls the correct docker command."""
     result = runner.invoke(cli, ["down"])
@@ -71,7 +71,7 @@ def test_down(mock_interactive, mock_run, runner):
     )
 
 
-@patch("nebulus.httpx.get")
+@patch("src.cli.httpx.get")
 def test_status_online(mock_get, runner):
     """Verifies that status shows ONLINE when services return 200."""
     mock_response = MagicMock()
@@ -86,7 +86,7 @@ def test_status_online(mock_get, runner):
     assert "Ollama" in result.output
 
 
-@patch("nebulus.httpx.get")
+@patch("src.cli.httpx.get")
 def test_status_offline(mock_get, runner):
     """Verifies that status shows OFFLINE when requests fail."""
     mock_get.side_effect = Exception("Connection refused")
@@ -96,7 +96,7 @@ def test_status_offline(mock_get, runner):
     assert "OFFLINE" in result.output
 
 
-@patch("nebulus.subprocess.run")
+@patch("src.cli.subprocess.run")
 def test_backup(mock_run, runner):
     """Verifies that backup calls the backup script."""
     result = runner.invoke(cli, ["backup"])
@@ -106,7 +106,7 @@ def test_backup(mock_run, runner):
     )
 
 
-@patch("nebulus.webbrowser.open")
+@patch("src.cli.webbrowser.open")
 def test_monitor(mock_open, runner):
     """Verifies that monitor opens the correct URL."""
     result = runner.invoke(cli, ["monitor"])
@@ -114,7 +114,7 @@ def test_monitor(mock_open, runner):
     mock_open.assert_called_with("http://localhost:8888")
 
 
-@patch("nebulus.subprocess.run")
+@patch("src.cli.subprocess.run")
 def test_shell(mock_run, runner):
     """Verifies that shell calls docker compose exec."""
     result = runner.invoke(cli, ["shell", "mcp-server"])
@@ -124,7 +124,7 @@ def test_shell(mock_run, runner):
     )
 
 
-@patch("nebulus.run_interactive")
+@patch("src.cli.run_interactive")
 def test_restart(mock_run, runner):
     """Verifies that 'restart' calls the correct docker command."""
     result = runner.invoke(cli, ["restart"])
@@ -132,7 +132,35 @@ def test_restart(mock_run, runner):
     mock_run.assert_called_with(["docker", "compose", "restart"])
 
 
-@patch("nebulus.subprocess.run")
+@patch("src.cli.run_interactive")
+def test_rebuild(mock_run, runner):
+    """Verifies that 'rebuild' calls the correct docker command."""
+    # Test rebuilding all services
+    result = runner.invoke(cli, ["rebuild"])
+    assert result.exit_code == 0
+    mock_run.assert_called_with(["docker", "compose", "up", "-d", "--build"])
+
+    # Test rebuilding a single service
+    result = runner.invoke(cli, ["rebuild", "mcp-server"])
+    assert result.exit_code == 0
+    mock_run.assert_called_with(
+        ["docker", "compose", "up", "-d", "--build", "mcp-server"]
+    )
+
+    mock_run.assert_called_with(
+        ["docker", "compose", "up", "-d", "--build", "mcp-server"]
+    )
+
+
+def test_help(runner):
+    """Verifies that 'help' command shows the main help message."""
+    result = runner.invoke(cli, ["help"])
+    assert result.exit_code == 0
+    assert "Nebulus Manager - Manage your AI ecosystem." in result.output
+    assert "Commands:" in result.output
+
+
+@patch("src.cli.subprocess.run")
 def test_logs(mock_run, runner):
     """Verifies that 'logs' calls the correct docker command."""
     result = runner.invoke(cli, ["logs", "gantry"])
@@ -140,8 +168,8 @@ def test_logs(mock_run, runner):
     mock_run.assert_called_with(["docker", "compose", "logs", "-f", "gantry"])
 
 
-@patch("nebulus.run_command")
-@patch("nebulus.Path")
+@patch("src.cli.run_command")
+@patch("src.cli.Path")
 @patch("rich.prompt.Prompt.ask")
 @patch("rich.prompt.Confirm.ask")
 def test_restore(mock_confirm, mock_prompt, mock_path, mock_run_cmd, runner):

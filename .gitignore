@@ -48,3 +48,5 @@ reference_gantry/
 *.tfstate.backup
 *.tfvars
 .terraform.lock.hcl
+gantry/
+gantry

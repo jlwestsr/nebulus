@@ -1,5 +1,8 @@
 # AI Agent Behavior & Operational Rules
 
+> [!IMPORTANT]
+> The `gantry/` directory is **READ ONLY** until told otherwise.
+
 This document outlines the specific operational standards and behavioral expectations for AI agents working on this project.
 
 ## 0. Agent Configuration & Rule Hierarchy

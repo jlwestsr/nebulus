@@ -15,6 +15,9 @@ dependencies = [
     "scikit-learn",
 ]
 
+[project.scripts]
+nebulus = "src.cli:cli"
+
 
 
 # --- Black Configuration ---
