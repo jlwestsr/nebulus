@@ -83,7 +83,7 @@ We follow a strict **Git-Ops** & **Fork-Branch-PR** workflow.
 
 For concurrent tasks (e.g. multiple AI agents), use the **Git Worktree** workflow to save disk space.
 
-- **Helper**: `scripts/create_worktree.sh` (Shared `.venv` strategy).
+- **Helper**: `scripts/create_worktree.sh` (Shared `venv` strategy).
 - **Docs**: [docs/workflows/git_worktree.md](docs/workflows/git_worktree.md).
 
 ### Operational Maintenance

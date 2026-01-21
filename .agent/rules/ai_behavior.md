@@ -66,7 +66,7 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
 ## 7. Development Workflow
 
 - **Conventional Commits**: Use `feat:`, `fix:`, `docs:`, or `chore:` prefixes.
-- **Python Environment**: **MANDATORY**. You must use the project's local virtual environment (`.venv/`). Do NOT use global system packages or other environments. Activate it immediately in the terminal via `source .venv/bin/activate` if not already active.
+- **Python Environment**: **MANDATORY**. You must use the project's local virtual environment (`venv/`). Do NOT use global system packages or other environments. Activate it immediately in the terminal via `source venv/bin/activate` if not already active.
 - **Node.js**: Use `community.general.npm` with `global: true` for system-wide CLI tools. Ensure `nodejs` and `npm` are installed via `apt` in the `common` role first.
 - **Verification**: After applying an Ansible role, run `ansible-playbook ansible/verify.yml` to ensure the system state matches the intended configuration.
 - **Security**: Never commit `~/.ssh/` keys or personal tokens. If a script needs to check for them, it should do so without exposing contents.
@@ -82,7 +82,7 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
 For parallel development (e.g., running multiple AI agents simultaneously), use `git worktree` instead of cloning the repository multiple times.
 
 - **Mandatory Script**: You **MUST** use `scripts/create_worktree.sh <branch> <path>` to set up new worktrees.
-  - **Reason**: This script automatically symlinks the main `.venv`, ensuring 0GB disk overhead per workspace.
+  - **Reason**: This script automatically symlinks the main `venv`, ensuring 0GB disk overhead per workspace.
   - **Forbidden**: Do NOT manually run `git worktree add` unless you explicitly intend to create a separate 1.2GB virtual environment.
 - **Directory Structure**: Create worktrees in a sibling directory (e.g., `../nebulus-worktrees/`) to keep the main repository clean.
 - **Cleanup**: Remove worktrees using `git worktree remove <path>` when finished. **NEVER** run `git worktree prune` inside the main repo while active worktrees exist.

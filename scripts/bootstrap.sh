@@ -17,7 +17,7 @@ fi
 
 # 2. Setup Virtual Environment
 PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-VENV_DIR="$PROJECT_ROOT/.venv"
+VENV_DIR="$PROJECT_ROOT/venv"
 
 if [ ! -d "$VENV_DIR" ]; then
     echo -e "${GREEN}📦 Creating virtual environment...${NC}"

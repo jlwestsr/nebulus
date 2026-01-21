@@ -40,7 +40,7 @@ We provide a helper script to automate setup and ensure the `.venv` is correctly
 
 1. Creates a new worktree at the specified directory.
 2. checks out the specified branch.
-3. **Symlinks the `.venv`** from the main repo to the new worktree (Saving ~1.2GB).
+3. **Symlinks the `venv`** from the main repo to the new worktree (Saving ~1.2GB).
 4. Copies `.env` from the main repo (if it exists).
 
 ## Critical Rules
@@ -49,4 +49,4 @@ We provide a helper script to automate setup and ensure the `.venv` is correctly
 2. **Shared Venv**: By default, all worktrees share the same libraries.
     - **Pros**: Fast setup, zero disk usage.
     - **Cons**: Upgrading a library in one worktree upgrades it for ALL.
-    - **Fix**: If you need isolation, delete the `.venv` symlink in your worktree and run `python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`.
+    - **Fix**: If you need isolation, delete the `venv` symlink in your worktree and run `python -m venv venv && source venv/bin/activate && pip install -r requirements.txt`.

@@ -302,7 +302,7 @@ def search_code(query: str, path: str = ".") -> str:
 
 # Tool: Web Search
 @mcp.tool()
-def web_search(query: str, max_results: int = 5) -> str:
+def search_web(query: str, max_results: int = 5) -> str:
     """Search the web using DuckDuckGo."""
     try:
         results = DDGS().text(query, max_results=max_results)

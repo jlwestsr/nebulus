@@ -4,7 +4,7 @@
   gather_facts: false
   vars:
     project_root: "{{ playbook_dir }}/.."
-    venv_path: "{{ project_root }}/.venv"
+    venv_path: "{{ project_root }}/venv"
     models:
       - llama3.1:latest
       - llama3.2-vision:latest

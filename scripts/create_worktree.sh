@@ -18,10 +18,10 @@ echo "Creating worktree for '$BRANCH_NAME' at '$TARGET_DIR'..."
 git worktree add -b "$BRANCH_NAME" "$TARGET_DIR"
 
 # 2. Link .venv (Shared Strategy)
-echo "Linking shared .venv..."
+echo "Linking shared venv..."
 # Resolve absolute path for symlink validity
-ABS_VENV_PATH="$MAIN_REPO_DIR/.venv"
-ln -s "$ABS_VENV_PATH" "$TARGET_DIR/.venv"
+ABS_VENV_PATH="$MAIN_REPO_DIR/venv"
+ln -s "$ABS_VENV_PATH" "$TARGET_DIR/venv"
 
 # 3. Copy .env
 if [ -f ".env" ]; then
@@ -37,4 +37,4 @@ echo "Venv:     Shared (Symlinked)"
 echo "=================================================="
 echo "To use:"
 echo "  cd $TARGET_DIR"
-echo "  source .venv/bin/activate"
+echo "  source venv/bin/activate"
