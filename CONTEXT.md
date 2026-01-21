@@ -1,7 +1,7 @@
 # Project Context & Coding Standards
 
 > **[IMPORTANCE: CRITICAL] AI AGENT DIRECTIVE**:
-> You MUST read and adhere to [agent/rules/ai_behavior.md](agent/rules/ai_behavior.md) at the start of every session. It contains strict operational guardrails, "Ansible-First" policies, and Git branching rules that supersede general instructions.
+> You MUST read and adhere to [.agent/rules/ai_behavior.md](.agent/rules/ai_behavior.md) at the start of every session. It contains strict operational guardrails, "Ansible-First" policies, and Git branching rules that supersede general instructions.
 
 ## 1. Project Overview
 
@@ -11,8 +11,6 @@
 - **Privacy-First**: All data and inference remain local.
 - **Ansible-First**: All infrastructure changes are automated and version-controlled.
 - **Documentation-First**: Feature development starts with documentation in the [Wiki](https://github.com/jlwestsr/nebulus.wiki).
-
----
 
 ## 2. Technology Stack
 
@@ -33,9 +31,9 @@
 - **Testing**: `pytest`
 - **Linting**: `black`, `flake8`, `pre-commit`
 
----
-
 ## 3. Project Structure
+
+---
 
 nebulus/
 ├── agent/               # Antigravity AI Settings
@@ -78,8 +76,6 @@ We follow a strict **Git-Ops** & **Fork-Branch-PR** workflow.
 1.  **Ansible-First**: Do not manually configure the server. Update `ansible/setup.yml`.
 2.  **Verify**: Always run `scripts/run_tests.sh` before pushing.
 
----
-
 ## 5. Coding Standards
 
 ### Python
@@ -105,8 +101,6 @@ We follow a strict **Git-Ops** & **Fork-Branch-PR** workflow.
 1.  **Path Validation**: All file operations must use `_validate_path()` to prevent traversal attacks.
 2.  **Command Execution**: Use explicit allowlists for `subprocess`. Never use `shell=True` with user input.
 3.  **Secrets**: Never commit secrets. Use `.env` file (template in `.env.example`).
-
----
 
 ## 6. Resources documentation
 
