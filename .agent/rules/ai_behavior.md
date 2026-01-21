@@ -73,8 +73,19 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
   - **NO DIRECT WORK ON MAIN/MASTER**. This branch is for production releases only.
   - **Strict Local Branch Policy**: `feat`, `fix`, `docs`, and `chore` branches are **LOCAL ONLY**. Never push them to origin. Only `develop` and `main` branches are allowed on the remote.
   - Always merge `develop` into your feature branch before requesting a merge back.
+  - Always merge `develop` into your feature branch before requesting a merge back.
 
-### 7.1 Workflows by Commit Type
+### 7.2 Parallel Development (Git Worktree)
+
+For parallel development (e.g., running multiple AI agents simultaneously), use `git worktree` instead of cloning the repository multiple times.
+
+- **Mandatory Script**: You **MUST** use `scripts/create_worktree.sh <branch> <path>` to set up new worktrees.
+  - **Reason**: This script automatically symlinks the main `.venv`, ensuring 0GB disk overhead per workspace.
+  - **Forbidden**: Do NOT manually run `git worktree add` unless you explicitly intend to create a separate 1.2GB virtual environment.
+- **Directory Structure**: Create worktrees in a sibling directory (e.g., `../nebulus-worktrees/`) to keep the main repository clean.
+- **Cleanup**: Remove worktrees using `git worktree remove <path>` when finished. **NEVER** run `git worktree prune` inside the main repo while active worktrees exist.
+
+### 7.3 Workflows by Commit Type
 
 Adhere to the specific strict workflow for each commit type:
 
