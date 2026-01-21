@@ -52,7 +52,9 @@ nebulus/
 ├── models/              # Local LLM weights (git-ignored)
 ├── scripts/             # Shell & Python utilities
 │   ├── backup.sh        # Backup logic
-│   └── bootstrap.sh     # Bootstrap script
+│   ├── bootstrap.sh     # Bootstrap script
+│   ├── create_worktree.sh # Git Worktree helper
+│   └── docker_maintain.sh # Docker cleanup script
 ├── src/                 # Application Source Code (MANDATORY)
 │   ├── cli.py           # CLI Entry Point (linked to ~/.local/bin/nebulus)
 │   ├── core/            # Core Logic (Memory, Utils)
@@ -77,10 +79,25 @@ We follow a strict **Git-Ops** & **Fork-Branch-PR** workflow.
 3. **Pull Request**: Open PRs from your fork to `jlwestsr/nebulus:develop`.
 4. **No Direct Commits**: `main` is protected.
 
+### Parallel Development (Git Worktree)
+
+For concurrent tasks (e.g. multiple AI agents), use the **Git Worktree** workflow to save disk space.
+
+- **Helper**: `scripts/create_worktree.sh` (Shared `.venv` strategy).
+- **Docs**: [docs/workflows/git_worktree.md](docs/workflows/git_worktree.md).
+
+### Operational Maintenance
+
+Prevent "daemon death spirals" by running periodic Docker cleanup.
+
+- **Script**: `scripts/docker_maintain.sh`.
+- **Docs**: [docs/operations/docker_maintenance.md](docs/operations/docker_maintenance.md).
+
 ### Automation Rules
 
 1. **Ansible-First**: Do not manually configure the server. Update `ansible/setup.yml`.
-2. **Verify**: Always run `scripts/run_tests.sh` before pushing.
+2. **Push Approval**: `git push origin` requires explicit, just-in-time user approval.
+3. **Verify**: Always run `scripts/run_tests.sh` before pushing.
 
 ## 5. Coding Standards
 
