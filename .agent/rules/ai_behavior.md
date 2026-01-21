@@ -60,7 +60,7 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
 - **System Verification**: New Ulauncher extensions or major system configurations (desktop entries, services) MUST be added to the `ansible/verify.yml` playbook.
 - **Test Runner**: Always run `./scripts/run_tests.sh` before finalizing work to ensure no regressions in linting, unit tests, or system state.
 - **Ansible Lint**: While some pre-existing debt exists, all *new* Ansible code should aim for zero legacy warnings. Use specific tasks instead of generic `shell` where possible.
-- **Validate Frontend Assets**: Before verification or deployment, MUST lint/validate all JavaScript and CSS files (e.g., using `eslint` or manual syntax checks) to prevent syntax errors that could break the UI.
+- **Strict Linting (All Files)**: ALL code (Python, Markdown, YAML, JS, CSS, etc.) MUST be linted via `pre-commit run --all-files` or `scripts/run_tests.sh`. Ensure syntax validity and best practices (including CSS/JS) before committing.
 
 ## 7. Development Workflow
 
