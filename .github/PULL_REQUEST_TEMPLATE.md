@@ -1,3 +1,5 @@
+# Pull Request
+
 ## Description
 
 Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context.
@@ -16,12 +18,14 @@ Fixes # (issue)
 How was this tested?
 
 **Automated Tests**:
+
 - [ ] `pytest tests/...`
 
 **Manual Verification**:
+
 - [ ] Steps taken...
 
-## Checklist:
+## Checklist
 
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas

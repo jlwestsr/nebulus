@@ -10,6 +10,7 @@ A containerized, general-purpose local AI ecosystem with extended tool access an
 **Complete documentation available in the [Nebulus Wiki](https://github.com/jlwestsr/nebulus/wiki)**
 
 ### Quick Links
+
 - **[Setup and Installation](https://github.com/jlwestsr/nebulus/wiki/Setup-and-Installation)** - Get started in minutes
 - **[CLI Reference](https://github.com/jlwestsr/nebulus/wiki/CLI-Reference)** - Master the `nebulus` command
 - **[Features](https://github.com/jlwestsr/nebulus/wiki/Features)** - Explore all capabilities
@@ -38,6 +39,7 @@ A containerized, general-purpose local AI ecosystem with extended tool access an
 ## Quick Start
 
 ### Prerequisites
+
 - Docker & Docker Compose
 - (Recommended) NVIDIA GPU with Container Toolkit
 
@@ -64,9 +66,11 @@ nebulus --help
 ```
 
 **Chat Commands:**
+
 - `/clear_all` - Bulk delete all chat history.
 
 **Common Commands:**
+
 ```bash
 nebulus up          # Start all services
 nebulus down        # Stop all services
@@ -82,14 +86,16 @@ See **[CLI Reference](https://github.com/jlwestsr/nebulus/wiki/CLI-Reference)** 
 ## Infrastructure
 
 Nebulus supports multi-cloud deployment via **Terraform**. Scaffolding is provided for:
+
 - **GCP** (Compute Engine)
 - **AWS** (EC2)
 - **Azure** (Virtual Models)
 
 **Usage**:
-1.  Navigate to `terraform/<provider>`.
-2.  Copy `terraform.tfvars.example` to `terraform.tfvars` and edit.
-3.  Run `terraform init && terraform apply`.
+
+1. Navigate to `terraform/<provider>`.
+2. Copy `terraform.tfvars.example` to `terraform.tfvars` and edit.
+3. Run `terraform init && terraform apply`.
 
 ## Features
 
@@ -97,26 +103,32 @@ Nebulus supports multi-cloud deployment via **Terraform**. Scaffolding is provid
 
 The custom MCP server provides AI agents with extended capabilities:
 
-**File Operations**
+#### File Operations
+
 - Read, write, and edit files in the workspace
 - List directories and search code
 
-**Web Access**
+#### Web Access
+
 - DuckDuckGo web search
 - URL scraping and content extraction
 
-**Terminal Access**
+#### Terminal Access
+
 - Safe command execution (whitelisted commands only)
 - Git operations, pytest, grep, find
 
-**Document Parsing**
+#### Document Parsing
+
 - PDF text extraction
 - DOCX document reading
 
-**Vision Support**
+#### Vision Support
+
 - Image analysis with `llama3.2-vision`
 
-**Task Automation**
+#### Task Automation
+
 - Schedule recurring AI tasks with cron
 - Email reports automatically
 - Web dashboard for task management
@@ -126,6 +138,7 @@ See **[MCP Server](https://github.com/jlwestsr/nebulus/wiki/MCP-Server)** for co
 ### 🧠 Long Term Memory (LTM)
 
 Nebulus uses ChromaDB to provide persistent memory for the AI:
+
 - **Conversation Storage**: Histories are indexed for semantic retrieval.
 - **User Preferences**: Remembers user-specific settings across sessions.
 - **Contextual Recall**: Automatically retrieves relevant past interactions.
@@ -165,6 +178,7 @@ See **[Features](https://github.com/jlwestsr/nebulus/wiki/Features)** for the co
 ## Contributing
 
 Contributions are welcome! Please see the **[Development Guide](https://github.com/jlwestsr/nebulus/wiki/Development-Guide)** for:
+
 - Coding standards (unit tests, type hints, documentation)
 - Git workflow (Git Flow)
 - Adding new MCP tools

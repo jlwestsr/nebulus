@@ -8,6 +8,7 @@
 **Nebulus** is a production-grade, containerized local AI ecosystem. It integrates **Ollama** (inference), **Open WebUI** (frontend), and **ChromaDB** (RAG) with a custom **MCP Server** to provide a secure, extensible platform for AI engineering.
 
 **Key Philosophy**:
+
 - **Privacy-First**: All data and inference remain local.
 - **Ansible-First**: All infrastructure changes are automated and version-controlled.
 - **Documentation-First**: Feature development starts with documentation in the [Wiki](https://github.com/jlwestsr/nebulus.wiki).
@@ -15,11 +16,13 @@
 ## 2. Technology Stack
 
 ### Core Infrastructure
+
 - **Runtime**: Docker & Docker Compose
 - **Language**: Python 3.12+ (managed via `uv`)
 - **Automation**: Ansible (System setup & verification)
 
 ### Services
+
 - **Inference**: [Ollama](https://ollama.com/) (Local LLMs)
 - **Frontend**: [Open WebUI](https://openwebui.com/) (Chat & UI Interface)
 - **Vector DB**: [ChromaDB](https://www.trychroma.com/) (Knowledge retrieval)
@@ -27,6 +30,7 @@
 - **Monitoring**: [Dozzle](https://dozzle.com/) (Real-time logs)
 
 ### CLI & Utilities
+
 - **CLI Framework**: `click` + `rich`
 - **Testing**: `pytest`
 - **Linting**: `black`, `flake8`, `pre-commit`
@@ -64,26 +68,32 @@ nebulus/
 We follow a strict **Git-Ops** & **Fork-Branch-PR** workflow.
 
 ### Git Rules
-1.  **Fork First**: Do not clone the main repo directly. Fork it to your account.
-2.  **Branch off `develop`**: Create feature branches from `develop`.
+
+1. **Fork First**: Do not clone the main repo directly. Fork it to your account.
+2. **Branch off `develop`**: Create feature branches from `develop`.
     - `feat/new-feature`
     - `fix/bug-fix`
     - `docs/update-readme`
-3.  **Pull Request**: Open PRs from your fork to `jlwestsr/nebulus:develop`.
-4.  **No Direct Commits**: `main` is protected.
+3. **Pull Request**: Open PRs from your fork to `jlwestsr/nebulus:develop`.
+4. **No Direct Commits**: `main` is protected.
 
 ### Automation Rules
-1.  **Ansible-First**: Do not manually configure the server. Update `ansible/setup.yml`.
-2.  **Verify**: Always run `scripts/run_tests.sh` before pushing.
+
+1. **Ansible-First**: Do not manually configure the server. Update `ansible/setup.yml`.
+2. **Verify**: Always run `scripts/run_tests.sh` before pushing.
 
 ## 5. Coding Standards
 
 ### Python
+
 - **Type Hints**: **MANDATORY** for all function signatures.
+
   ```python
   def execute(command: str, timeout: int = 30) -> str:
   ```
+
 - **Docstrings**: **MANDATORY** for all public functions (Google Style).
+
   ```python
   """Executes a shell command safely.
 
@@ -95,12 +105,14 @@ We follow a strict **Git-Ops** & **Fork-Branch-PR** workflow.
       Stdout of the command.
   """
   ```
+
 - **Formatting**: Code must pass `black` and `flake8` (max-line-length: 88).
 
 ### Security
-1.  **Path Validation**: All file operations must use `_validate_path()` to prevent traversal attacks.
-2.  **Command Execution**: Use explicit allowlists for `subprocess`. Never use `shell=True` with user input.
-3.  **Secrets**: Never commit secrets. Use `.env` file (template in `.env.example`).
+
+1. **Path Validation**: All file operations must use `_validate_path()` to prevent traversal attacks.
+2. **Command Execution**: Use explicit allowlists for `subprocess`. Never use `shell=True` with user input.
+3. **Secrets**: Never commit secrets. Use `.env` file (template in `.env.example`).
 
 ## 6. Resources documentation
 

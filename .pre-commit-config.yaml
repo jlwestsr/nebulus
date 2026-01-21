@@ -26,6 +26,12 @@ repos:
         additional_dependencies: ["ansible-core>=2.16"]
         language_version: python3.12
 
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        args: ["--fix"]
+
   - repo: local
     hooks:
       - id: pytest
