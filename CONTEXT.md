@@ -40,7 +40,7 @@
 ---
 
 nebulus/
-├── agent/               # Antigravity AI Settings
+├── .agent/              # Antigravity AI Settings
 │   ├── rules/           # AI Behavior Rules
 │   └── workflows/       # On-demand Agent Tasks
 ├── ansible/             # Infrastructure automation
