@@ -11,13 +11,13 @@ This document outlines the specific operational standards and behavioral expecta
 When opening a project, the Google Antigravity IDE looks first for rules in the local workspace folder before falling back to global system-wide rules.
 
 ### Rule Locations
-- **Workspace Rules**: The IDE first checks the project's local directory at `your-workspace/agent/rules/`. It may also load configuration from files like `.cursorrules` or `.antigravity/rules.md` within the workspace root.
+- **Workspace Rules**: The IDE first checks the project's local directory at `your-workspace/.agent/rules/`. It may also load configuration from files like `.cursorrules` or `.antigravity/rules.md` within the workspace root.
 - **Global Rules**: If no workspace-specific rules are found, the IDE uses the global rule file at `~/.gemini/GEMINI.md`.
 
 ### Directory Structure & Use Cases
 | Type | Default File Path | Use Case |
 |------|-------------------|----------|
-| **Workspace Rule** | `your-workspace/agent/rules/` | Project-specific coding standards or restrictions. |
+| **Workspace Rule** | `your-workspace/.agent/rules/` | Project-specific coding standards or restrictions. |
 | **Global Rule** | `~/.gemini/GEMINI.md` | Universal behavior guidelines across all projects. |
 | **Workspace Workflow** | `your-workspace/agent/workflows/` | On-demand tasks (e.g., `/generate-unit-tests`). |
 | **Global Workflow** | `~/.gemini/antigravity/global_workflows/` | Reusable prompts available in every workspace. |
@@ -62,26 +62,38 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
 - **Security**: Never commit `~/.ssh/` keys or personal tokens. If a script needs to check for them, it should do so without exposing contents.
 - **Git Tracking & Branching**:
     - **NO DIRECT WORK ON MAIN/MASTER**. This branch is for production releases only.
-    - **Chores**: Minor maintenance or documentation ("chore" work) may be done directly on the `develop` branch.
-    - **Features/Bugs**: ALL other work (features, bug fixes, refactors) MUST be done on a new branch (e.g., `feat/...`, `fix/...`) created from `develop`.
+    - **Strict Local Branch Policy**: `feat`, `fix`, `docs`, and `chore` branches are **LOCAL ONLY**. Never push them to origin. Only `develop` and `main` branches are allowed on the remote.
     - Always merge `develop` into your feature branch before requesting a merge back.
 
-## 8. Feature Implementation Workflow
-When given a directive to work through a feature, follow these steps strictly:
-0.  **Create Feature Document**: Create a new file in `docs/features/` using the content from `docs/feature_template.md`. This MUST be the first step to define the feature scope.
-1.  **Create a Branch**: Create a new git branch to do the work (e.g., `git checkout -b feat/feature-name`).
-2.  **Do the Work**: Implement the changes, following all coding standards and guardrails.
-3.  **Test the Work**: Run standard tests (`pytest`, `flake8`) and add new tests as required. Ensure all pass.
-4.  **Document the Work**: Update relevant documentation (README, feature docs, walkthrough).
-5.  **Commit, Merge, and Push**:
-    - Commit changes with conventional messages.
-    - Switch to the main development branch (e.g., `develop`).
-    - Merge the feature branch.
-    - Push the updated branch to the remote.
+### 7.1 Workflows by Commit Type
+Adhere to the specific strict workflow for each commit type:
 
-## 9. Frontend Best Practices
-- **Technologies**: Use Vanilla JS, HTML, and CSS (or SCSS) unless a framework is explicitly requested.
-- **Namespacing**: Avoid polluting the global window object. Wrap unrelated logic in a global application object (e.g., `MyApp = { ... }`).
-- **AJAX**: Use `fetch` (with `async/await`) for all network requests. Ensure robust error handling (try/catch blocks).
-- **CSS**: Use specific classes over IDs for styling. Avoid inline styles.
-- **HTML Templates**: Large HTML strings should be extracted into constants or template functions to keep logic clean.
+#### 7.1.1 Feature (`feat`)
+1.  **Docs**: Create `docs/features/name.md` from template.
+2.  **Branch**: `git checkout -b feat/feature-name`
+3.  **Work**: Implement changes.
+4.  **Verify**: Run `scripts/run_tests.sh`.
+5.  **Merge**: `git merge feat/feature-name` into `develop`.
+6.  **Push**: **CRITICAL**: Ask for permission -> `git push origin develop`.
+
+#### 7.1.2 Bug Fix (`fix`)
+1.  **Reproduce**: Create failing test/script.
+2.  **Branch**: `git checkout -b fix/issue-description`
+3.  **Fix**: Implement fix.
+4.  **Verify**: Pass reproduction script AND `scripts/run_tests.sh`.
+5.  **Merge**: `git merge fix/issue-description` into `develop`.
+6.  **Push**: **CRITICAL**: Ask for permission -> `git push origin develop`.
+
+#### 7.1.3 Documentation (`docs`)
+1.  **Branch**: `git checkout -b docs/description`
+2.  **Work**: Update `README.md`, `docs/`, or artifacts.
+3.  **Verify**: Check rendering and links.
+4.  **Merge**: `git merge docs/description` into `develop`.
+5.  **Push**: **CRITICAL**: Ask for permission -> `git push origin develop`.
+
+#### 7.1.4 Maintenance (`chore`)
+1.  **Branch**: `git checkout -b chore/description`
+2.  **Work**: Update configs, dependencies, or gitignore.
+3.  **Verify**: Run `scripts/run_tests.sh`.
+4.  **Merge**: `git merge chore/description` into `develop`.
+5.  **Push**: **CRITICAL**: Ask for permission -> `git push origin develop`.
