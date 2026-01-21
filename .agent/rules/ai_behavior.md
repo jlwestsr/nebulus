@@ -65,7 +65,7 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
 ## 7. Development Workflow
 
 - **Conventional Commits**: Use `feat:`, `fix:`, `docs:`, or `chore:` prefixes.
-- **Python Environment (PEP 668)**: On Ubuntu 24.04, always use `--user --break-system-packages` for persistent system-level Python tool/dependency installation, OR use the project's `./venv/`.
+- **Python Environment**: **MANDATORY**. You must use the project's local virtual environment (`.venv/`). Do NOT use global system packages or other environments. Activate it immediately in the terminal via `source .venv/bin/activate` if not already active.
 - **Node.js**: Use `community.general.npm` with `global: true` for system-wide CLI tools. Ensure `nodejs` and `npm` are installed via `apt` in the `common` role first.
 - **Verification**: After applying an Ansible role, run `ansible-playbook ansible/verify.yml` to ensure the system state matches the intended configuration.
 - **Security**: Never commit `~/.ssh/` keys or personal tokens. If a script needs to check for them, it should do so without exposing contents.
