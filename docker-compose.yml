@@ -22,7 +22,8 @@ services:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [ gpu ]
+              capabilities:
+                - gpu
 
   dozzle:
     image: amir20/dozzle:latest

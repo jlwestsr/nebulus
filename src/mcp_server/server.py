@@ -15,7 +15,6 @@ from scheduler import TaskScheduler
 from db import LTMClient
 from pydantic import BaseModel
 
-
 # Initialize FastMCP
 mcp = FastMCP("Black Box Tools")
 

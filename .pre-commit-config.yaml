@@ -9,7 +9,7 @@ repos:
       - id: check-added-large-files
 
   - repo: https://github.com/psf/black
-    rev: 25.12.0
+    rev: 26.1.0
     hooks:
       - id: black
 
@@ -17,6 +17,14 @@ repos:
     rev: 7.3.0
     hooks:
       - id: flake8
+
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v26.1.1
+    hooks:
+      - id: ansible-lint
+        files: \.(yaml|yml)$
+        additional_dependencies: ["ansible-core>=2.16"]
+        language_version: python3.12
 
   - repo: local
     hooks:
