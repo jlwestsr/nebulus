@@ -32,6 +32,7 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
 - **Linting Compliance**: All code must pass `flake8` checks. If new code introduces linting errors, the agent must fix them immediately.
 - **No Shadow Logic**: Do not implement business logic that isn't requested in requirements. If a logic choice is ambiguous, use `notify_user` to clarify.
 - **Ansible-First**: Do not run manual `apt install`, `pip install`, or configuration edits unless experimenting. Once confirmed, IMMEDIATELY port the change to an Ansible role.
+- **Push Authorization**: All `git push` commands to `origin` require explicit, just-in-time user approval. The agent must ask for permission (or use `notify_user` if in task mode) before executing the push.
 
 ## 2. Research & Discovery
 
@@ -72,6 +73,7 @@ Rules control the autonomous agent's behavior. They can enforce coding styles or
 - **Git Tracking & Branching**:
   - **NO DIRECT WORK ON MAIN/MASTER**. This branch is for production releases only.
   - **Strict Local Branch Policy**: `feat`, `fix`, `docs`, and `chore` branches are **LOCAL ONLY**. Never push them to origin. Only `develop` and `main` branches are allowed on the remote.
+  - **Push Authorization**: All pushes to `origin` require explicit, just-in-time user approval.
   - Always merge `develop` into your feature branch before requesting a merge back.
   - Always merge `develop` into your feature branch before requesting a merge back.
 
