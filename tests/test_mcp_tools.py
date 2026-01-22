@@ -3,6 +3,7 @@ import shutil
 import unittest
 from unittest.mock import patch, MagicMock
 import sys
+import asyncio
 import subprocess
 
 # Add mcp_server to path
@@ -39,7 +40,7 @@ with patch("mcp.server.fastmcp.FastMCP", return_value=mock_mcp):
     )
 
 
-class TestMCPTools(unittest.TestCase):
+class TestMCPTools(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         # Create a dummy workspace for testing
         self.test_dir = os.path.abspath("tests/test_workspace")
@@ -131,11 +132,14 @@ class TestMCPTools(unittest.TestCase):
         result = run_command("echo test_timeout")
         self.assertIn("Error: Command timed out", result)
 
-    @patch("httpx.Client")
-    def test_scrape_url(self, mock_client_cls):
+    @patch("httpx.AsyncClient")
+    async def test_scrape_url(self, mock_client_cls):
         # Mock client context manager
         mock_client = MagicMock()
-        mock_client_cls.return_value.__enter__.return_value = mock_client
+
+        # Async context manager mocks
+        mock_client_cls.return_value.__aenter__.return_value = mock_client
+        mock_client_cls.return_value.__aexit__.return_value = None
 
         # Mock response
         mock_response = MagicMock()
@@ -144,10 +148,14 @@ class TestMCPTools(unittest.TestCase):
             "<html><body><h1>Title</h1><p>Content  with  spaces</p>"
             "<script>var x=1;</script></body></html>"
         )
-        mock_client.get.return_value = mock_response
+
+        # Make get return an awaitable that resolves to mock_response
+        future = asyncio.Future()
+        future.set_result(mock_response)
+        mock_client.get.return_value = future
 
         # Call scrape_url
-        result = scrape_url("https://example.com")
+        result = await scrape_url("https://example.com")
 
         # Verify
         self.assertIn("Title", result)
@@ -155,6 +163,8 @@ class TestMCPTools(unittest.TestCase):
         self.assertNotIn("var x=1", result)  # Script should be removed
 
         # Verify call arguments
+        # Since it's async, we check if it was called (arguments verification depends on how AsyncClient was instantiated)
+        # But we mocked the class return value, so we can check the instance.
         mock_client.get.assert_called_with(
             "https://example.com",
             headers={
@@ -167,8 +177,12 @@ class TestMCPTools(unittest.TestCase):
         )
 
         # Test request error
-        mock_client.get.side_effect = Exception("Connection error")
-        result = scrape_url("https://example.com")
+        future_error = asyncio.Future()
+        future_error.set_exception(Exception("Connection error"))
+        mock_client.get.side_effect = None  # Reset side_effect if any from previous
+        mock_client.get.return_value = future_error
+
+        result = await scrape_url("https://example.com")
         self.assertIn("Unexpected error", result)
 
     @patch("subprocess.run")

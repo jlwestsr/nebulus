@@ -13,6 +13,19 @@ dependencies = [
     "numpy",
     "pandas",
     "scikit-learn",
+    "click",
+    "rich",
+    "httpx",
+    "pydantic",
+    "google-api-python-client",
+    "mcp",
+    "duckduckgo-search",
+    "beautifulsoup4",
+    "python-docx",
+    "pypdf",
+    "apscheduler",
+    "chromadb",
+    "sqlalchemy",
 ]
 
 [project.scripts]
@@ -21,6 +34,11 @@ nebulus = "src.cli:cli"
 
 
 # --- Black Configuration ---
+# --- Setuptools Configuration ---
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src"]
+
 [tool.black]
 line-length = 88
 target-version = ['py310', 'py311']

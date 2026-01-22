@@ -15,6 +15,11 @@ services:
       - ai-network
     ports:
       - "11435:11434"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     # Uncomment to enable GPU support (requires nvidia-container-toolkit)
     deploy:
       resources:
@@ -37,6 +42,16 @@ services:
       - DOZZLE_LEVEL=info
     networks:
       - ai-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   chromadb:
     image: chromadb/chroma:latest
@@ -50,6 +65,16 @@ services:
       - "8001:8000"
     networks:
       - ai-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mcp-server:
     build: ./src/mcp_server
@@ -68,6 +93,16 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - EMAIL_FROM=${EMAIL_FROM}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
@@ -83,6 +118,16 @@ services:
       - ai-network
     depends_on:
       - ollama
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   ai-network:
