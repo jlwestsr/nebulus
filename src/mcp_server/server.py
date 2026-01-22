@@ -5,7 +5,7 @@ import subprocess
 import shlex
 import re
 import httpx
-from bs4 import BeautifulSoup
+from selectolax.parser import HTMLParser
 from starlette.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
 from starlette.requests import Request
@@ -212,7 +212,7 @@ def run_command(command: str) -> str:
 
 # Tool: Scrape URL
 @mcp.tool()
-def scrape_url(url: str) -> str:
+async def scrape_url(url: str) -> str:
     """Scrape and parse the textual content of a webpage."""
     if not (url.startswith("http://") or url.startswith("https://")):
         return "Error: Invalid URL. Must start with http:// or https://"
@@ -225,18 +225,21 @@ def scrape_url(url: str) -> str:
                 "Chrome/91.0.4472.124 Safari/537.36"
             )
         }
-        with httpx.Client(timeout=15.0, follow_redirects=True) as client:
-            response = client.get(url, headers=headers)
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            response = await client.get(url, headers=headers)
             response.raise_for_status()
 
-            soup = BeautifulSoup(response.text, "html.parser")
+            tree = HTMLParser(response.text)
 
             # Remove scripts and styles
-            for script in soup(["script", "style"]):
-                script.decompose()
+            for tag in tree.css("script, style"):
+                tag.decompose()
 
             # Get text
-            text = soup.get_text(separator="\n")
+            if tree.body:
+                text = tree.body.text(separator="\n", strip=True)
+            else:
+                text = tree.text(separator="\n", strip=True)
 
             # Clean whitespace
             lines = (line.strip() for line in text.splitlines())
@@ -301,18 +304,93 @@ def search_code(query: str, path: str = ".") -> str:
 
 
 # Tool: Web Search
-@mcp.tool()
-def search_web(query: str, max_results: int = 5) -> str:
-    """Search the web using DuckDuckGo."""
+def _search_google_api(query: str, max_results: int) -> list[str]:
+    """Helper for Google Custom Search API."""
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    cse_id = os.environ.get("GOOGLE_CSE_ID")
+
+    if not api_key or not cse_id:
+        raise ValueError(
+            "Error: Google Search requires GOOGLE_API_KEY and GOOGLE_CSE_ID "
+            "environment variables."
+        )
+
     try:
-        results = DDGS().text(query, max_results=max_results)
+        from googleapiclient.discovery import build
+
+        service = build("customsearch", "v1", developerKey=api_key)
+        result = service.cse().list(q=query, cx=cse_id, num=max_results).execute()
+
+        items = result.get("items", [])
+        return [
+            f"Title: {item.get('title')}\n"
+            f"Link: {item.get('link')}\n"
+            f"Snippet: {item.get('snippet')}\n"
+            for item in items
+        ]
+    except ImportError:
+        raise ImportError("Error: google-api-python-client not installed.")
+
+
+def _search_ddg(query: str, max_results: int) -> list[str]:
+    """Helper for DuckDuckGo Search."""
+    results = DDGS().text(query, max_results=max_results)
+    return [
+        f"Title: {result['title']}\n"
+        f"Link: {result['href']}\n"
+        f"Snippet: {result['body']}\n"
+        for result in results
+    ]
+
+
+def _search_google_fallback(query: str, max_results: int) -> list[str]:
+    """Helper for Google Search Fallback (Scraper)."""
+    try:
+        from googlesearch import search
+
+        # advanced=True yields objects with title, url, description
+        g_results = search(query, num_results=max_results, advanced=True)
         formatted_results = []
-        for result in results:
+        for res in g_results:
             formatted_results.append(
-                f"Title: {result['title']}\n"
-                f"Link: {result['href']}\n"
-                f"Snippet: {result['body']}\n"
+                f"Title: {res.title}\n"
+                f"Link: {res.url}\n"
+                f"Snippet: {res.description}\n"
             )
+        return formatted_results
+    except Exception as e:
+        print(f"Google fallback failed: {e}")
+        return []
+
+
+@mcp.tool()
+def search_web(query: str, max_results: int = 5, engine: str = "duckduckgo") -> str:
+    """
+    Search the web using DuckDuckGo or Google.
+    Args:
+        query: Search query
+        max_results: Number of results to return (default: 5)
+        engine: "duckduckgo" (default) or "google"
+    """
+    try:
+        formatted_results = []
+
+        if engine.lower() == "google":
+            try:
+                formatted_results = _search_google_api(query, max_results)
+            except (ValueError, ImportError) as e:
+                return str(e)
+        else:
+            # Default to DuckDuckGo
+            formatted_results = _search_ddg(query, max_results)
+
+        if not formatted_results:
+            # Fallback to Google Search (Scraper)
+            formatted_results = _search_google_fallback(query, max_results)
+
+        if not formatted_results:
+            return "No results found."
+
         return "\n---\n".join(formatted_results)
     except Exception as e:
         return f"Error performing search: {str(e)}"
