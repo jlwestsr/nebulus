@@ -56,12 +56,18 @@ nebulus/
 │   ├── create_worktree.sh # Git Worktree helper
 │   └── docker_maintain.sh # Docker cleanup script
 ├── src/                 # Application Source Code (MANDATORY)
-│   ├── cli.py           # CLI Entry Point (linked to ~/.local/bin/nebulus)
+│   ├── cli.py           # CLI Entry Point
 │   ├── core/            # Core Logic (Memory, Utils)
 │   └── mcp_server/      # Custom Tool Server
+│       ├── benchmark.py # Performance testing
+│       ├── db.py        # Database client
+│       ├── scheduler.py # Task scheduler
 │       ├── server.py    # MCP Tool definitions
 │       └── static/      # Dashboard UI
-└── tests/               # Unit and Integration tests
+├── terraform/           # GCP Infrastructure
+├── tests/               # Unit and Integration tests
+├── nebulus.py           # CLI Entry Script
+└── requirements.txt     # Python Dependencies
 
 ---
 
@@ -131,8 +137,8 @@ Prevent "daemon death spirals" by running periodic Docker cleanup.
 2. **Command Execution**: Use explicit allowlists for `subprocess`. Never use `shell=True` with user input.
 3. **Secrets**: Never commit secrets. Use `.env` file (template in `.env.example`).
 
-## 6. Resources documentation
+## 6. Resources & Documentation
 
 - **[Nebulus Wiki](https://github.com/jlwestsr/nebulus.wiki)**: Complete documentation.
-- **development Guide**: See [Wiki/Development-Guide](https://github.com/jlwestsr/nebulus.wiki/blob/master/Development-Guide.md).
+- **Development Guide**: See [Wiki/Development-Guide](https://github.com/jlwestsr/nebulus.wiki/blob/master/Development-Guide.md).
 - **Bug Reports**: Use the [Issue Template](.github/ISSUE_TEMPLATE/bug_report.md).
