@@ -1,5 +1,5 @@
 from mcp.server.fastmcp import FastMCP
-from ddgs import DDGS
+from duckduckgo_search import DDGS
 import os
 import subprocess
 import shlex

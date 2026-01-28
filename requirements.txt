@@ -9,7 +9,7 @@ httpx
 pydantic
 google-api-python-client
 mcp
-ddgs
+duckduckgo-search
 beautifulsoup4
 python-docx
 pypdf

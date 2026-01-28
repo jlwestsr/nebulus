@@ -14,6 +14,13 @@ def runner():
     return CliRunner()
 
 
+@pytest.fixture(autouse=True)
+def mock_linux_platform():
+    """Mocks sys.platform to 'linux' for all tests by default."""
+    with patch("sys.platform", "linux"):
+        yield
+
+
 @patch("src.cli.subprocess.run")
 @patch("src.cli.run_interactive")
 def test_up(mock_interactive, mock_run, runner):
@@ -154,10 +161,20 @@ def test_rebuild(mock_run, runner):
 
 def test_help(runner):
     """Verifies that 'help' command shows the main help message."""
-    result = runner.invoke(cli, ["help"])
-    assert result.exit_code == 0
-    assert "Nebulus Manager - Manage your AI ecosystem." in result.output
-    assert "Commands:" in result.output
+    # Mock sys.platform to be linux for this test to pass
+    with patch("sys.platform", "linux"):
+        result = runner.invoke(cli, ["help"])
+        assert result.exit_code == 0
+        assert "Nebulus Prime Manager - Manage your AI ecosystem." in result.output
+        assert "Commands:" in result.output
+
+
+def test_linux_only_enforcement(runner):
+    """Verifies that CLI exits on non-Linux platforms."""
+    with patch("sys.platform", "darwin"):
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 1
+        assert "Nebulus Prime is a Linux-only system." in result.output
 
 
 @patch("src.cli.subprocess.run")

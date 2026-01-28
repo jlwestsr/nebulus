@@ -72,8 +72,12 @@ def run_interactive(command: List[str]) -> None:
 @click.group()
 @click.version_option(__version__)
 def cli() -> None:
-    """Nebulus Manager - Manage your AI ecosystem."""
-    pass
+    """Nebulus Prime Manager - Manage your AI ecosystem."""
+    if sys.platform != "linux":
+        console.print(
+            "[bold red]Error:[/bold red] Nebulus Prime is a Linux-only system."
+        )
+        sys.exit(1)
 
 
 @cli.command()

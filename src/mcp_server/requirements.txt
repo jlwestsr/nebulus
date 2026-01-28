@@ -1,7 +1,7 @@
 mcp[cli]
 fastapi
 uvicorn
-ddgs
+duckduckgo-search
 beautifulsoup4
 apscheduler
 sqlalchemy

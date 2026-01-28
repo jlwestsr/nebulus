@@ -1,0 +1,36 @@
+---
+- name: Bootstrap ai_project
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    required_packages:
+      - git
+      - python3
+      - python3-venv
+      - python3-pip
+
+  tasks:
+    - name: Ensure APT packages are installed (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: ""
+        state: present
+        update_cache: true
+      loop: ""
+      when: ansible_os_family == "Debian"
+      become: true
+
+    - name: Ensure Git is installed (Generic fallback)
+      ansible.builtin.package:
+        name: git
+        state: present
+      when: ansible_os_family != "Debian"
+
+    - name: Verify Python version
+      ansible.builtin.command: python3 --version
+      register: python_version
+      changed_when: false
+
+    - name: Display Python version
+      ansible.builtin.debug:
+        msg: "Found Python: "

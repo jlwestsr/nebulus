@@ -1,6 +1,6 @@
-# Nebulus - Black Box AI System
+# Nebulus Prime - Linux-only AI System
 
-A containerized, general-purpose local AI ecosystem with extended tool access and automation capabilities.
+A production-grade, containerized local AI ecosystem for Linux.
 
 > [!WARNING]
 > **Use at your own risk.** This project allows AI models to read local files and browse the internet. Ensure you review all code and run in a safe environment.

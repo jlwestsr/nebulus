@@ -5,10 +5,11 @@
 
 ## 1. Project Overview
 
-**Nebulus** is a production-grade, containerized local AI ecosystem. It integrates **Ollama** (inference), **Open WebUI** (frontend), and **ChromaDB** (RAG) with a custom **MCP Server** to provide a secure, extensible platform for AI engineering.
+**Nebulus Prime** is a production-grade, containerized local AI ecosystem for Linux. It integrates **Ollama** (inference), **Open WebUI** (frontend), and **ChromaDB** (RAG) with a custom **MCP Server** to provide a secure, extensible platform for AI engineering.
 
 **Key Philosophy**:
 
+- **Linux Native**: Exclusively designed for the Linux kernel.
 - **Privacy-First**: All data and inference remain local.
 - **Ansible-First**: All infrastructure changes are automated and version-controlled.
 - **Documentation-First**: Feature development starts with documentation in the [Wiki](https://github.com/jlwestsr/nebulus.wiki).
