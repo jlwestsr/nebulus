@@ -72,8 +72,12 @@ def run_interactive(command: List[str]) -> None:
 @click.group()
 @click.version_option(__version__)
 def cli() -> None:
-    """Nebulus Manager - Manage your AI ecosystem."""
-    pass
+    """Nebulus Prime Manager - Manage your AI ecosystem."""
+    if sys.platform != "linux":
+        console.print(
+            "[bold red]Error:[/bold red] Nebulus Prime is a Linux-only system."
+        )
+        sys.exit(1)
 
 
 @cli.command()
@@ -81,6 +85,47 @@ def cli() -> None:
 def help(ctx) -> None:
     """Show this message and exit."""
     click.echo(ctx.parent.get_help())
+
+
+@cli.group()
+def model() -> None:
+    """Manage AI models."""
+    pass
+
+
+@model.command()
+@click.argument("repo_id")
+@click.option("--revision", "-r", help="Model revision (e.g., 6.0bpw)")
+def get(repo_id: str, revision: Optional[str]) -> None:
+    """Download a model from Hugging Face."""
+    console.print(f"[bold cyan]Downloading {repo_id}...[/bold cyan]")
+    cmd = ["python3", "scripts/download_model.py", repo_id]
+    if revision:
+        cmd.extend(["--revision", revision])
+    run_interactive(cmd)
+
+
+@model.command()
+def list() -> None:
+    """List downloaded models."""
+    models_dir = Path("models")
+    if not models_dir.exists():
+        console.print("[yellow]No models found.[/yellow]")
+        return
+
+    table = Table(title="Downloaded Models")
+    table.add_column("Name", style="cyan")
+    table.add_column("Size", style="green")
+
+    for model_path in models_dir.iterdir():
+        if model_path.is_dir():
+            size_bytes = sum(
+                f.stat().st_size for f in model_path.rglob("*") if f.is_file()
+            )
+            size_gb = size_bytes / (1024**3)
+            table.add_row(model_path.name, f"{size_gb:.2f} GB")
+
+    console.print(table)
 
 
 @cli.command()
@@ -116,7 +161,7 @@ def up() -> None:
         ("Dozzle (Logs)", "http://localhost:8888"),
         ("MCP Server Dashboard", "http://localhost:8002/static/index.html"),
         ("ChromaDB", "http://localhost:8001/docs"),
-        ("Ollama", "http://localhost:11435"),
+        ("TabbyAPI", "http://localhost:5000/v1/models"),
     ]
 
     for name, url in services:
@@ -178,7 +223,7 @@ def rebuild(service: Optional[str]) -> None:
 
 
 @cli.command()
-@click.argument("service", required=False)
+@click.argument("service", required=False, default="tabby")
 def logs(service: Optional[str]) -> None:
     """Stream service logs."""
     cmd = ["docker", "compose", "logs", "-f"]
@@ -199,7 +244,7 @@ def status() -> None:
     table.add_column("Status", justify="center")
 
     services = [
-        ("Ollama", "http://localhost:11435/api/tags", "11435"),
+        ("TabbyAPI", "http://localhost:5000/v1/models", "5000"),
         ("ChromaDB", "http://localhost:8001/api/v2/heartbeat", "8001"),
         ("MCP Server", "http://localhost:8002/health", "8002"),
         ("Open WebUI", "http://localhost:3000/health", "3000"),

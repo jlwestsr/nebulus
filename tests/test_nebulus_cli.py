@@ -14,6 +14,13 @@ def runner():
     return CliRunner()
 
 
+@pytest.fixture(autouse=True)
+def mock_linux_platform():
+    """Mocks sys.platform to 'linux' for all tests by default."""
+    with patch("sys.platform", "linux"):
+        yield
+
+
 @patch("src.cli.subprocess.run")
 @patch("src.cli.run_interactive")
 def test_up(mock_interactive, mock_run, runner):
@@ -45,7 +52,7 @@ def test_up(mock_interactive, mock_run, runner):
         "http://localhost:8002/static/index.html" in result.output
     )  # MCP Server (New Port)
     assert "http://localhost:8001/docs" in result.output  # ChromaDB
-    assert "http://localhost:11435" in result.output  # Ollama
+    assert "http://localhost:5000/v1/models" in result.output  # TabbyAPI
 
 
 @patch("src.cli.subprocess.run")
@@ -83,7 +90,7 @@ def test_status_online(mock_get, runner):
     assert "ONLINE" in result.output
     assert "ONLINE" in result.output
     assert "Open WebUI" in result.output
-    assert "Ollama" in result.output
+    assert "TabbyAPI" in result.output
 
 
 @patch("src.cli.httpx.get")
@@ -154,18 +161,38 @@ def test_rebuild(mock_run, runner):
 
 def test_help(runner):
     """Verifies that 'help' command shows the main help message."""
-    result = runner.invoke(cli, ["help"])
-    assert result.exit_code == 0
-    assert "Nebulus Manager - Manage your AI ecosystem." in result.output
-    assert "Commands:" in result.output
+    # Mock sys.platform to be linux for this test to pass
+    with patch("sys.platform", "linux"):
+        result = runner.invoke(cli, ["help"])
+        assert result.exit_code == 0
+        assert "Nebulus Prime Manager - Manage your AI ecosystem." in result.output
+        assert "Commands:" in result.output
+
+
+def test_linux_only_enforcement(runner):
+    """Verifies that CLI exits on non-Linux platforms."""
+    with patch("sys.platform", "darwin"):
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 1
+        assert "Nebulus Prime is a Linux-only system." in result.output
 
 
 @patch("src.cli.subprocess.run")
 def test_logs(mock_run, runner):
     """Verifies that 'logs' calls the correct docker command."""
-    result = runner.invoke(cli, ["logs", "gantry"])
+    result = runner.invoke(cli, ["logs"])
     assert result.exit_code == 0
-    mock_run.assert_called_with(["docker", "compose", "logs", "-f", "gantry"])
+    mock_run.assert_called_with(["docker", "compose", "logs", "-f", "tabby"])
+
+
+@patch("src.cli.run_interactive")
+def test_model_get(mock_interactive, runner):
+    """Verifies 'model get' calls the download script."""
+    result = runner.invoke(cli, ["model", "get", "repo/id"])
+    assert result.exit_code == 0
+    mock_interactive.assert_called_with(
+        ["python3", "scripts/download_model.py", "repo/id"]
+    )
 
 
 @patch("src.cli.run_command")

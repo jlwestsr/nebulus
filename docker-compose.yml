@@ -1,26 +1,22 @@
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    pull_policy: always
-    tty: true
+  tabby:
+    image: ghcr.io/theroyallab/tabbyapi:latest
+    container_name: tabby
     restart: unless-stopped
     environment:
-      - OLLAMA_CONTEXT_LENGTH=32768
-      - OLLAMA_FLASH_ATTENTION=1
-      - OLLAMA_KV_CACHE_TYPE=q4_0
+      - NVIDIA_VISIBLE_DEVICES=all
     volumes:
-      - ollama_data:/root/.ollama
+      - ./models:/app/models
+      - ./config/tabby/config.yml:/app/config.yml
     networks:
       - ai-network
     ports:
-      - "11435:11434"
+      - "5000:5000"
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    # Uncomment to enable GPU support (requires nvidia-container-toolkit)
     deploy:
       resources:
         reservations:
@@ -113,11 +109,12 @@ services:
     volumes:
       - webui_data:/app/backend/data
     environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - OPENAI_API_BASE_URL=http://tabby:5000/v1
+      - OPENAI_API_KEY=dummy
     networks:
       - ai-network
     depends_on:
-      - ollama
+      - tabby
     deploy:
       resources:
         limits:
@@ -134,6 +131,6 @@ networks:
     driver: bridge
 
 volumes:
-  ollama_data:
+  models_data:
   chroma_data:
   webui_data:

@@ -1,0 +1,11 @@
+network:
+  host: 0.0.0.0
+  port: 5000
+  disable_auth: true  # We use firewall/docker network for security
+
+logging:
+  prompt: false
+  generation: true
+
+# Models are loaded dynamically via API, but we can set a default here if needed.
+# For now, we leave it empty and let the user load via UI or API.

@@ -5,7 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nebulus"
 version = "0.1.0"
-description = "Production-grade AI Project"
+description = "Nebulus Prime - Linux-only AI System"
+readme = "README.md"
 authors = [{name = "User", email = "labs@example.com"}]
 requires-python = ">=3.10"
 license = {text = "MIT"}
