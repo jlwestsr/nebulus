@@ -1,11 +1,67 @@
 network:
+  # Host to bind to (default: 127.0.0.1).
   host: 0.0.0.0
+  # Port to bind to (default: 5000).
   port: 5000
-  disable_auth: true  # We use firewall/docker network for security
+  # Disable HTTP token authentication with requests.
+  disable_auth: true
+  # Disable fetching external content in response to requests.
+  disable_fetch_requests: false
+  # Send tracebacks over the API (default: False).
+  send_tracebacks: false
+  # Select API servers to enable.
+  api_servers: ["OAI"]
 
 logging:
-  prompt: false
-  generation: true
+  log_prompt: false
+  log_generation_params: false
+  log_requests: false
 
-# Models are loaded dynamically via API, but we can set a default here if needed.
-# For now, we leave it empty and let the user load via UI or API.
+model:
+  model_dir: models
+  inline_model_loading: true  # Allow loading via API
+  use_dummy_models: false
+  dummy_model_names: ["gpt-3.5-turbo"]
+  model_name:  # Empty start
+  use_as_default: []
+  backend:
+  max_seq_len:
+  cache_size:
+  cache_mode: FP16
+  tensor_parallel: false
+  tensor_parallel_backend: native
+  gpu_split_auto: true
+  autosplit_reserve: [96]
+  gpu_split: []
+  rope_scale: 1.0
+  rope_alpha:
+  chunk_size: 2048
+  output_chunking: true
+  max_batch_size:
+  prompt_template:
+  vision: false
+
+draft_model:
+  draft_model_dir: models
+  draft_model_name:
+  draft_rope_scale: 1.0
+  draft_rope_alpha:
+  draft_cache_mode: FP16
+  draft_gpu_split: []
+
+sampling:
+  override_preset: safe_defaults
+
+lora:
+  lora_dir: loras
+  loras:
+
+embeddings:
+  embedding_model_dir: models
+  embeddings_device: cpu
+  embedding_model_name:
+
+developer:
+  unsafe_launch: false
+  disable_request_streaming: false
+  realtime_process_priority: false

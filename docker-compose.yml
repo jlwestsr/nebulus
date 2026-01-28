@@ -7,7 +7,12 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     volumes:
       - ./models:/app/models
-      - ./config/tabby/config.yml:/app/config.yml
+      - ./config/tabby:/app/config_mount
+    entrypoint:
+      - /bin/sh
+      - -c
+    command: >
+      "cp /app/config_mount/config.yml /app/config.yml && python3 main.py"
     networks:
       - ai-network
     ports:
