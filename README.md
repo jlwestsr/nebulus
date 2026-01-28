@@ -22,19 +22,18 @@ A production-grade, containerized local AI ecosystem for Linux.
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | **Frontend** | [Open WebUI](https://openwebui.com/) | Chat Interface & Model Management |
-| **Inference** | [Ollama](https://ollama.com/) | Local LLM runtime with GPU support |
+| **Inference** | [TabbyAPI](https://github.com/theroyallab/tabbyAPI) | ExLlamaV2 Local LLM Runtime |
 | **Vector DB** | ChromaDB | Persistent embeddings storage |
 | **Tools** | Custom MCP Server | Extended AI capabilities |
 | **Monitoring** | [Dozzle](https://dozzle.com) | Real-time log viewer |
 | **Automation** | Ansible | Configuration Management |
 | **Infrastructure** | Terraform | Cloud Provisioning (GCP/AWS/Azure) |
 
-## Default Models (Preinstalled)
+## Recommended Models (ExLlamaV2)
 
-- `llama3.1:latest` (General Purpose - **Default**)
-- `llama3.2-vision:latest` (Vision Support)
-- `qwen2.5-coder:latest` (Coding Specialist)
-- `nomic-embed-text` (Embeddings for RAG)
+- `bartowski/Meta-Llama-3.1-8B-Instruct-exl2` (General Chat - **8.0bpw**)
+- `bartowski/Qwen2.5-Coder-14B-Instruct-exl2` (Coding Agent - **4.25bpw**)
+- `bartowski/Phi-3.5-mini-instruct-exl2` (Lightweight)
 
 ## Quick Start
 
@@ -52,7 +51,7 @@ Please refer to the **[Setup and Installation Guide](https://github.com/jlwestsr
 - **Open WebUI**: [http://localhost:3000](http://localhost:3000)
 - **MCP Server**: [http://localhost:8002](http://localhost:8002)
 - **ChromaDB**: [http://localhost:8001](http://localhost:8001)
-- **Ollama**: [http://localhost:11435](http://localhost:11435)
+- **TabbyAPI**: [http://localhost:5000/docs](http://localhost:5000/docs)
 - **Dozzle (Logs)**: [http://localhost:8888](http://localhost:8888)
 
 **First-time setup**: The first account created becomes the admin.
@@ -65,10 +64,6 @@ Nebulus includes a unified command-line tool:
 nebulus --help
 ```
 
-**Chat Commands:**
-
-- `/clear_all` - Bulk delete all chat history.
-
 **Common Commands:**
 
 ```bash
@@ -76,7 +71,8 @@ nebulus up          # Start all services
 nebulus down        # Stop all services
 nebulus status      # Service health dashboard
 nebulus logs        # Stream logs
-nebulus monitor     # Launch Dozzle
+nebulus model list  # List downloaded models
+nebulus model get   # Download specific model
 nebulus backup      # Backup data volumes
 nebulus restore     # Restore from backup
 ```
