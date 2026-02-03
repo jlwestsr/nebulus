@@ -32,15 +32,16 @@ models/
 *.code-workspace
 .obsidian/
 
-# Aider / LLM tools
+# LLM tools
 .aider*
-!.aider.conf.yml
 
 # Backups
 backups/
-gantry/.files/
 test_output_c.txt
-reference_gantry/
+
+# Chainlit (removed)
+.chainlit/
+chainlit.md
 
 # Terraform
 .terraform/
@@ -48,5 +49,3 @@ reference_gantry/
 *.tfstate.backup
 *.tfvars
 .terraform.lock.hcl
-gantry/
-gantry

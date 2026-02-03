@@ -69,6 +69,5 @@ testpaths = [
 ]
 pythonpath = [
     "src",
-    "gantry",
     "mcp_server"
 ]
