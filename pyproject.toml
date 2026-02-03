@@ -11,6 +11,7 @@ authors = [{name = "User", email = "labs@example.com"}]
 requires-python = ">=3.10"
 license = {text = "MIT"}
 dependencies = [
+    "nebulus-core",
     "numpy",
     "pandas",
     "scikit-learn",
@@ -32,13 +33,14 @@ dependencies = [
 [project.scripts]
 nebulus = "src.cli:cli"
 
-
+[project.entry-points."nebulus.platform"]
+prime = "nebulus_prime.adapter:PrimeAdapter"
 
 # --- Black Configuration ---
 # --- Setuptools Configuration ---
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src"]
+include = ["src", "src.*", "nebulus_prime", "nebulus_prime.*"]
 
 [tool.black]
 line-length = 88
@@ -68,6 +70,7 @@ testpaths = [
     "tests",
 ]
 pythonpath = [
+    ".",
     "src",
     "mcp_server"
 ]
