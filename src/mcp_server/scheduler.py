@@ -4,7 +4,6 @@ from email.message import EmailMessage
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.triggers.cron import CronTrigger
-import httpx
 import logging
 
 # Configure Logging
@@ -126,19 +125,20 @@ def execute_prompt_and_email(title: str, prompt: str, recipients: list[str]):
 
 
 def generate_llm_response(prompt: str) -> str:
-    """Calls Ollama to generate text."""
-    # Assuming Ollama is at http://ollama:11434
-    url = "http://ollama:11434/api/generate"
-    payload = {
-        "model": "llama3.1:latest",  # Use default model
-        "prompt": prompt,
-        "stream": False,
-    }
+    """Call LLM to generate text using nebulus-core LLMClient."""
+    from nebulus_core.llm.client import LLMClient
 
-    # Use httpx for sync request (since we are in a background thread, sync is fine)
-    response = httpx.post(url, json=payload, timeout=120.0)
-    response.raise_for_status()
-    return response.json().get("response", "No response from LLM.")
+    base_url = os.getenv("NEBULUS_LLM_URL", "http://localhost:5000/v1")
+    model = os.getenv("NEBULUS_MODEL", "llama3.1")
+
+    llm = LLMClient(base_url=base_url, timeout=120.0)
+    try:
+        return llm.chat(
+            messages=[{"role": "user", "content": prompt}],
+            model=model,
+        )
+    finally:
+        llm.close()
 
 
 def send_email(subject: str, body: str, recipients: list[str]):

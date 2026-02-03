@@ -2,16 +2,19 @@
 Tests for Hybrid LTM Module.
 """
 
-import pytest
 import os
 import shutil
+from pathlib import Path
 from unittest.mock import MagicMock, patch
-from src.core.memory.models import Entity, Relation, MemoryItem
-from src.core.memory.graph_store import GraphStore
-from src.core.memory.vector_store import VectorStore
+
+import pytest
+
+from nebulus_core.memory.models import Entity, Relation
+from nebulus_core.memory.graph_store import GraphStore
+from nebulus_core.vector.client import VectorClient
 
 TEST_DATA_DIR = "tests/data"
-TEST_GRAPH_PATH = f"{TEST_DATA_DIR}/test_graph.json"
+TEST_GRAPH_PATH = Path(f"{TEST_DATA_DIR}/test_graph.json")
 
 
 @pytest.fixture
@@ -59,21 +62,14 @@ def test_graph_persistence(graph_store):
     assert new_store.graph.has_node("PersistentNode")
 
 
-@patch("src.core.memory.vector_store.chromadb.HttpClient")
-def test_vector_store_add(mock_client_cls):
-    """Test VectorStore interactions with mocked ChromaDB."""
-    mock_client = MagicMock()
+@patch("nebulus_core.vector.client.chromadb")
+def test_vector_client_creates_collection(mock_chromadb):
+    """Test VectorClient creates collections via ChromaDB."""
+    mock_http = MagicMock()
     mock_collection = MagicMock()
-    mock_client.get_or_create_collection.return_value = mock_collection
-    mock_client_cls.return_value = mock_client
+    mock_http.get_or_create_collection.return_value = mock_collection
+    mock_chromadb.HttpClient.return_value = mock_http
 
-    store = VectorStore()
-    item = MemoryItem(content="Test memory log")
-
-    store.add_episodic_memory(item)
-
-    # Verify add was called
-    mock_collection.add.assert_called_once()
-    call_args = mock_collection.add.call_args[1]
-    assert call_args["documents"][0] == "Test memory log"
-    assert call_args["ids"][0] == item.id
+    client = VectorClient(settings={"mode": "http", "host": "localhost", "port": 8001})
+    col = client.get_or_create_collection("test")
+    assert col is not None

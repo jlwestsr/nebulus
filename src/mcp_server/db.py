@@ -1,27 +1,28 @@
-import chromadb
-from chromadb.config import Settings
 import uuid
 import time
 from typing import Dict, List, Optional, Any
+
+from nebulus_core.vector.client import VectorClient
 
 
 class LTMClient:
     def __init__(self, host: str = "chromadb", port: int = 8000):
         """Initialize connection to ChromaDB service."""
         try:
-            self.client = chromadb.HttpClient(
-                host=host,
-                port=port,
-                settings=Settings(allow_reset=True, anonymized_telemetry=False),
+            self.vector_client = VectorClient(
+                settings={"mode": "http", "host": host, "port": port}
             )
             # Initialize collections
-            self.conversations = self.client.get_or_create_collection("conversations")
-            self.messages = self.client.get_or_create_collection("messages")
-            self.attachments = self.client.get_or_create_collection("attachments")
-            self.users = self.client.get_or_create_collection("users")
+            self.conversations = self.vector_client.get_or_create_collection(
+                "conversations"
+            )
+            self.messages = self.vector_client.get_or_create_collection("messages")
+            self.attachments = self.vector_client.get_or_create_collection(
+                "attachments"
+            )
+            self.users = self.vector_client.get_or_create_collection("users")
         except Exception as e:
             print(f"Error initializing ChromaDB client: {e}")
-            # We might want to handle this more gracefully depending on app startup requirements
             raise e
 
     def _generate_id(self) -> str:
