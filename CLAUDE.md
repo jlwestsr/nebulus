@@ -111,3 +111,11 @@ python nebulus.py    # Alternative CLI entry
 ## Multi-File Changes
 
 For changes affecting more than 2 files or introducing new architecture, create an implementation plan and get approval before proceeding.
+
+## Long-Term Memory
+
+Read [docs/AI_INSIGHTS.md](docs/AI_INSIGHTS.md) at the start of each session. Update it when encountering:
+
+- Project-specific nuances not captured elsewhere
+- Recurring pitfalls (dependency conflicts, config traps, test quirks)
+- Architectural constraints or non-obvious design decisions
