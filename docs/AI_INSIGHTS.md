@@ -153,3 +153,79 @@ pytest -p no:cacheprovider
 - Backups are `.tar.gz` files in `backups/` directory.
 - Restore is interactive (prompts for backup selection and volume name).
 - Volume name is auto-suggested from the filename pattern (e.g., `chroma` → `chroma_data`).
+
+---
+
+## 4. Cross-Project Learnings
+
+### Pattern: Large-Scale Feature Implementation (from Atom Project)
+
+When implementing complex multi-component features:
+
+**✅ Successful Patterns:**
+
+1. **Incremental Feature Branches** — one branch per major component
+2. **Test-First Development** — write tests before/during implementation
+3. **Continuous Integration** — run full test suite after each merge
+4. **E2E Tests as Gate** — comprehensive integration tests before production
+5. **Fast Test Suite** — keep tests under 2-3 seconds for rapid iteration
+
+**❌ Anti-Patterns to Avoid:**
+
+- Don't implement multiple components in one massive commit
+- Don't write tests after implementation (leads to implementation-biased tests)
+- Don't merge to main without full test suite passing
+- Don't skip E2E validation for "simple" features
+
+**Metrics That Matter:**
+
+- 100% test success rate on merge
+- Sub-3-second test suite (enables rapid iteration)
+- Zero rollbacks (proper testing prevents this)
+- Feature branches live <24 hours (prevents merge conflicts)
+
+### Pattern: AI Instruction Files
+
+Maintain three instruction files with distinct purposes:
+
+- **CLAUDE.md** — Project context, architecture, standards (read-first)
+- **GEMINI.md** — Gemini-specific instructions and patterns
+- **AI_INSIGHTS.md** — Long-term memory, pitfalls, lessons learned (this file)
+
+**Update triggers:**
+
+- CLAUDE.md: Architecture changes, new standards, new tools
+- GEMINI.md: Gemini-specific discoveries, brainstorming patterns
+- AI_INSIGHTS.md: Pitfalls encountered, recurring issues, project-specific quirks
+
+---
+
+## 5. Recommendations for Future Sessions
+
+### Before Starting Work
+
+1. Read CLAUDE.md (project context)
+2. Read AI_INSIGHTS.md (this file) for pitfalls
+3. Run `git status` and `git stash list` to check for uncommitted work
+4. Run test suite to establish baseline (`scripts/run_tests.sh`)
+
+### During Development
+
+1. Commit frequently (every 10-15 minutes of significant work)
+2. Run tests after each logical change
+3. Use feature branches for all non-trivial changes
+4. Keep branch lifetime under 24 hours
+
+### Before Merging
+
+1. Run full test suite
+2. Run pre-commit hooks
+3. Verify Docker services if infrastructure changed
+4. Update documentation if adding features
+
+### Session End
+
+1. Commit all work (never leave uncommitted changes)
+2. Update AI_INSIGHTS.md if new pitfalls discovered
+3. Push to remote if work is ready for integration
+4. Document any open questions or blockers

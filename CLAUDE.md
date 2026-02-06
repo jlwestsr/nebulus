@@ -10,6 +10,7 @@ Nebulus Prime is a production-grade, containerized local AI ecosystem for Linux.
 
 - [AI_DIRECTIVES.md](AI_DIRECTIVES.md) — Agent role, operational guardrails, coding style, and testing standards.
 - [WORKFLOW.md](WORKFLOW.md) — Git branching, commit workflows, verification, and parallel development.
+- [docs/AI_INSIGHTS.md](docs/AI_INSIGHTS.md) — Long-term memory, recurring pitfalls, cross-project patterns. **Read at the start of every session.**
 
 ## Tech Stack
 
@@ -114,8 +115,19 @@ For changes affecting more than 2 files or introducing new architecture, create 
 
 ## Long-Term Memory
 
-Read [docs/AI_INSIGHTS.md](docs/AI_INSIGHTS.md) at the start of each session. Update it when encountering:
+**CRITICAL**: Read [docs/AI_INSIGHTS.md](docs/AI_INSIGHTS.md) at the start of **every session** before doing any work. This file contains:
 
-- Project-specific nuances not captured elsewhere
-- Recurring pitfalls (dependency conflicts, config traps, test quirks)
-- Architectural constraints or non-obvious design decisions
+- **Architectural Patterns**: Service topology, inter-service communication, storage locations, dual memory architecture
+- **Recurring Pitfalls**: Dependency traps, configuration gotchas, environment-specific quirks, testing issues
+- **Workflow Nuances**: Pre-commit pipeline behavior, Docker Compose patterns, backup/restore procedures
+- **Cross-Project Learnings**: Successful implementation patterns from Nebulus Atom and other projects
+- **Recommendations**: Session start checklist, development best practices, merge verification steps
+
+Update AI_INSIGHTS.md when you encounter:
+
+- New pitfalls or recurring issues not already documented
+- Project-specific architectural constraints or non-obvious design decisions
+- Successful implementation patterns worth sharing across projects
+- Configuration traps that wasted time or caused errors
+
+This file prevents repeating the same mistakes and captures institutional knowledge that prevents context loss across sessions.
