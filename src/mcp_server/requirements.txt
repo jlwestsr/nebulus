@@ -9,6 +9,7 @@ httpx
 pypdf
 python-docx
 chromadb
+nebulus-core @ git+https://github.com/jlwestsr/nebulus-core.git@main
 google-api-python-client
 python-dotenv
 selectolax
