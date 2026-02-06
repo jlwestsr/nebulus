@@ -1,6 +1,6 @@
-# Nebulus - Black Box AI System
+# Nebulus Prime - Linux-only AI System
 
-A containerized, general-purpose local AI ecosystem with extended tool access and automation capabilities.
+A production-grade, containerized local AI ecosystem for Linux.
 
 > [!WARNING]
 > **Use at your own risk.** This project allows AI models to read local files and browse the internet. Ensure you review all code and run in a safe environment.
@@ -10,6 +10,7 @@ A containerized, general-purpose local AI ecosystem with extended tool access an
 **Complete documentation available in the [Nebulus Wiki](https://github.com/jlwestsr/nebulus/wiki)**
 
 ### Quick Links
+
 - **[Setup and Installation](https://github.com/jlwestsr/nebulus/wiki/Setup-and-Installation)** - Get started in minutes
 - **[CLI Reference](https://github.com/jlwestsr/nebulus/wiki/CLI-Reference)** - Master the `nebulus` command
 - **[Features](https://github.com/jlwestsr/nebulus/wiki/Features)** - Explore all capabilities
@@ -20,23 +21,24 @@ A containerized, general-purpose local AI ecosystem with extended tool access an
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Inference** | [Ollama](https://ollama.com/) | Local LLM runtime with GPU support |
-| **Frontend** | [Open WebUI](https://docs.openwebui.com/) | Chat interface and RAG |
+| **Frontend** | [Open WebUI](https://openwebui.com/) | Chat Interface & Model Management |
+| **Inference** | [TabbyAPI](https://github.com/theroyallab/tabbyAPI) | ExLlamaV2 Local LLM Runtime |
 | **Vector DB** | ChromaDB | Persistent embeddings storage |
 | **Tools** | Custom MCP Server | Extended AI capabilities |
 | **Monitoring** | [Dozzle](https://dozzle.com) | Real-time log viewer |
-| **Automation** | Ansible | Infrastructure as code |
+| **Automation** | Ansible | Configuration Management |
+| **Infrastructure** | Terraform | Cloud Provisioning (GCP/AWS/Azure) |
 
-## Default Models (Preinstalled)
+## Recommended Models (ExLlamaV2)
 
-- `llama3.1:latest` (General Purpose - **Default**)
-- `llama3.2-vision:latest` (Vision Support)
-- `qwen2.5-coder:latest` (Coding Specialist)
-- `nomic-embed-text` (Embeddings for RAG)
+- `bartowski/Meta-Llama-3.1-8B-Instruct-exl2` (General Chat - **8.0bpw**)
+- `bartowski/Qwen2.5-Coder-14B-Instruct-exl2` (Coding Agent - **4.25bpw**)
+- `bartowski/Phi-3.5-mini-instruct-exl2` (Lightweight)
 
 ## Quick Start
 
 ### Prerequisites
+
 - Docker & Docker Compose
 - (Recommended) NVIDIA GPU with Container Toolkit
 
@@ -47,7 +49,9 @@ Please refer to the **[Setup and Installation Guide](https://github.com/jlwestsr
 ### Access
 
 - **Open WebUI**: [http://localhost:3000](http://localhost:3000)
-- **MCP Server**: [http://localhost:8000](http://localhost:8000)
+- **MCP Server**: [http://localhost:8002](http://localhost:8002)
+- **ChromaDB**: [http://localhost:8001](http://localhost:8001)
+- **TabbyAPI**: [http://localhost:5000/docs](http://localhost:5000/docs)
 - **Dozzle (Logs)**: [http://localhost:8888](http://localhost:8888)
 
 **First-time setup**: The first account created becomes the admin.
@@ -61,17 +65,33 @@ nebulus --help
 ```
 
 **Common Commands:**
+
 ```bash
 nebulus up          # Start all services
 nebulus down        # Stop all services
 nebulus status      # Service health dashboard
 nebulus logs        # Stream logs
-nebulus monitor     # Launch Dozzle
+nebulus model list  # List downloaded models
+nebulus model get   # Download specific model
 nebulus backup      # Backup data volumes
 nebulus restore     # Restore from backup
 ```
 
 See **[CLI Reference](https://github.com/jlwestsr/nebulus/wiki/CLI-Reference)** for complete documentation.
+
+## Infrastructure
+
+Nebulus supports multi-cloud deployment via **Terraform**. Scaffolding is provided for:
+
+- **GCP** (Compute Engine)
+- **AWS** (EC2)
+- **Azure** (Virtual Models)
+
+**Usage**:
+
+1. Navigate to `terraform/<provider>`.
+2. Copy `terraform.tfvars.example` to `terraform.tfvars` and edit.
+3. Run `terraform init && terraform apply`.
 
 ## Features
 
@@ -79,44 +99,45 @@ See **[CLI Reference](https://github.com/jlwestsr/nebulus/wiki/CLI-Reference)** 
 
 The custom MCP server provides AI agents with extended capabilities:
 
-**File Operations**
+#### File Operations
+
 - Read, write, and edit files in the workspace
 - List directories and search code
 
-**Web Access**
+#### Web Access
+
 - DuckDuckGo web search
 - URL scraping and content extraction
 
-**Terminal Access**
+#### Terminal Access
+
 - Safe command execution (whitelisted commands only)
 - Git operations, pytest, grep, find
 
-**Document Parsing**
+#### Document Parsing
+
 - PDF text extraction
 - DOCX document reading
 
-**Vision Support**
+#### Vision Support
+
 - Image analysis with `llama3.2-vision`
 
-**Task Automation**
+#### Task Automation
+
 - Schedule recurring AI tasks with cron
 - Email reports automatically
 - Web dashboard for task management
 
-**To connect in Open WebUI:**
-1. Go to **Settings → Admin Settings → Tools**
-2. Add a new tool connection
-3. URL: `http://mcp-server:8000/sse`
-
 See **[MCP Server](https://github.com/jlwestsr/nebulus/wiki/MCP-Server)** for complete tool documentation.
 
-### 📊 RAG Pipeline
+### 🧠 Long Term Memory (LTM)
 
-Documents uploaded to Open WebUI are automatically:
-1. Chunked into segments
-2. Embedded using `nomic-embed-text` (via Ollama)
-3. Stored in ChromaDB for persistent retrieval
-4. Available for semantic search in conversations
+Nebulus uses ChromaDB to provide persistent memory for the AI:
+
+- **Conversation Storage**: Histories are indexed for semantic retrieval.
+- **User Preferences**: Remembers user-specific settings across sessions.
+- **Contextual Recall**: Automatically retrieves relevant past interactions.
 
 ### 🔄 Automation
 
@@ -153,6 +174,7 @@ See **[Features](https://github.com/jlwestsr/nebulus/wiki/Features)** for the co
 ## Contributing
 
 Contributions are welcome! Please see the **[Development Guide](https://github.com/jlwestsr/nebulus/wiki/Development-Guide)** for:
+
 - Coding standards (unit tests, type hints, documentation)
 - Git workflow (Git Flow)
 - Adding new MCP tools

@@ -1,0 +1,15 @@
+mcp[cli]
+fastapi
+uvicorn
+duckduckgo-search
+beautifulsoup4
+apscheduler
+sqlalchemy
+httpx
+pypdf
+python-docx
+chromadb
+google-api-python-client
+python-dotenv
+selectolax
+googlesearch-python

@@ -10,11 +10,11 @@ echo -e "${GREEN}Starting Quality Assurance Checks...${NC}"
 
 # Check if running in a virtual environment
 if [ -z "$VIRTUAL_ENV" ]; then
-    if [ -d ".venv" ]; then
+    if [ -d "venv" ]; then
         echo "Activating virtual environment..."
-        source .venv/bin/activate
+        source venv/bin/activate
     else
-        echo -e "${RED}Warning: No virtual environment detected and .venv not found.${NC}"
+        echo -e "${RED}Warning: No virtual environment detected and venv not found.${NC}"
     fi
 fi
 
@@ -29,6 +29,7 @@ fi
 
 # Run Pytest
 echo -e "\n${GREEN}Running Pytest...${NC}"
+export PYTHONPATH=$PYTHONPATH:gantry
 if pytest -p no:cacheprovider; then
     echo -e "${GREEN}All tests passed.${NC}"
 else

@@ -4,7 +4,7 @@
   gather_facts: false
   vars:
     project_root: "{{ playbook_dir }}/.."
-    venv_path: "{{ project_root }}/.venv"
+    venv_path: "{{ project_root }}/venv"
     models:
       - llama3.1:latest
       - llama3.2-vision:latest
@@ -27,7 +27,7 @@
 
     - name: Install dependencies with uv
       ansible.builtin.shell:
-        cmd: uv pip install -r requirements.txt -r requirements-dev.txt -r mcp_server/requirements.txt
+        cmd: uv pip install -r requirements.txt -r requirements-dev.txt -r src/mcp_server/requirements.txt
         chdir: "{{ project_root }}"
       environment:
         VIRTUAL_ENV: "{{ venv_path }}"
@@ -39,11 +39,14 @@
         pull: always
       register: docker_output
 
-    - name: Wait for Ollama to be ready
+    - name: Wait for services to be ready
       ansible.builtin.wait_for:
-        port: 11435
+        port: "{{ item }}"
         delay: 5
         timeout: 60
+      loop:
+        - 11435
+        - 3000
 
     - name: Pull Ollama models
       community.docker.docker_container_exec:
@@ -54,9 +57,15 @@
       changed_when: pull_result.rc == 0
       failed_when: pull_result.rc != 0
 
+    - name: Create local bin directory
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/.local/bin"
+        state: directory
+        mode: '0755'
+
     - name: Create symlink for nebulus CLI
       ansible.builtin.file:
-        src: "{{ (project_root + '/nebulus.py') | realpath }}"
+        src: "{{ (project_root + '/src/cli.py') | realpath }}"
         dest: "{{ lookup('env', 'HOME') }}/.local/bin/nebulus"
         state: link
         force: yes

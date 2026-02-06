@@ -1,0 +1,359 @@
+#!/usr/bin/env python3
+"""
+Nebulus Manager CLI
+Unified command-line interface for the Nebulus AI ecosystem.
+"""
+
+__version__ = "0.1.0"
+
+
+import subprocess
+import sys
+from pathlib import Path
+import webbrowser
+from typing import List, Optional
+
+import click
+import httpx
+from rich.console import Console
+from rich.table import Table
+
+console = Console()
+
+
+def run_command(
+    command: List[str], capture_output: bool = False
+) -> subprocess.CompletedProcess:
+    """Runs a shell command and returns the process result.
+
+    Args:
+        command: The command and its arguments as a list of strings.
+        capture_output: Whether to capture stdout and stderr.
+
+    Returns:
+        The result of the subprocess run.
+    """
+    sys.stdout.flush()
+    sys.stderr.flush()
+    try:
+        return subprocess.run(
+            command,
+            check=True,
+            text=True,
+            capture_output=capture_output,
+        )
+    except subprocess.CalledProcessError as e:
+        console.print(
+            f"[bold red]Error:[/bold red] Command failed: {' '.join(command)}"  # noqa: E231, E501
+        )
+        if e.stderr:
+            console.print(e.stderr)
+        sys.exit(1)
+
+
+def run_interactive(command: List[str]) -> None:
+    """Runs a command directly in the terminal for real-time output.
+
+    Args:
+        command: The command and its arguments as a list of strings.
+    """
+    sys.stdout.flush()
+    sys.stderr.flush()
+    result = subprocess.run(command)
+    if result.returncode != 0:
+        console.print(
+            f"\n[bold red]Note:[/bold red] Command returned exit code {result.returncode}"  # noqa: E231, E501
+        )
+        # We don't always exit 1 here to allow viewing output
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+
+@click.group()
+@click.version_option(__version__)
+def cli() -> None:
+    """Nebulus Prime Manager - Manage your AI ecosystem."""
+    if sys.platform != "linux":
+        console.print(
+            "[bold red]Error:[/bold red] Nebulus Prime is a Linux-only system."
+        )
+        sys.exit(1)
+
+
+@cli.command()
+@click.pass_context
+def help(ctx) -> None:
+    """Show this message and exit."""
+    click.echo(ctx.parent.get_help())
+
+
+@cli.group()
+def model() -> None:
+    """Manage AI models."""
+    pass
+
+
+@model.command()
+@click.argument("repo_id")
+@click.option("--revision", "-r", help="Model revision (e.g., 6.0bpw)")
+def get(repo_id: str, revision: Optional[str]) -> None:
+    """Download a model from Hugging Face."""
+    console.print(f"[bold cyan]Downloading {repo_id}...[/bold cyan]")
+    cmd = ["python3", "scripts/download_model.py", repo_id]
+    if revision:
+        cmd.extend(["--revision", revision])
+    run_interactive(cmd)
+
+
+@model.command()
+def list() -> None:
+    """List downloaded models."""
+    models_dir = Path("models")
+    if not models_dir.exists():
+        console.print("[yellow]No models found.[/yellow]")
+        return
+
+    table = Table(title="Downloaded Models")
+    table.add_column("Name", style="cyan")
+    table.add_column("Size", style="green")
+
+    for model_path in models_dir.iterdir():
+        if model_path.is_dir():
+            size_bytes = sum(
+                f.stat().st_size for f in model_path.rglob("*") if f.is_file()
+            )
+            size_gb = size_bytes / (1024**3)
+            table.add_row(model_path.name, f"{size_gb:.2f} GB")
+
+    console.print(table)
+
+
+@cli.command()
+def up() -> None:
+    """Start all services."""
+    # Ensure no conflicting standalone open-webui is running
+    try:
+        subprocess.run(
+            ["docker", "stop", "open-webui"],
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+        subprocess.run(
+            ["docker", "rm", "open-webui"],
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+    except Exception:
+        pass
+
+    console.print("[bold green]Starting Nebulus services...[/bold green]")
+    run_interactive(["docker", "compose", "up", "-d"])
+
+    # Display Access Points
+    table = Table(title="Nebulus Access Points")
+    table.add_column("Service", style="cyan")
+    table.add_column("URL", style="magenta")
+
+    services = [
+        ("Open WebUI", "http://localhost:3000"),
+        ("Dozzle (Logs)", "http://localhost:8888"),
+        ("MCP Server Dashboard", "http://localhost:8002/static/index.html"),
+        ("ChromaDB", "http://localhost:8001/docs"),
+        ("TabbyAPI", "http://localhost:5000/v1/models"),
+    ]
+
+    for name, url in services:
+        table.add_row(name, url)
+
+    console.print(table)
+    console.print("[bold green]Done.[/bold green]")
+
+
+@cli.command()
+def down() -> None:
+    """Stop all services."""
+    console.print("[bold yellow]Stopping Nebulus services...[/bold yellow]")
+    run_interactive(["docker", "compose", "down"])
+
+    # Ensure standalone open-webui is also stopped
+    try:
+        subprocess.run(
+            ["docker", "stop", "open-webui"],
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+        # Attempt removal to avoid name conflicts on next 'up'
+        subprocess.run(
+            ["docker", "rm", "open-webui"],
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+    except Exception:
+        pass
+
+    console.print("[bold yellow]Done.[/bold yellow]")
+
+
+@cli.command()
+def restart() -> None:
+    """Restart all services."""
+    console.print("[bold blue]Restarting Nebulus services...[/bold blue]")
+    run_interactive(["docker", "compose", "restart"])
+    console.print("[bold green]Restart complete.[/bold green]")
+
+
+@cli.command()
+@click.argument("service", required=False)
+def rebuild(service: Optional[str]) -> None:
+    """Rebuild and restart services."""
+    console.print(
+        f"[bold blue]Rebuilding {'service ' + service if service else 'all services'}...[/bold blue]"
+    )
+
+    cmd = ["docker", "compose", "up", "-d", "--build"]
+    if service:
+        cmd.append(service)
+
+    run_interactive(cmd)
+    console.print("[bold green]Rebuild complete.[/bold green]")
+
+
+@cli.command()
+@click.argument("service", required=False, default="tabby")
+def logs(service: Optional[str]) -> None:
+    """Stream service logs."""
+    cmd = ["docker", "compose", "logs", "-f"]
+    if service:
+        cmd.append(service)
+    try:
+        subprocess.run(cmd)
+    except KeyboardInterrupt:
+        pass
+
+
+@cli.command()
+def status() -> None:
+    """Check the health of all services."""
+    table = Table(title="Nebulus Service Status")
+    table.add_column("Service", style="cyan")
+    table.add_column("Endpoint", style="magenta")
+    table.add_column("Status", justify="center")
+
+    services = [
+        ("TabbyAPI", "http://localhost:5000/v1/models", "5000"),
+        ("ChromaDB", "http://localhost:8001/api/v2/heartbeat", "8001"),
+        ("MCP Server", "http://localhost:8002/health", "8002"),
+        ("Open WebUI", "http://localhost:3000/health", "3000"),
+    ]
+
+    with console.status("[bold green]Checking health..."):
+        for name, url, port in services:
+            try:
+                response = httpx.get(url, timeout=5.0)
+                if response.status_code < 400:
+                    status_text = "[bold green]ONLINE[/bold green]"
+                else:
+                    status_text = (
+                        f"[bold yellow]HTTP {response.status_code}[/bold yellow]"
+                    )
+            except Exception:
+                status_text = "[bold red]OFFLINE[/bold red]"
+            table.add_row(name, f"localhost:{port}", status_text)  # noqa: E231
+
+    console.print(table)
+
+
+@cli.command()
+def backup() -> None:
+    """Run the backup script."""
+    console.print("[bold green]Starting backup...[/bold green]")
+    run_command(["bash", "scripts/backup.sh"])
+
+
+@cli.command()
+def restore() -> None:
+    """Run the restore script."""
+    console.print("[bold yellow]Starting restore...[/bold yellow]")
+
+    # List available backups
+    backup_dir = Path("backups")
+    if not backup_dir.exists():
+        console.print("[bold red]Error:[/bold red] 'backups' directory not found.")
+        return
+
+    backups = sorted([f.name for f in backup_dir.glob("*.tar.gz")], reverse=True)
+    if not backups:
+        console.print(
+            "[bold red]Error:[/bold red] No backup files found in 'backups' directory."
+        )
+        return
+
+    # Prompt user to select a backup
+    from rich.prompt import Prompt, Confirm
+
+    console.print("\n[bold]Available Backups:[/bold]")
+    for i, backup in enumerate(backups, 1):
+        console.print(f"{i}. {backup}")
+
+    choice = Prompt.ask(
+        "\nSelect a backup file", choices=[str(i) for i in range(1, len(backups) + 1)]
+    )
+    selected_backup = backups[int(choice) - 1]
+
+    # Prompt user for volume name
+    # Can try to guess based on backup name or just ask
+    suggested_volume = "nebulus_ollama_data"  # Default suggestion
+    if "chroma" in selected_backup:
+        suggested_volume = "nebulus_chroma_data"
+
+    volume = Prompt.ask("Enter target Docker volume name", default=suggested_volume)
+
+    console.print("\n[bold green]Preparing to restore:[/bold green]")
+    console.print(f"  Backup: [cyan]{selected_backup}[/cyan]")
+    console.print(f"  Volume: [cyan]{volume}[/cyan]")
+
+    if not Confirm.ask("Proceed?"):
+        console.print("[yellow]Restore cancelled.[/yellow]")
+        return
+
+    run_command(["bash", "scripts/restore.sh", selected_backup, volume])
+
+
+@cli.command()
+def monitor() -> None:
+    """Launch the log monitoring dashboard (Dozzle)."""
+    url = "http://localhost:8888"
+    console.print(f"Opening monitoring dashboard at {url}...")
+    webbrowser.open(url)
+
+
+@cli.command()
+@click.argument("service")
+def shell(service: str) -> None:
+    """Open an interactive shell in a service container."""
+    console.print(f"Opening shell in [bold cyan]{service}[/bold cyan]...")
+    subprocess.run(["docker", "compose", "exec", service, "sh"], check=False)
+
+
+# Ensure we can import from src (repo root is one level up)
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(REPO_ROOT))
+
+
+try:
+    from src.core.memory.cli_extension import register_commands
+
+    register_commands(cli)
+except ImportError as e:
+    console.print(f"[yellow]Warning: Could not load memory module: {e}[/yellow]")
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        # Show status if no command provided
+        status.callback()  # type: ignore
+    else:
+        cli()

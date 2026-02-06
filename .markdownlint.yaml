@@ -1,0 +1,2 @@
+# Disable line length check as it's often too strict for technical docs with URLs
+MD013: false

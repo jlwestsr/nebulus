@@ -10,7 +10,7 @@ __pycache__/
 .Python
 env/
 venv/
-.venv/
+
 .env
 *.egg-info
 
@@ -30,10 +30,22 @@ models/
 
 # IDE Specific
 *.code-workspace
+.obsidian/
 
-# Aider / LLM tools
+# LLM tools
 .aider*
-!.aider.conf.yml
 
 # Backups
 backups/
+test_output_c.txt
+
+# Chainlit (removed)
+.chainlit/
+chainlit.md
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform.lock.hcl

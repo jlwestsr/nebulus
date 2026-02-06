@@ -1,28 +1,35 @@
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    pull_policy: always
-    tty: true
+  tabby:
+    image: ghcr.io/theroyallab/tabbyapi:latest
+    container_name: tabby
     restart: unless-stopped
     environment:
-      - OLLAMA_CONTEXT_LENGTH=32768
-      - OLLAMA_FLASH_ATTENTION=1
-      - OLLAMA_KV_CACHE_TYPE=q4_0
+      - NVIDIA_VISIBLE_DEVICES=all
     volumes:
-      - ollama_data:/root/.ollama
+      - ./models:/app/models
+      - ./config/tabby:/app/config_mount
+    entrypoint:
+      - /bin/sh
+      - -c
+    command: >
+      "cp /app/config_mount/config.yml /app/config.yml && python3 main.py"
     networks:
       - ai-network
     ports:
-      - "11435:11434"
-    # Uncomment to enable GPU support (requires nvidia-container-toolkit)
+      - "5000:5000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [ gpu ]
+              capabilities:
+                - gpu
 
   dozzle:
     image: amir20/dozzle:latest
@@ -36,36 +43,16 @@ services:
       - DOZZLE_LEVEL=info
     networks:
       - ai-network
-
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: webui
-    restart: unless-stopped
-    depends_on:
-      - ollama
-      - chromadb
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-insecure_default_key}
-      - WEBUI_NAME=Nebulus (Black Box AI)
-      - DEFAULT_MODELS=llama3.1:latest
-      - BYPASS_ADMIN_ACCESS_CONTROL=false
-      - ENABLE_MODEL_FILTER=true
-      - MODEL_FILTER_LIST=llama3.1:latest;llama3.2-vision:latest;qwen2.5-coder:latest
-      # Vector DB Configuration
-      - RAG_EMBEDDING_ENGINE=ollama
-      - RAG_EMBEDDING_MODEL=nomic-embed-text
-      - CHROMA_HTTP_HOST=chromadb
-      - CHROMA_HTTP_PORT=8000
-
-    volumes:
-      - webui_data:/app/backend/data
-    ports:
-      - "3000:8080"
-    networks:
-      - ai-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   chromadb:
     image: chromadb/chroma:latest
@@ -79,15 +66,26 @@ services:
       - "8001:8000"
     networks:
       - ai-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mcp-server:
-    build: ./mcp_server
+    build: ./src/mcp_server
     container_name: mcp-server
     restart: unless-stopped
     volumes:
       - .:/workspace # Mount current directory to /workspace for file tools
+      - ./src/mcp_server:/app
     ports:
-      - "8000:8000"
+      - "8002:8000"
     networks:
       - ai-network
     environment:
@@ -96,12 +94,48 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - EMAIL_FROM=${EMAIL_FROM}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    volumes:
+      - webui_data:/app/backend/data
+    environment:
+      - OPENAI_API_BASE_URL=http://tabby:5000/v1
+      - OPENAI_API_KEY=dummy
+    networks:
+      - ai-network
+    depends_on:
+      - tabby
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   ai-network:
     driver: bridge
 
 volumes:
-  ollama_data:
-  webui_data:
+  models_data:
   chroma_data:
+  webui_data:
