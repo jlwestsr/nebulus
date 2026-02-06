@@ -229,3 +229,16 @@ Maintain three instruction files with distinct purposes:
 2. Update AI_INSIGHTS.md if new pitfalls discovered
 3. Push to remote if work is ready for integration
 4. Document any open questions or blockers
+
+## 6. Documentation & Wiki
+
+- **GitHub wiki**: Cloned at `../nebulus-prime.wiki/` (sibling directory). Uses SSH remote (`git@github.com:jlwestsr/nebulus-prime.wiki.git`), `master` branch.
+- **Wiki pages** (10): Home, Architecture, Setup-and-Installation, Docker-Services, MCP-Server, CLI-Reference, Models, Development-Guide, Troubleshooting.
+- **Wiki initialization**: GitHub wikis must be initialized via the web UI first (create one placeholder page), then local content can be force-pushed.
+- **Ecosystem wikis**: All four project wikis are live:
+  - `nebulus-prime.wiki` — 10 pages (this project)
+  - `nebulus-edge.wiki` — 5 pages
+  - `nebulus-core.wiki` — 8 pages
+  - `nebulus-gantry.wiki` — 9 pages
+- **Cross-project doc sync**: When a feature ships, update the corresponding wiki. Wiki repos are independent git repos — commit and push separately from the main repo.
+- **README links old wiki URL**: The README currently links to `github.com/jlwestsr/nebulus/wiki` (old repo name). These should be updated to `github.com/jlwestsr/nebulus-prime/wiki` when convenient.
