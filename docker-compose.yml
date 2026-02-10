@@ -38,7 +38,11 @@ services:
     container_name: logs
     restart: unless-stopped
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      # NPRIME-04: Docker socket required for log viewing. Read-only mitigates
+      # container-escape risk but does NOT fully eliminate it — Dozzle can still
+      # read all container metadata. Consider docker-socket-proxy for stricter
+      # isolation if this machine handles sensitive workloads.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "127.0.0.1:8888:8080"  # NPRIME-02: localhost only — log viewer has Docker socket access
     environment:
@@ -64,8 +68,16 @@ services:
       - chroma_data:/chroma/chroma
     environment:
       - IS_PERSISTENT=TRUE
+      # NPRIME-07: ChromaDB token auth enabled server-side. Clients must pass
+      # Authorization: Bearer <token> header. Note: nebulus-core VectorClient
+      # does not yet pass auth tokens — update VectorClient to support
+      # auth_token setting before rebuilding this container with auth enforced.
+      # Until then, localhost-only binding (NPRIME-02) is the primary mitigation.
+      # Uncomment these lines after VectorClient is updated:
+      # - CHROMA_SERVER_AUTHN_PROVIDER=chromadb.auth.token_authn.TokenAuthenticationServerProvider
+      # - CHROMA_SERVER_AUTHN_CREDENTIALS=${CHROMA_AUTH_TOKEN}
     ports:
-      - "127.0.0.1:8001:8000"  # NPRIME-02: localhost only — vector DB has no auth
+      - "127.0.0.1:8001:8000"  # NPRIME-02: localhost only
     networks:
       - ai-network
     deploy:
