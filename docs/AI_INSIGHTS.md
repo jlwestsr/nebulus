@@ -28,7 +28,9 @@ Five containerized services on a shared Docker bridge network (`ai-network`):
 - Scheduler jobs call Ollama at `http://ollama:11434/api/generate` — this endpoint is
   a leftover from a prior Ollama-based stack and will fail unless TabbyAPI or an Ollama
   instance is running at that address.
-- No authentication between services. Intended for trusted local networks only.
+- As of 2026-02-10 security remediation, all services are bound to `127.0.0.1` and
+  TabbyAPI requires API key auth. Open WebUI passes `TABBY_API_KEY` from `.env`.
+  ChromaDB and MCP server auth are still pending (see section 7 below).
 
 ### Storage Locations
 
@@ -36,6 +38,7 @@ Five containerized services on a shared Docker bridge network (`ai-network`):
 |------|----------|-------------|
 | LLM model weights | `./models` (host) → `/app/models` (tabby) | Git-ignored, persists on host |
 | TabbyAPI config | `./config/tabby/config.yml` → `/app/config_mount` (copied at startup) | Version-controlled |
+| TabbyAPI tokens | `./config/tabby/api_tokens.yml` → `/app/api_tokens.yml` (copied at startup) | Git-ignored (secrets) |
 | ChromaDB data | Named volume `chroma_data` → `/chroma/chroma` | Docker volume |
 | Open WebUI data | Named volume `webui_data` → `/app/backend/data` | Docker volume |
 | Scheduler jobs | `src/mcp_server/scheduler.db` (SQLite) | Inside container, rebuilt on recreate |
@@ -247,3 +250,46 @@ Maintain three instruction files with distinct purposes:
   - `nebulus-gantry.wiki` — 9 pages
 - **Cross-project doc sync**: When a feature ships, update the corresponding wiki. Wiki repos are independent git repos — commit and push separately from the main repo.
 - **README links old wiki URL**: The README currently links to `github.com/jlwestsr/nebulus/wiki` (old repo name). These should be updated to `github.com/jlwestsr/nebulus-prime/wiki` when convenient.
+
+## 7. Security Remediation (2026-02-10)
+
+### What Changed
+
+Security audit (report: `docs/security-audit-2026-02-10.md`) identified 3 P0 and 4 P1
+findings. All were remediated in a single feature branch merged to `develop`.
+
+**P0 fixes (critical):**
+
+- **NPRIME-01**: Plaintext Google API key removed from `.env`. `.env.example` created
+  with all required variables. Key was revoked and replaced.
+- **NPRIME-02**: All 5 Docker services bound to `127.0.0.1` instead of `0.0.0.0`.
+  No services are network-accessible without a reverse proxy.
+- **NPRIME-03**: TabbyAPI auth enabled (`disable_auth: false`). API key lives in
+  `config/tabby/api_tokens.yml` (git-ignored) and `.env` as `TABBY_API_KEY`. Open
+  WebUI reads `TABBY_API_KEY` from `.env` via `${TABBY_API_KEY}` in docker-compose.
+
+**P1 fixes (high):**
+
+- **NPRIME-04**: Dozzle Docker socket mount set to read-only (`:ro`).
+- **NPRIME-05**: SQLite files (`gantry.db`, `test.db`) set to `chmod 600`.
+  `scheduler.db` is root-owned (container-created) — needs chmod after rebuild.
+  At-rest encryption deferred to Track 1.6.
+- **NPRIME-06**: MCP server API auth documented as TODO. Localhost binding is primary
+  mitigation.
+- **NPRIME-07**: ChromaDB token auth config prepared in docker-compose.yml but
+  commented out. `nebulus-core` `VectorClient` does not yet accept auth tokens —
+  needs an `auth_token` setting added to the HTTP client constructor. Until then,
+  localhost binding is the mitigation.
+
+### Gotchas for Future Sessions
+
+- **TabbyAPI token file**: `config/tabby/api_tokens.yml` is git-ignored. If the
+  container is rebuilt on a fresh clone, you must copy `api_tokens.example.yml` →
+  `api_tokens.yml` and fill in the key. Without it, TabbyAPI will auto-generate
+  random keys on startup and Open WebUI's key won't match.
+- **ChromaDB auth is NOT enforced yet**: The env vars are commented out in
+  docker-compose.yml. Enabling them without updating VectorClient will break the
+  MCP server's ChromaDB connection.
+- **SMTP vars**: `.env` does not have SMTP variables set. Docker Compose warns on
+  every operation. This is cosmetic — scheduler email features won't work until
+  SMTP is configured.
