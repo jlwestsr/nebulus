@@ -1,4 +1,4 @@
-nebulus-core @ git+https://github.com/jlwestsr/nebulus-core.git@develop
+nebulus-core @ git+https://github.com/jlwestsr/nebulus-core.git@v0.1.2
 fastapi
 uvicorn
 apscheduler
