@@ -1,0 +1,1021 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for ai_project">
+      
+      
+        <meta name="author" content="User">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Project AI Insights (Long-Term Memory) - ai_project</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#project-ai-insights-long-term-memory" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ai_project" class="md-header__button md-logo" aria-label="ai_project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ai_project
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Project AI Insights (Long-Term Memory)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ai_project" class="md-nav__button md-logo" aria-label="ai_project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ai_project
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agent/rules/ai_behavior.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Behavior
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTEXT.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-architectural-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Architectural Patterns
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Architectural Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service Topology
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inter-service-communication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inter-Service Communication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Locations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dual-memory-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dual Memory Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#non-obvious-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-Obvious Decisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-recurring-pitfalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Recurring Pitfalls
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Recurring Pitfalls">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dependency-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-traps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Traps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-specific-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment-Specific Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-gotchas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing Gotchas
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-workflow-nuances" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Workflow Nuances
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Workflow Nuances">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-commit-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-Commit Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#markdownlint-specifics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Markdownlint Specifics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-compose-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Compose Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-and-restore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backup and Restore
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-cross-project-learnings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Cross-Project Learnings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Cross-Project Learnings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pattern-large-scale-feature-implementation-from-atom-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern: Large-Scale Feature Implementation (from Atom Project)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-ai-instruction-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern: AI Instruction Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-recommendations-for-future-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Recommendations for Future Sessions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Recommendations for Future Sessions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-starting-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before Starting Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#during-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        During Development
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#before-merging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before Merging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session End
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-documentation-wiki" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Documentation &amp; Wiki
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="project-ai-insights-long-term-memory">Project AI Insights (Long-Term Memory)</h1>
+<h2 id="purpose">Purpose</h2>
+<p>This document captures project-specific behavioral nuances, recurring pitfalls, and
+architectural decisions for AI agent continuity. It is not documentation — it is
+institutional knowledge that prevents repeated mistakes. Update this file whenever
+you encounter a new pitfall or architectural constraint during development.</p>
+<h2 id="1-architectural-patterns">1. Architectural Patterns</h2>
+<h3 id="service-topology">Service Topology</h3>
+<p>Five containerized services on a shared Docker bridge network (<code>ai-network</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Internal Port</th>
+<th>External Port</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TabbyAPI</td>
+<td>5000</td>
+<td>5000</td>
+<td>LLM inference (ExLlamaV2, GPU-bound)</td>
+</tr>
+<tr>
+<td>ChromaDB</td>
+<td>8000</td>
+<td>8001</td>
+<td>Vector DB for embeddings and LTM</td>
+</tr>
+<tr>
+<td>MCP Server</td>
+<td>8000</td>
+<td>8002</td>
+<td>Tool server (core MCP tools + scheduler, 13 tools)</td>
+</tr>
+<tr>
+<td>Open WebUI</td>
+<td>8080</td>
+<td>3000</td>
+<td>Chat frontend</td>
+</tr>
+<tr>
+<td>Dozzle</td>
+<td>8080</td>
+<td>8888</td>
+<td>Log monitoring via Docker socket</td>
+</tr>
+</tbody>
+</table>
+<h3 id="inter-service-communication">Inter-Service Communication</h3>
+<ul>
+<li>Open WebUI connects to TabbyAPI at <code>http://tabby:5000/v1</code> (internal network).</li>
+<li>MCP Server connects to ChromaDB at <code>chromadb:8000</code> (internal), not the external 8001.</li>
+<li>Scheduler jobs call Ollama at <code>http://ollama:11434/api/generate</code> — this endpoint is
+  a leftover from a prior Ollama-based stack and will fail unless TabbyAPI or an Ollama
+  instance is running at that address.</li>
+<li>No authentication between services. Intended for trusted local networks only.</li>
+</ul>
+<h3 id="storage-locations">Storage Locations</h3>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Location</th>
+<th>Persistence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LLM model weights</td>
+<td><code>./models</code> (host) → <code>/app/models</code> (tabby)</td>
+<td>Git-ignored, persists on host</td>
+</tr>
+<tr>
+<td>TabbyAPI config</td>
+<td><code>./config/tabby/config.yml</code> → <code>/app/config_mount</code> (copied at startup)</td>
+<td>Version-controlled</td>
+</tr>
+<tr>
+<td>ChromaDB data</td>
+<td>Named volume <code>chroma_data</code> → <code>/chroma/chroma</code></td>
+<td>Docker volume</td>
+</tr>
+<tr>
+<td>Open WebUI data</td>
+<td>Named volume <code>webui_data</code> → <code>/app/backend/data</code></td>
+<td>Docker volume</td>
+</tr>
+<tr>
+<td>Scheduler jobs</td>
+<td><code>src/mcp_server/scheduler.db</code> (SQLite)</td>
+<td>Inside container, rebuilt on recreate</td>
+</tr>
+<tr>
+<td>Knowledge graph</td>
+<td><code>data/memory_graph.json</code> (NetworkX)</td>
+<td>Host filesystem</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dual-memory-architecture">Dual Memory Architecture</h3>
+<p>The LTM system uses two parallel stores:</p>
+<ul>
+<li><strong>Vector store</strong> (ChromaDB): Episodic memory with semantic search. Collection: <code>ltm_episodic_memory</code>.</li>
+<li><strong>Graph store</strong> (NetworkX → JSON): Knowledge graph for entity relationships. File: <code>data/memory_graph.json</code>.</li>
+<li><strong>Consolidator</strong>: A "sleep cycle" that reads unarchived episodic memories, calls the LLM
+  to extract entities/relations, writes them to the graph, and marks memories archived.</li>
+</ul>
+<h3 id="non-obvious-decisions">Non-Obvious Decisions</h3>
+<ul>
+<li>The MCP server mounts the entire project as <code>/workspace</code> — all file tool operations are
+  scoped to this path via <code>nebulus_core.mcp.create_server()</code> with <code>MCPConfig(workspace_path="/workspace")</code>.
+  The 10 platform-agnostic tools (filesystem, search, web, documents, shell) live in
+  <code>nebulus_core.mcp.tools</code> — Prime only defines 3 scheduler tools locally.</li>
+<li>Graph store persists to disk on every write (add_entity, add_relation). No batching.</li>
+<li>The CLI dynamically loads memory commands via <code>src.core.memory.cli_extension.register_commands()</code>.</li>
+<li><code>nebulus</code> with no arguments auto-runs the <code>status</code> command (health check table).</li>
+</ul>
+<h2 id="2-recurring-pitfalls">2. Recurring Pitfalls</h2>
+<h3 id="dependency-management">Dependency Management</h3>
+<ul>
+<li><strong>Dual requirements files</strong>: <code>requirements.txt</code> (project root) and <code>src/mcp_server/requirements.txt</code>
+  (MCP container). The MCP container requirements are now slim — most dependencies come transitively
+  via <code>nebulus-core</code>. Only Prime-specific packages (fastapi, uvicorn, apscheduler, sqlalchemy, etc.)
+  are listed directly. The core ref points at <code>@develop</code> branch.</li>
+<li><strong>Chroma metadata type constraint</strong>: ChromaDB only accepts primitive types (str, int, float, bool)
+  in metadata fields. Complex types must be stringified. This has caused silent data loss when
+  dict/list values were passed directly.</li>
+<li><strong>APScheduler + SQLite</strong>: The scheduler stores jobs in <code>scheduler.db</code> inside the container.
+  Recreating the container loses all scheduled jobs. This is by design but catches people off guard.</li>
+</ul>
+<h3 id="configuration-traps">Configuration Traps</h3>
+<ul>
+<li><strong>TabbyAPI config mounting</strong>: The config is mounted to <code>/app/config_mount</code>, then copied to
+  <code>/app/config.yml</code> by the entrypoint script. Editing the mounted file alone does nothing until
+  the container restarts.</li>
+<li><strong>Port mapping mismatch</strong>: ChromaDB listens on 8000 internally but is exposed on 8001 externally.
+  The MCP server connects to <code>chromadb:8000</code> (internal). The vector store defaults to port 8001
+  (external). When running outside Docker (e.g., tests), you need the external port.</li>
+<li><strong>NEBULUS_CHROMA_HOST/PORT env vars</strong>: The vector store reads these but the MCP server's <code>db.py</code>
+  hardcodes <code>host="chromadb"</code>, <code>port=8000</code>. These two code paths use different connection logic.</li>
+<li><strong>Missing .env</strong>: Ansible creates <code>.env</code> from <code>.env.example</code> only if it doesn't exist. If the
+  example changes, existing <code>.env</code> files won't pick up new variables.</li>
+</ul>
+<h3 id="environment-specific-behavior">Environment-Specific Behavior</h3>
+<ul>
+<li><strong>Linux-only enforcement</strong>: <code>cli.py</code> exits immediately on non-Linux platforms. This is intentional.</li>
+<li><strong>Scheduler model hardcoding</strong>: <code>execute_prompt_and_email()</code> hardcodes <code>llama3.1:latest</code> and the
+  Ollama endpoint. With the TabbyAPI migration, this will fail unless updated.</li>
+<li><strong>Consolidator model hardcoding</strong>: Same issue — uses <code>llama3.1</code> via Ollama endpoint for fact extraction.</li>
+<li><strong>Graceful degradation</strong>: If ChromaDB is offline, the MCP server sets <code>ltm_client = None</code> and
+  LTM endpoints return 503. The vector store silently returns empty results. The graph store
+  is unaffected (local JSON file). This is by design but can mask real connection issues.</li>
+</ul>
+<h3 id="testing-gotchas">Testing Gotchas</h3>
+<ul>
+<li><strong>conftest.py patches APScheduler globally</strong>: All tests run with a mocked scheduler. If you
+  need to test real scheduling behavior, you must override the autouse fixture.</li>
+<li><strong>pytest pythonpath</strong>: Configured in <code>pyproject.toml</code> as <code>["src", "gantry", "mcp_server"]</code>.
+  The <code>gantry</code> path appears to be a legacy reference — there is no <code>gantry/</code> directory.</li>
+<li><strong>MCP tool tests mock <code>create_server</code></strong>: Since the 10 core tools are tested in nebulus-core
+  (65 tests), Prime's <code>test_mcp_tools.py</code> only tests the 3 scheduler tools and verifies that
+  <code>create_server()</code> is called with the correct <code>MCPConfig</code>. The old <code>_validate_path()</code> and
+  filesystem tool tests were removed — do not recreate them.</li>
+</ul>
+<h2 id="3-workflow-nuances">3. Workflow Nuances</h2>
+<h3 id="pre-commit-pipeline">Pre-Commit Pipeline</h3>
+<p>The <code>.pre-commit-config.yaml</code> runs these hooks in order:</p>
+<ol>
+<li><code>trailing-whitespace</code> — auto-fixes</li>
+<li><code>end-of-file-fixer</code> — auto-fixes</li>
+<li><code>check-yaml</code> — blocks on invalid YAML</li>
+<li><code>check-added-large-files</code> — blocks on large binaries</li>
+<li><code>black</code> — auto-formats Python</li>
+<li><code>flake8</code> — blocks on lint errors</li>
+<li><code>ansible-lint</code> — blocks on Ansible issues</li>
+<li><code>markdownlint --fix</code> — auto-fixes markdown, blocks on unfixable issues</li>
+<li><code>pytest</code> — runs full test suite, blocks on failures</li>
+</ol>
+<p><strong>Key behavior</strong>: When pre-commit auto-fixes files (black, markdownlint, trailing-whitespace),
+the commit is rejected. You must <code>git add</code> the fixed files and commit again. This is normal
+and expected — not a sign of failure.</p>
+<h3 id="markdownlint-specifics">Markdownlint Specifics</h3>
+<ul>
+<li>Fenced code blocks require a language tag (MD040). Use <code>text</code> for generic output blocks.</li>
+<li>This has tripped up CLAUDE.md and similar files with unlabeled code fences.</li>
+</ul>
+<h3 id="test-execution">Test Execution</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># scripts/run_tests.sh runs:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>flake8<span class="w"> </span>.
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pytest<span class="w"> </span>-p<span class="w"> </span>no:cacheprovider
+</code></pre></div>
+<ul>
+<li>The <code>-p no:cacheprovider</code> flag disables pytest caching. No <code>.pytest_cache</code> artifacts
+  should accumulate.</li>
+<li>Tests expect the venv to be activated (<code>source venv/bin/activate</code>).</li>
+</ul>
+<h3 id="docker-compose-behavior">Docker Compose Behavior</h3>
+<ul>
+<li><code>nebulus up</code> runs <code>docker compose up -d --build</code> — always rebuilds images.</li>
+<li>Before starting, the CLI attempts to stop/remove any standalone <code>open-webui</code> container
+  to avoid port conflicts on 3000.</li>
+<li>All services have resource limits. TabbyAPI gets the GPU (device 1). If only one GPU
+  exists, this may need to change to device 0.</li>
+</ul>
+<h3 id="backup-and-restore">Backup and Restore</h3>
+<ul>
+<li>Backups are <code>.tar.gz</code> files in <code>backups/</code> directory.</li>
+<li>Restore is interactive (prompts for backup selection and volume name).</li>
+<li>Volume name is auto-suggested from the filename pattern (e.g., <code>chroma</code> → <code>chroma_data</code>).</li>
+</ul>
+<hr />
+<h2 id="4-cross-project-learnings">4. Cross-Project Learnings</h2>
+<h3 id="pattern-large-scale-feature-implementation-from-atom-project">Pattern: Large-Scale Feature Implementation (from Atom Project)</h3>
+<p>When implementing complex multi-component features:</p>
+<p><strong>✅ Successful Patterns:</strong></p>
+<ol>
+<li><strong>Incremental Feature Branches</strong> — one branch per major component</li>
+<li><strong>Test-First Development</strong> — write tests before/during implementation</li>
+<li><strong>Continuous Integration</strong> — run full test suite after each merge</li>
+<li><strong>E2E Tests as Gate</strong> — comprehensive integration tests before production</li>
+<li><strong>Fast Test Suite</strong> — keep tests under 2-3 seconds for rapid iteration</li>
+</ol>
+<p><strong>❌ Anti-Patterns to Avoid:</strong></p>
+<ul>
+<li>Don't implement multiple components in one massive commit</li>
+<li>Don't write tests after implementation (leads to implementation-biased tests)</li>
+<li>Don't merge to main without full test suite passing</li>
+<li>Don't skip E2E validation for "simple" features</li>
+</ul>
+<p><strong>Metrics That Matter:</strong></p>
+<ul>
+<li>100% test success rate on merge</li>
+<li>Sub-3-second test suite (enables rapid iteration)</li>
+<li>Zero rollbacks (proper testing prevents this)</li>
+<li>Feature branches live &lt;24 hours (prevents merge conflicts)</li>
+</ul>
+<h3 id="pattern-ai-instruction-files">Pattern: AI Instruction Files</h3>
+<p>Maintain three instruction files with distinct purposes:</p>
+<ul>
+<li><strong>CLAUDE.md</strong> — Project context, architecture, standards (read-first)</li>
+<li><strong>GEMINI.md</strong> — Gemini-specific instructions and patterns</li>
+<li><strong>AI_INSIGHTS.md</strong> — Long-term memory, pitfalls, lessons learned (this file)</li>
+</ul>
+<p><strong>Update triggers:</strong></p>
+<ul>
+<li>CLAUDE.md: Architecture changes, new standards, new tools</li>
+<li>GEMINI.md: Gemini-specific discoveries, brainstorming patterns</li>
+<li>AI_INSIGHTS.md: Pitfalls encountered, recurring issues, project-specific quirks</li>
+</ul>
+<hr />
+<h2 id="5-recommendations-for-future-sessions">5. Recommendations for Future Sessions</h2>
+<h3 id="before-starting-work">Before Starting Work</h3>
+<ol>
+<li>Read CLAUDE.md (project context)</li>
+<li>Read AI_INSIGHTS.md (this file) for pitfalls</li>
+<li>Run <code>git status</code> and <code>git stash list</code> to check for uncommitted work</li>
+<li>Run test suite to establish baseline (<code>scripts/run_tests.sh</code>)</li>
+</ol>
+<h3 id="during-development">During Development</h3>
+<ol>
+<li>Commit frequently (every 10-15 minutes of significant work)</li>
+<li>Run tests after each logical change</li>
+<li>Use feature branches for all non-trivial changes</li>
+<li>Keep branch lifetime under 24 hours</li>
+</ol>
+<h3 id="before-merging">Before Merging</h3>
+<ol>
+<li>Run full test suite</li>
+<li>Run pre-commit hooks</li>
+<li>Verify Docker services if infrastructure changed</li>
+<li>Update documentation if adding features</li>
+</ol>
+<h3 id="session-end">Session End</h3>
+<ol>
+<li>Commit all work (never leave uncommitted changes)</li>
+<li>Update AI_INSIGHTS.md if new pitfalls discovered</li>
+<li>Push to remote if work is ready for integration</li>
+<li>Document any open questions or blockers</li>
+</ol>
+<h2 id="6-documentation-wiki">6. Documentation &amp; Wiki</h2>
+<ul>
+<li><strong>GitHub wiki</strong>: Cloned at <code>../nebulus-prime.wiki/</code> (sibling directory). Uses SSH remote (<code>git@github.com:jlwestsr/nebulus-prime.wiki.git</code>), <code>master</code> branch.</li>
+<li><strong>Wiki pages</strong> (10): Home, Architecture, Setup-and-Installation, Docker-Services, MCP-Server, CLI-Reference, Models, Development-Guide, Troubleshooting.</li>
+<li><strong>Wiki initialization</strong>: GitHub wikis must be initialized via the web UI first (create one placeholder page), then local content can be force-pushed.</li>
+<li><strong>Ecosystem wikis</strong>: All four project wikis are live:</li>
+<li><code>nebulus-prime.wiki</code> — 10 pages (this project)</li>
+<li><code>nebulus-edge.wiki</code> — 5 pages</li>
+<li><code>nebulus-core.wiki</code> — 8 pages</li>
+<li><code>nebulus-gantry.wiki</code> — 9 pages</li>
+<li><strong>Cross-project doc sync</strong>: When a feature ships, update the corresponding wiki. Wiki repos are independent git repos — commit and push separately from the main repo.</li>
+<li><strong>README links old wiki URL</strong>: The README currently links to <code>github.com/jlwestsr/nebulus/wiki</code> (old repo name). These should be updated to <code>github.com/jlwestsr/nebulus-prime/wiki</code> when convenient.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.expand", "navigation.indexes"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
