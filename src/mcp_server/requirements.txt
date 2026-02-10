@@ -1,16 +1,8 @@
-mcp[cli]
+nebulus-core @ git+https://github.com/jlwestsr/nebulus-core.git@develop
 fastapi
 uvicorn
-duckduckgo-search
-beautifulsoup4
 apscheduler
 sqlalchemy
-httpx
-pypdf
-python-docx
-chromadb
-nebulus-core @ git+https://github.com/jlwestsr/nebulus-core.git@main
-google-api-python-client
 python-dotenv
-selectolax
+google-api-python-client
 googlesearch-python
