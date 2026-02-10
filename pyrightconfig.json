@@ -1,0 +1,35 @@
+{
+  "include": [
+    "src",
+    "nebulus_prime"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/.pytest_cache",
+    "**/.mypy_cache",
+    "**/venv",
+    "**/.venv",
+    "**/_build",
+    "**/dist",
+    "**/build",
+    "**/models",
+    "**/data"
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "pythonVersion": "3.10",
+  "pythonPlatform": "Linux",
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "pythonVersion": "3.10",
+      "extraPaths": [
+        "src",
+        "nebulus_prime"
+      ]
+    }
+  ],
+  "venvPath": ".",
+  "venv": "venv"
+}

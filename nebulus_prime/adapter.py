@@ -41,6 +41,14 @@ class PrimeAdapter:
         return os.getenv("NEBULUS_MODEL", "llama3.1")
 
     @property
+    def mcp_settings(self) -> dict:
+        """MCP server configuration for Docker workspace."""
+        return {
+            "workspace_path": Path("/workspace"),
+            "server_name": "Black Box Tools",
+        }
+
+    @property
     def data_dir(self) -> Path:
         """Root directory for persistent data."""
         return Path(os.getenv("NEBULUS_DATA_DIR", "data"))

@@ -1,10 +1,7 @@
 import os
-import shutil
+import sys
 import unittest
 from unittest.mock import patch, MagicMock
-import sys
-import asyncio
-import subprocess
 
 # Add mcp_server to path
 sys.path.append(
@@ -12,220 +9,124 @@ sys.path.append(
 )
 
 
-# Mock FastMCP to return a dummy decorator that leaves functions unchanged
-def dummy_decorator():
-    def wrapper(func):
-        return func
+def _make_mock_mcp():
+    """Create a mock FastMCP that tracks tool registrations."""
+    mock = MagicMock()
+    registered_tools = []
 
-    return wrapper
+    def tool_decorator():
+        def wrapper(func):
+            registered_tools.append(func.__name__)
+            return func
 
+        return wrapper
 
-mock_mcp = MagicMock()
-mock_mcp.tool.side_effect = dummy_decorator
-
-with patch("mcp.server.fastmcp.FastMCP", return_value=mock_mcp):
-    import importlib
-    import server
-
-    importlib.reload(server)
-    from server import (
-        read_file,
-        write_file,
-        edit_file,
-        list_directory,
-        run_command,
-        scrape_url,
-        search_code,
-        _validate_path,
-    )
+    mock.tool.side_effect = tool_decorator
+    mock._registered_tools = registered_tools
+    return mock
 
 
-class TestMCPTools(unittest.IsolatedAsyncioTestCase):
-    def setUp(self):
-        # Create a dummy workspace for testing
-        self.test_dir = os.path.abspath("tests/test_workspace")
-        os.makedirs(self.test_dir, exist_ok=True)
+class TestSchedulerTools(unittest.TestCase):
+    """Test Prime-only scheduler MCP tools."""
 
-        # Patch the base path in the server module to point to our test dir
-        self.patcher = patch("server._validate_path")
-        self.mock_validate = self.patcher.start()
+    @patch("db.LTMClient")
+    @patch("scheduler.TaskScheduler")
+    @patch("nebulus_core.mcp.create_server")
+    def test_schedule_task(self, mock_create_server, mock_scheduler_cls, mock_ltm):
+        mock_mcp = _make_mock_mcp()
+        mock_create_server.return_value = mock_mcp
 
-        # Define a side effect that mimics the real logic but uses our test_dir
-        def side_effect(path):
-            base_path = self.test_dir
-            target_path = os.path.join(base_path, path.lstrip("/"))
-            if not os.path.abspath(target_path).startswith(base_path):
-                raise ValueError("Access denied")
-            return target_path
+        mock_sched = MagicMock()
+        mock_sched.add_task.return_value = "Task scheduled: test-123"
+        mock_scheduler_cls.return_value = mock_sched
 
-        self.mock_validate.side_effect = side_effect
+        import importlib
+        import server
 
-    def tearDown(self):
-        self.patcher.stop()
-        if os.path.exists(self.test_dir):
-            shutil.rmtree(self.test_dir)
+        importlib.reload(server)
 
-    def test_write_and_read_file(self):
-        filename = "test.txt"
-        content = "Hello, World!"
-
-        # write
-        result = write_file(filename, content)
-        self.assertIn("Successfully wrote", result)
-
-        # read
-        read_content = read_file(filename)
-        self.assertEqual(read_content, content)
-
-    def test_edit_file(self):
-        filename = "edit_test.txt"
-        initial_content = "Hello, World!"
-        write_file(filename, initial_content)
-
-        # edit
-        result = edit_file(filename, "World", "Nebulus")
-        self.assertIn("Successfully edited", result)
-
-        # verify
-        new_content = read_file(filename)
-        self.assertEqual(new_content, "Hello, Nebulus!")
-
-    def test_list_directory(self):
-        os.makedirs(os.path.join(self.test_dir, "subdir"), exist_ok=True)
-        write_file("subdir/file1.txt", "content")
-
-        listing = list_directory("subdir")
-        self.assertIn("file1.txt", listing)
-
-    def test_security_traversal(self):
-        # The mock side_effect enforces the logic we want to test
-        with self.assertRaises(ValueError):
-            _validate_path("../outside.txt")
-
-    @patch("subprocess.run")
-    def test_run_command_security(self, mock_run):
-        # Configure successful run
-        mock_result = MagicMock()
-        mock_result.returncode = 0
-        mock_result.stdout = "output"
-        mock_run.return_value = mock_result
-
-        # Test allowed command
-        result = run_command("ls -la")
-        self.assertEqual(result, "output")
-        mock_run.assert_called_with(
-            ["ls", "-la"], cwd="/workspace", capture_output=True, text=True, timeout=30
+        result = server.schedule_task(
+            "Daily Report", "Generate report", "0 8 * * *", "a@b.com, c@d.com"
         )
 
-        # Test blocked binary
-        result = run_command("rm file.txt")
-        self.assertIn("Error: Command", result)
-        self.assertIn("not allowed", result)
-
-        # Test blocked operator
-        result = run_command("ls; rm file")
-        self.assertIn("Error: Operator", result)
-        self.assertIn("not allowed", result)
-
-        # Test timeout (simulate exception)
-        mock_run.side_effect = subprocess.TimeoutExpired(["echo"], 30)
-        result = run_command("echo test_timeout")
-        self.assertIn("Error: Command timed out", result)
-
-    @patch("httpx.AsyncClient")
-    async def test_scrape_url(self, mock_client_cls):
-        # Mock client context manager
-        mock_client = MagicMock()
-
-        # Async context manager mocks
-        mock_client_cls.return_value.__aenter__.return_value = mock_client
-        mock_client_cls.return_value.__aexit__.return_value = None
-
-        # Mock response
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.text = (
-            "<html><body><h1>Title</h1><p>Content  with  spaces</p>"
-            "<script>var x=1;</script></body></html>"
+        mock_sched.add_task.assert_called_once_with(
+            "Daily Report", "Generate report", "0 8 * * *", ["a@b.com", "c@d.com"]
         )
+        self.assertEqual(result, "Task scheduled: test-123")
 
-        # Make get return an awaitable that resolves to mock_response
-        future = asyncio.Future()
-        future.set_result(mock_response)
-        mock_client.get.return_value = future
+    @patch("db.LTMClient")
+    @patch("scheduler.TaskScheduler")
+    @patch("nebulus_core.mcp.create_server")
+    def test_list_scheduled_tasks(
+        self, mock_create_server, mock_scheduler_cls, mock_ltm
+    ):
+        mock_mcp = _make_mock_mcp()
+        mock_create_server.return_value = mock_mcp
 
-        # Call scrape_url
-        result = await scrape_url("https://example.com")
+        mock_sched = MagicMock()
+        mock_sched.list_tasks.return_value = "No tasks scheduled."
+        mock_scheduler_cls.return_value = mock_sched
 
-        # Verify
-        self.assertIn("Title", result)
-        self.assertIn("Content with spaces", result)
-        self.assertNotIn("var x=1", result)  # Script should be removed
+        import importlib
+        import server
 
-        # Verify call arguments
-        # Since it's async, we check if it was called (arguments verification depends on how AsyncClient was instantiated)
-        # But we mocked the class return value, so we can check the instance.
-        mock_client.get.assert_called_with(
-            "https://example.com",
-            headers={
-                "User-Agent": (
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/91.0.4472.124 Safari/537.36"
-                )
-            },
-        )
+        importlib.reload(server)
 
-        # Test request error
-        future_error = asyncio.Future()
-        future_error.set_exception(Exception("Connection error"))
-        mock_client.get.side_effect = None  # Reset side_effect if any from previous
-        mock_client.get.return_value = future_error
+        result = server.list_scheduled_tasks()
+        mock_sched.list_tasks.assert_called_once()
+        self.assertEqual(result, "No tasks scheduled.")
 
-        result = await scrape_url("https://example.com")
-        self.assertIn("Unexpected error", result)
+    @patch("db.LTMClient")
+    @patch("scheduler.TaskScheduler")
+    @patch("nebulus_core.mcp.create_server")
+    def test_delete_scheduled_task(
+        self, mock_create_server, mock_scheduler_cls, mock_ltm
+    ):
+        mock_mcp = _make_mock_mcp()
+        mock_create_server.return_value = mock_mcp
 
-    @patch("subprocess.run")
-    def test_search_code(self, mock_run):
-        # Configure successful search
-        mock_result = MagicMock()
-        mock_result.returncode = 0
-        mock_result.stdout = "file.py:10:def foo():"
-        mock_run.return_value = mock_result
+        mock_sched = MagicMock()
+        mock_sched.delete_task.return_value = "Deleted task: job-456"
+        mock_scheduler_cls.return_value = mock_sched
 
-        # Test search
-        result = search_code("def foo")
-        self.assertEqual(result, "file.py:10:def foo():")
+        import importlib
+        import server
 
-        # Verify command arguments
-        mock_run.assert_called_with(
-            [
-                "grep",
-                "-r",
-                "-n",
-                "-I",
-                "-H",
-                "--exclude-dir={.git,__pycache__,node_modules,venv,.env}",
-                "def foo",
-                self.test_dir
-                + "/.",  # Should use test_dir because of mock_validate side_effect
-            ],
-            cwd="/workspace",
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
+        importlib.reload(server)
 
-        # Test no matches
-        mock_result.returncode = 1
-        result = search_code("missing_pattern")
-        self.assertEqual(result, "No matches found.")
+        result = server.delete_scheduled_task("job-456")
+        mock_sched.delete_task.assert_called_once_with("job-456")
+        self.assertEqual(result, "Deleted task: job-456")
 
-        # Test grep error
-        mock_result.returncode = 2
-        mock_result.stderr = "grep error"
-        result = search_code("bad_pattern")
-        self.assertIn("Error executing grep", result)
+
+class TestCoreToolRegistration(unittest.TestCase):
+    """Verify that create_server is called and scheduler tools are registered."""
+
+    @patch("db.LTMClient")
+    @patch("scheduler.TaskScheduler")
+    @patch("nebulus_core.mcp.create_server")
+    def test_server_registers_scheduler_tools(
+        self, mock_create_server, mock_scheduler_cls, mock_ltm
+    ):
+        mock_mcp = _make_mock_mcp()
+        mock_create_server.return_value = mock_mcp
+
+        import importlib
+        import server
+
+        importlib.reload(server)
+
+        # Verify create_server was called with correct config
+        mock_create_server.assert_called_once()
+        config = mock_create_server.call_args[0][0]
+        self.assertEqual(str(config.workspace_path), "/workspace")
+        self.assertEqual(config.server_name, "Black Box Tools")
+
+        # Verify the 3 scheduler tools were registered on the mock
+        registered = mock_mcp._registered_tools
+        self.assertIn("schedule_task", registered)
+        self.assertIn("list_scheduled_tasks", registered)
+        self.assertIn("delete_scheduled_task", registered)
 
 
 if __name__ == "__main__":

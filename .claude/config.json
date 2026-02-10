@@ -1,0 +1,71 @@
+{
+  "project": "nebulus-prime",
+  "description": "Linux deployment — Docker Compose, TabbyAPI/ExLlamaV2, NVIDIA GPU",
+  "mcpServers": {
+    "pyright-lsp": {
+      "disabled": false,
+      "priority": "high",
+      "reason": "Type checking for CLI and services"
+    },
+    "serena": {
+      "disabled": false,
+      "priority": "high",
+      "reason": "Navigate large codebase"
+    },
+    "context7": {
+      "disabled": false,
+      "priority": "medium",
+      "reason": "Docs for FastAPI, Docker, TabbyAPI, ChromaDB"
+    },
+    "superpowers": {
+      "disabled": false,
+      "priority": "high",
+      "reason": "TDD and debugging workflows"
+    },
+    "pr-review-toolkit": {
+      "disabled": false,
+      "priority": "medium",
+      "reason": "Code quality checks"
+    },
+    "commit-commands": {
+      "disabled": false,
+      "priority": "medium",
+      "reason": "Git workflow automation"
+    },
+    "feature-dev": {
+      "disabled": false,
+      "priority": "medium",
+      "reason": "Feature development workflows"
+    },
+    "github": {
+      "disabled": false,
+      "priority": "medium",
+      "reason": "Release management and wiki"
+    },
+    "typescript-lsp": {
+      "disabled": true,
+      "reason": "No TypeScript"
+    },
+    "playwright": {
+      "disabled": true,
+      "reason": "No UI"
+    },
+    "supabase": {
+      "disabled": true,
+      "reason": "Not using Supabase"
+    },
+    "ralph-loop": {
+      "disabled": true,
+      "reason": "No automation loops"
+    }
+  },
+  "projectSettings": {
+    "language": "Python",
+    "version": "3.10+",
+    "type": "cli-backend",
+    "platform": "Linux",
+    "deployment": "Docker Compose",
+    "lsp": "pyright",
+    "testFramework": "pytest"
+  }
+}

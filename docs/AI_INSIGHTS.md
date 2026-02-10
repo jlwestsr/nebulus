@@ -17,7 +17,7 @@ Five containerized services on a shared Docker bridge network (`ai-network`):
 |---------|--------------|---------------|------|
 | TabbyAPI | 5000 | 5000 | LLM inference (ExLlamaV2, GPU-bound) |
 | ChromaDB | 8000 | 8001 | Vector DB for embeddings and LTM |
-| MCP Server | 8000 | 8002 | Tool server (FastMCP/FastAPI, 13 tools) |
+| MCP Server | 8000 | 8002 | Tool server (core MCP tools + scheduler, 13 tools) |
 | Open WebUI | 8080 | 3000 | Chat frontend |
 | Dozzle | 8080 | 8888 | Log monitoring via Docker socket |
 
@@ -53,7 +53,9 @@ The LTM system uses two parallel stores:
 ### Non-Obvious Decisions
 
 - The MCP server mounts the entire project as `/workspace` — all file tool operations are
-  scoped to this path via `_validate_path()`.
+  scoped to this path via `nebulus_core.mcp.create_server()` with `MCPConfig(workspace_path="/workspace")`.
+  The 10 platform-agnostic tools (filesystem, search, web, documents, shell) live in
+  `nebulus_core.mcp.tools` — Prime only defines 3 scheduler tools locally.
 - Graph store persists to disk on every write (add_entity, add_relation). No batching.
 - The CLI dynamically loads memory commands via `src.core.memory.cli_extension.register_commands()`.
 - `nebulus` with no arguments auto-runs the `status` command (health check table).
@@ -63,8 +65,9 @@ The LTM system uses two parallel stores:
 ### Dependency Management
 
 - **Dual requirements files**: `requirements.txt` (project root) and `src/mcp_server/requirements.txt`
-  (MCP container). They overlap significantly. Changes to shared packages must be reflected in both,
-  or the container build will diverge from the venv.
+  (MCP container). The MCP container requirements are now slim — most dependencies come transitively
+  via `nebulus-core`. Only Prime-specific packages (fastapi, uvicorn, apscheduler, sqlalchemy, etc.)
+  are listed directly. The core ref points at `@develop` branch.
 - **Chroma metadata type constraint**: ChromaDB only accepts primitive types (str, int, float, bool)
   in metadata fields. Complex types must be stringified. This has caused silent data loss when
   dict/list values were passed directly.
@@ -100,8 +103,10 @@ The LTM system uses two parallel stores:
   need to test real scheduling behavior, you must override the autouse fixture.
 - **pytest pythonpath**: Configured in `pyproject.toml` as `["src", "gantry", "mcp_server"]`.
   The `gantry` path appears to be a legacy reference — there is no `gantry/` directory.
-- **Path validation in tests**: MCP tool tests must mock `_validate_path()` to point at a test
-  directory, or they will try to operate under `/workspace` (which doesn't exist outside Docker).
+- **MCP tool tests mock `create_server`**: Since the 10 core tools are tested in nebulus-core
+  (65 tests), Prime's `test_mcp_tools.py` only tests the 3 scheduler tools and verifies that
+  `create_server()` is called with the correct `MCPConfig`. The old `_validate_path()` and
+  filesystem tool tests were removed — do not recreate them.
 
 ## 3. Workflow Nuances
 
@@ -153,3 +158,92 @@ pytest -p no:cacheprovider
 - Backups are `.tar.gz` files in `backups/` directory.
 - Restore is interactive (prompts for backup selection and volume name).
 - Volume name is auto-suggested from the filename pattern (e.g., `chroma` → `chroma_data`).
+
+---
+
+## 4. Cross-Project Learnings
+
+### Pattern: Large-Scale Feature Implementation (from Atom Project)
+
+When implementing complex multi-component features:
+
+**✅ Successful Patterns:**
+
+1. **Incremental Feature Branches** — one branch per major component
+2. **Test-First Development** — write tests before/during implementation
+3. **Continuous Integration** — run full test suite after each merge
+4. **E2E Tests as Gate** — comprehensive integration tests before production
+5. **Fast Test Suite** — keep tests under 2-3 seconds for rapid iteration
+
+**❌ Anti-Patterns to Avoid:**
+
+- Don't implement multiple components in one massive commit
+- Don't write tests after implementation (leads to implementation-biased tests)
+- Don't merge to main without full test suite passing
+- Don't skip E2E validation for "simple" features
+
+**Metrics That Matter:**
+
+- 100% test success rate on merge
+- Sub-3-second test suite (enables rapid iteration)
+- Zero rollbacks (proper testing prevents this)
+- Feature branches live <24 hours (prevents merge conflicts)
+
+### Pattern: AI Instruction Files
+
+Maintain three instruction files with distinct purposes:
+
+- **CLAUDE.md** — Project context, architecture, standards (read-first)
+- **GEMINI.md** — Gemini-specific instructions and patterns
+- **AI_INSIGHTS.md** — Long-term memory, pitfalls, lessons learned (this file)
+
+**Update triggers:**
+
+- CLAUDE.md: Architecture changes, new standards, new tools
+- GEMINI.md: Gemini-specific discoveries, brainstorming patterns
+- AI_INSIGHTS.md: Pitfalls encountered, recurring issues, project-specific quirks
+
+---
+
+## 5. Recommendations for Future Sessions
+
+### Before Starting Work
+
+1. Read CLAUDE.md (project context)
+2. Read AI_INSIGHTS.md (this file) for pitfalls
+3. Run `git status` and `git stash list` to check for uncommitted work
+4. Run test suite to establish baseline (`scripts/run_tests.sh`)
+
+### During Development
+
+1. Commit frequently (every 10-15 minutes of significant work)
+2. Run tests after each logical change
+3. Use feature branches for all non-trivial changes
+4. Keep branch lifetime under 24 hours
+
+### Before Merging
+
+1. Run full test suite
+2. Run pre-commit hooks
+3. Verify Docker services if infrastructure changed
+4. Update documentation if adding features
+
+### Session End
+
+1. Commit all work (never leave uncommitted changes)
+2. Update AI_INSIGHTS.md if new pitfalls discovered
+3. Push to remote if work is ready for integration
+4. Document any open questions or blockers
+
+## 6. Documentation & Wiki
+
+- **GitHub wiki**: Cloned at `../nebulus-prime.wiki/` (sibling directory). Uses SSH remote (`git@github.com:jlwestsr/nebulus-prime.wiki.git`), `master` branch.
+- **Wiki pages** (10): Home, Architecture, Setup-and-Installation, Docker-Services, MCP-Server, CLI-Reference, Models, Development-Guide, Troubleshooting.
+- **Wiki initialization**: GitHub wikis must be initialized via the web UI first (create one placeholder page), then local content can be force-pushed.
+- **Ecosystem wikis**: All four project wikis are live:
+  - `nebulus-prime.wiki` — 10 pages (this project)
+  - `nebulus-edge.wiki` — 5 pages
+  - `nebulus-core.wiki` — 8 pages
+  - `nebulus-gantry.wiki` — 9 pages
+- **Cross-project doc sync**: When a feature ships, update the corresponding wiki. Wiki repos are independent git repos — commit and push separately from the main repo.
+- **README links old wiki URL**: The README currently links to `github.com/jlwestsr/nebulus/wiki` (old repo name). These should be updated to `github.com/jlwestsr/nebulus-prime/wiki` when convenient.
