@@ -12,7 +12,9 @@ services:
       - /bin/sh
       - -c
     command: >
-      "cp /app/config_mount/config.yml /app/config.yml && python3 main.py"
+      "cp /app/config_mount/config.yml /app/config.yml &&
+       cp /app/config_mount/api_tokens.yml /app/api_tokens.yml &&
+       python3 main.py"
     networks:
       - ai-network
     ports:
@@ -115,7 +117,7 @@ services:
       - webui_data:/app/backend/data
     environment:
       - OPENAI_API_BASE_URL=http://tabby:5000/v1
-      - OPENAI_API_KEY=dummy
+      - OPENAI_API_KEY=${TABBY_API_KEY}  # NPRIME-03: real TabbyAPI auth key
     networks:
       - ai-network
     depends_on:

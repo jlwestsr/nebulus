@@ -3,8 +3,9 @@ network:
   host: 0.0.0.0
   # Port to bind to (default: 5000).
   port: 5000
-  # Disable HTTP token authentication with requests.
-  disable_auth: true
+  # NPRIME-03: Authentication enabled — API key required for all requests.
+  # Key is read from TABBY_API_KEY env var at container startup.
+  disable_auth: false
   # Disable fetching external content in response to requests.
   disable_fetch_requests: false
   # Send tracebacks over the API (default: False).

@@ -14,6 +14,9 @@ venv/
 .env
 *.egg-info
 
+# TabbyAPI tokens (contains secrets — use api_tokens.example.yml as template)
+config/tabby/api_tokens.yml
+
 # Jupyter Notebooks
 .ipynb_checkpoints
 
