@@ -17,7 +17,7 @@ Five containerized services on a shared Docker bridge network (`ai-network`):
 |---------|--------------|---------------|------|
 | TabbyAPI | 5000 | 5000 | LLM inference (ExLlamaV2, GPU-bound) |
 | ChromaDB | 8000 | 8001 | Vector DB for embeddings and LTM |
-| MCP Server | 8000 | 8002 | Tool server (FastMCP/FastAPI, 13 tools) |
+| MCP Server | 8000 | 8002 | Tool server (core MCP tools + scheduler, 13 tools) |
 | Open WebUI | 8080 | 3000 | Chat frontend |
 | Dozzle | 8080 | 8888 | Log monitoring via Docker socket |
 
@@ -53,7 +53,9 @@ The LTM system uses two parallel stores:
 ### Non-Obvious Decisions
 
 - The MCP server mounts the entire project as `/workspace` — all file tool operations are
-  scoped to this path via `_validate_path()`.
+  scoped to this path via `nebulus_core.mcp.create_server()` with `MCPConfig(workspace_path="/workspace")`.
+  The 10 platform-agnostic tools (filesystem, search, web, documents, shell) live in
+  `nebulus_core.mcp.tools` — Prime only defines 3 scheduler tools locally.
 - Graph store persists to disk on every write (add_entity, add_relation). No batching.
 - The CLI dynamically loads memory commands via `src.core.memory.cli_extension.register_commands()`.
 - `nebulus` with no arguments auto-runs the `status` command (health check table).
@@ -63,8 +65,9 @@ The LTM system uses two parallel stores:
 ### Dependency Management
 
 - **Dual requirements files**: `requirements.txt` (project root) and `src/mcp_server/requirements.txt`
-  (MCP container). They overlap significantly. Changes to shared packages must be reflected in both,
-  or the container build will diverge from the venv.
+  (MCP container). The MCP container requirements are now slim — most dependencies come transitively
+  via `nebulus-core`. Only Prime-specific packages (fastapi, uvicorn, apscheduler, sqlalchemy, etc.)
+  are listed directly. The core ref points at `@develop` branch.
 - **Chroma metadata type constraint**: ChromaDB only accepts primitive types (str, int, float, bool)
   in metadata fields. Complex types must be stringified. This has caused silent data loss when
   dict/list values were passed directly.
@@ -100,8 +103,10 @@ The LTM system uses two parallel stores:
   need to test real scheduling behavior, you must override the autouse fixture.
 - **pytest pythonpath**: Configured in `pyproject.toml` as `["src", "gantry", "mcp_server"]`.
   The `gantry` path appears to be a legacy reference — there is no `gantry/` directory.
-- **Path validation in tests**: MCP tool tests must mock `_validate_path()` to point at a test
-  directory, or they will try to operate under `/workspace` (which doesn't exist outside Docker).
+- **MCP tool tests mock `create_server`**: Since the 10 core tools are tested in nebulus-core
+  (65 tests), Prime's `test_mcp_tools.py` only tests the 3 scheduler tools and verifies that
+  `create_server()` is called with the correct `MCPConfig`. The old `_validate_path()` and
+  filesystem tool tests were removed — do not recreate them.
 
 ## 3. Workflow Nuances
 
