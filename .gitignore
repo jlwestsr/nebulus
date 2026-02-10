@@ -56,3 +56,9 @@ chainlit.md
 .claude/tmp/
 .claude/agents/
 # Commit: .claude/config.json, .claude/README.md
+
+# Logs
+logs/
+
+# Serena
+.serena/
