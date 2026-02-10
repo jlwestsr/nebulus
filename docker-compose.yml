@@ -16,7 +16,7 @@ services:
     networks:
       - ai-network
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"  # NPRIME-02: localhost only — no unauthenticated network exposure
     logging:
       driver: "json-file"
       options:
@@ -38,7 +38,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "8888:8080"
+      - "127.0.0.1:8888:8080"  # NPRIME-02: localhost only — log viewer has Docker socket access
     environment:
       - DOZZLE_LEVEL=info
     networks:
@@ -63,7 +63,7 @@ services:
     environment:
       - IS_PERSISTENT=TRUE
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"  # NPRIME-02: localhost only — vector DB has no auth
     networks:
       - ai-network
     deploy:
@@ -85,7 +85,7 @@ services:
       - .:/workspace # Mount current directory to /workspace for file tools
       - ./src/mcp_server:/app
     ports:
-      - "8002:8000"
+      - "127.0.0.1:8002:8000"  # NPRIME-02: localhost only — MCP API has no auth
     networks:
       - ai-network
     environment:
@@ -110,7 +110,7 @@ services:
     container_name: open-webui
     restart: unless-stopped
     ports:
-      - "3000:8080"
+      - "127.0.0.1:3000:8080"  # NPRIME-02: localhost only — use reverse proxy for LAN access
     volumes:
       - webui_data:/app/backend/data
     environment:
