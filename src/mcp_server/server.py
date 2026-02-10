@@ -99,6 +99,12 @@ app.mount(
 )
 
 
+# TODO(NPRIME-06): Add API key authentication middleware to all /api/* endpoints.
+# All task, conversation, and user preference endpoints below are currently
+# unauthenticated. Implement FastAPI Depends() with X-API-Key header validation.
+# Primary mitigation: services bound to 127.0.0.1 only (NPRIME-02).
+
+
 # API: List Tasks
 async def get_tasks_api(request: Request):
     return JSONResponse(scheduler.get_tasks())

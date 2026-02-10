@@ -12,11 +12,13 @@ services:
       - /bin/sh
       - -c
     command: >
-      "cp /app/config_mount/config.yml /app/config.yml && python3 main.py"
+      "cp /app/config_mount/config.yml /app/config.yml &&
+       cp /app/config_mount/api_tokens.yml /app/api_tokens.yml &&
+       python3 main.py"
     networks:
       - ai-network
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"  # NPRIME-02: localhost only — no unauthenticated network exposure
     logging:
       driver: "json-file"
       options:
@@ -36,9 +38,13 @@ services:
     container_name: logs
     restart: unless-stopped
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      # NPRIME-04: Docker socket required for log viewing. Read-only mitigates
+      # container-escape risk but does NOT fully eliminate it — Dozzle can still
+      # read all container metadata. Consider docker-socket-proxy for stricter
+      # isolation if this machine handles sensitive workloads.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
-      - "8888:8080"
+      - "127.0.0.1:8888:8080"  # NPRIME-02: localhost only — log viewer has Docker socket access
     environment:
       - DOZZLE_LEVEL=info
     networks:
@@ -62,8 +68,16 @@ services:
       - chroma_data:/chroma/chroma
     environment:
       - IS_PERSISTENT=TRUE
+      # NPRIME-07: ChromaDB token auth enabled server-side. Clients must pass
+      # Authorization: Bearer <token> header. Note: nebulus-core VectorClient
+      # does not yet pass auth tokens — update VectorClient to support
+      # auth_token setting before rebuilding this container with auth enforced.
+      # Until then, localhost-only binding (NPRIME-02) is the primary mitigation.
+      # Uncomment these lines after VectorClient is updated:
+      # - CHROMA_SERVER_AUTHN_PROVIDER=chromadb.auth.token_authn.TokenAuthenticationServerProvider
+      # - CHROMA_SERVER_AUTHN_CREDENTIALS=${CHROMA_AUTH_TOKEN}
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"  # NPRIME-02: localhost only
     networks:
       - ai-network
     deploy:
@@ -85,7 +99,7 @@ services:
       - .:/workspace # Mount current directory to /workspace for file tools
       - ./src/mcp_server:/app
     ports:
-      - "8002:8000"
+      - "127.0.0.1:8002:8000"  # NPRIME-02: localhost only — MCP API has no auth
     networks:
       - ai-network
     environment:
@@ -110,12 +124,12 @@ services:
     container_name: open-webui
     restart: unless-stopped
     ports:
-      - "3000:8080"
+      - "127.0.0.1:3000:8080"  # NPRIME-02: localhost only — use reverse proxy for LAN access
     volumes:
       - webui_data:/app/backend/data
     environment:
       - OPENAI_API_BASE_URL=http://tabby:5000/v1
-      - OPENAI_API_KEY=dummy
+      - OPENAI_API_KEY=${TABBY_API_KEY}  # NPRIME-03: real TabbyAPI auth key
     networks:
       - ai-network
     depends_on:
