@@ -293,3 +293,49 @@ findings. All were remediated in a single feature branch merged to `develop`.
 - **SMTP vars**: `.env` does not have SMTP variables set. Docker Compose warns on
   every operation. This is cosmetic — scheduler email features won't work until
   SMTP is configured.
+
+## 8. Docker Daemon CPU Incident (2026-02-11)
+
+### Symptom
+
+`containerd` (90.5% CPU) and `dockerd` (83.3% CPU) consuming ~174% combined CPU
+for 34+ hours. Individual containers showed near-zero CPU — the overhead was
+entirely in the daemon layer.
+
+### Root Cause
+
+The `open-webui` container entered a crash-restart loop (container ID `1c8d0c8`).
+Every ~2 minutes: container exits → containerd cleans up dead shim → dockerd
+evaluates `ShouldRestart` → restart canceled (manually stopped flag set) →
+shim reconnects → cycle repeats. The rapid shim disconnect/reconnect/cleanup
+cycle drove both daemons to near-100% CPU continuously.
+
+Additionally, dead containers from a separate compose project (Gantry backend/
+frontend) that were left in `Exited` state contributed to daemon overhead. After
+removing them, CPU dropped from ~55% to ~14% even with zero running containers.
+
+### Resolution
+
+1. `docker compose stop open-webui && docker compose rm -f open-webui && docker compose up -d open-webui` — broke the crash loop
+2. `docker system prune -af --volumes` — reclaimed 79.5 GB (unused images, build cache, orphaned volumes)
+3. Removed dead Gantry containers: `docker rm nebulus-gantry-backend-1 nebulus-gantry-frontend-1`
+4. Full daemon restart: `sudo systemctl restart containerd && sudo systemctl restart docker`
+5. `docker compose up -d` — clean start, all services healthy
+
+### Lessons
+
+- **Crash-looping containers burn daemon CPU, not container CPU.** `docker stats`
+  will show the container itself at 0% while `containerd`/`dockerd` spike from
+  shim lifecycle churn. Always check daemon PIDs (`ps aux | grep containerd`)
+  when investigating CPU, not just `docker stats`.
+- **Dead containers from other compose projects persist** across `docker compose down`
+  of a different project. They can contribute to daemon overhead. Run
+  `docker ps -a` periodically to find and remove orphaned exited containers.
+- **Restarting `docker` does NOT restart `containerd`** — they are separate
+  systemd services. If containerd is the problem, restart it explicitly.
+- **`docker system prune -af --volumes`** is safe on dev machines and should be
+  run periodically. Build cache and unused images accumulated 143 GB before cleanup.
+- **Open WebUI health check** runs every 30 seconds via exec (`curl ... | jq`).
+  When the container is crash-looping, each health check exec adds to the shim
+  churn. Consider increasing the health check interval or start_period if
+  instability recurs.
