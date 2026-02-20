@@ -122,7 +122,7 @@ services:
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "127.0.0.1:3000:8080"  # NPRIME-02: localhost only — use reverse proxy for LAN access
     volumes:
