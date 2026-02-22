@@ -54,7 +54,7 @@ This security audit of nebulus-prime identified **11 security findings** across 
 **Finding**: Google API key stored in plaintext:
 
 ```bash
-GOOGLE_API_KEY=AIzaSyBITx5qySXNRo3YBxsErNey0twbuTZFIyQ
+GOOGLE_API_KEY=[REVOKED-KEY-EXPIRED]
 GOOGLE_CSE_ID=939a33d3800f94239
 ```
 
