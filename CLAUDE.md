@@ -14,7 +14,7 @@ Nebulus Prime is a production-grade, containerized local AI ecosystem for Linux.
 
 ## Tech Stack
 
-- **Language**: Python 3.12+ (managed via `uv`)
+- **Language**: Python 3.10+ (venv)
 - **Runtime**: Docker & Docker Compose
 - **Automation**: Ansible (`ansible/setup.yml`, `ansible/verify.yml`)
 - **CLI**: `click` + `rich` (entry: `src/cli.py`, script: `nebulus.py`)
@@ -94,7 +94,7 @@ pre-commit run --all-files
 ./scripts/run_tests.sh
 ```
 
-Pytest config: `pyproject.toml` — test paths: `tests/`, python paths: `src`, `gantry`, `mcp_server`.
+Pytest config: `pyproject.toml` — test paths: `tests/`, python paths: `.`, `src`, `mcp_server`.
 
 ## Key Commands
 
